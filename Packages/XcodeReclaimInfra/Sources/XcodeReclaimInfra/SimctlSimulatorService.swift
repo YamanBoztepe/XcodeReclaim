@@ -3,13 +3,9 @@ import XcodeReclaimEngine
 
 public struct SimctlSimulatorService: SimulatorService {
     private let tool: any Tool
-    private let disk: any Disk
-    private let devicesFolder: URL
 
-    public init(tool: any Tool, disk: any Disk, devicesFolder: URL) {
+    public init(tool: any Tool) {
         self.tool = tool
-        self.disk = disk
-        self.devicesFolder = devicesFolder
     }
 
     public func simulators() throws -> [Simulator] {
@@ -23,7 +19,7 @@ public struct SimctlSimulatorService: SimulatorService {
                     name: device.name,
                     runtime: runtimeNamed(runtime),
                     isShutDown: device.state == "Shutdown",
-                    bytes: disk.bytesUsedByFolder(at: devicesFolder.appending(path: device.udid)))
+                    bytes: device.dataPathSize ?? 0)
             }
         }
     }
@@ -38,6 +34,7 @@ private struct ReportedDevices: Decodable {
         let udid: String
         let name: String
         let state: String
+        let dataPathSize: Int?
     }
 
     let devices: [String: [ReportedDevice]]

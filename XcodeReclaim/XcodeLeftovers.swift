@@ -26,7 +26,7 @@ private extension WhereXcodeLeavesThings {
 
     var tool: any Tool { ProcessTool() }
 
-    var simulatorService: any SimulatorService { SimctlSimulatorService(tool: tool, disk: disk, devicesFolder: devicesFolder) }
+    var simulatorService: any SimulatorService { SimctlSimulatorService(tool: tool) }
 
     var xcodeCopies: any XcodeCopies { SystemXcodeCopies(tool: tool, disk: disk, applicationsFolder: applicationsFolder) }
 
@@ -44,7 +44,7 @@ private extension WhereXcodeLeavesThings {
     }
 
     var measuring: LeftoverListUIComposer.Measuring {
-        { [self] announce in measureLeftovers.leftovers(announcing: announce) }
+        { [self] announce in measureLeftovers.leftovers(announcing: announce, running: AllAtOnce.running) }
     }
 
     var deleting: LeftoverListUIComposer.Deleting {

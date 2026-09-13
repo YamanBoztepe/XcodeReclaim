@@ -6,7 +6,7 @@ import XcodeReclaimInfra
 struct SimctlSimulatorServiceTests {
     @Test
     func simulators_deliversEveryDeviceTheListReports() throws {
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .success(
             SimulatorList.reporting([
                 "com.apple.CoreSimulator.SimRuntime.iOS-18-1": [.init(udid: "AAAA-1", name: "iPhone 16 Pro")],
@@ -21,7 +21,7 @@ struct SimctlSimulatorServiceTests {
 
     @Test(arguments: [("Shutdown", true), ("Booted", false), ("Booting", false), ("Shutting Down", false), ("Creating", false), ("shutdown", false)])
     func simulators_readsAnyStateOtherThanShutdownAsNotShutDown(state: String, isShutDown: Bool) throws {
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
 
         let received = try sut.simulators()
@@ -39,7 +39,7 @@ struct SimctlSimulatorServiceTests {
         ("com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro", "com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro"),
     ])
     func simulators_deliversADeviceWithTheRuntimeItSitsUnder(runtime: String, named: String) throws {
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .success(SimulatorList.reporting([runtime: [.init()]]))
 
         let received = try sut.simulators()
@@ -48,11 +48,11 @@ struct SimctlSimulatorServiceTests {
     }
 
     @Test
-    func simulators_deliversADeviceWithTheRoomItsFolderTakes() throws {
+    func simulators_deliversADeviceWithTheRoomTheToolSaidItTakes() throws {
         let roomItTakes = 4_557_963_264
-        let (sut, tool, disk) = makeSUT()
-        tool.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "AAAA-1")]]))
-        disk.sizes[devicesFolder.appending(path: "AAAA-1")] = roomItTakes
+        let (sut, tool) = makeSUT()
+        tool.answers["xcrun"] = .success(
+            SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(dataPathSize: roomItTakes)]]))
 
         let received = try sut.simulators()
 
@@ -60,9 +60,20 @@ struct SimctlSimulatorServiceTests {
     }
 
     @Test
+    func simulators_deliversADeviceTheToolGaveNoRoomForAsTakingNone() throws {
+        let (sut, tool) = makeSUT()
+        tool.answers["xcrun"] = .success(
+            SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(dataPathSize: nil)]]))
+
+        let received = try sut.simulators()
+
+        #expect(received.map(\.bytes) == [0])
+    }
+
+    @Test
     func delete_tellsTheServiceToRemoveTheDevice() throws {
         let deviceIdentifier = "21B507D3-909E-465B-957C-4B370278399F"
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
 
         try sut.delete(simulatorWithIdentifier: deviceIdentifier)
 
@@ -71,7 +82,7 @@ struct SimctlSimulatorServiceTests {
 
     @Test("A deletion the service refuses frees nothing")
     func delete_throwsWhatTheServiceSaidWhenItRefuses() {
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .failure(WorldFailure(sentence: "Invalid device"))
 
         let received = #expect(throws: (any Error).self) { try sut.delete(simulatorWithIdentifier: "21B507D3") }
@@ -81,7 +92,7 @@ struct SimctlSimulatorServiceTests {
 
     @Test
     func simulators_throwsWhenTheListCannotBeRead() {
-        let (sut, tool, _) = makeSUT()
+        let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .success("not the list at all")
 
         #expect(throws: (any Error).self) { try sut.simulators() }
@@ -89,12 +100,9 @@ struct SimctlSimulatorServiceTests {
 }
 
 private extension SimctlSimulatorServiceTests {
-    var devicesFolder: URL { URL(fileURLWithPath: "/developer/CoreSimulator/Devices") }
-
-    func makeSUT() -> (sut: SimctlSimulatorService, tool: ToolSpy, disk: DiskStub) {
+    func makeSUT() -> (sut: SimctlSimulatorService, tool: ToolSpy) {
         let tool = ToolSpy()
-        let disk = DiskStub()
-        let sut = SimctlSimulatorService(tool: tool, disk: disk, devicesFolder: devicesFolder)
-        return (sut, tool, disk)
+        let sut = SimctlSimulatorService(tool: tool)
+        return (sut, tool)
     }
 }

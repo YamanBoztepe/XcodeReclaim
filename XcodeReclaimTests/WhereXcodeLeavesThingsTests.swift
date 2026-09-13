@@ -9,7 +9,6 @@ struct WhereXcodeLeavesThingsTests {
         let places = WhereXcodeLeavesThings.onThisMachine
 
         #expect(places.developerFolder.path(percentEncoded: false) == "\(home)/Library/Developer")
-        #expect(places.devicesFolder.path(percentEncoded: false) == "\(home)/Library/Developer/CoreSimulator/Devices")
         #expect(places.applicationsFolder.path(percentEncoded: false) == "/Applications")
     }
 

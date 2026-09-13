@@ -2,6 +2,8 @@ import Foundation
 import XcodeReclaimCore
 
 public struct MeasureLeftovers {
+    public typealias Running = ([() -> [Leftover]]) -> [[Leftover]]
+
     private let sources: [any LeftoverSource]
     private let worthDeleting: Int
 
@@ -13,12 +15,12 @@ public struct MeasureLeftovers {
         worthDeleting: Int
     ) {
         self.init(
-            sources: [
-                OfferedFolders(developerFolder: developerFolder, disk: disk),
-                DeviceSupportVersions(developerFolder: developerFolder, disk: disk),
-                Simulators(simulatorService: simulatorService),
-                CopiesOfXcode(xcodeCopies: xcodeCopies),
-            ],
+            sources: OfferedFolder.everyOne.map { OfferedFolders(offered: $0, developerFolder: developerFolder, disk: disk) }
+                + [
+                    DeviceSupportVersions(developerFolder: developerFolder, disk: disk),
+                    Simulators(simulatorService: simulatorService),
+                    CopiesOfXcode(xcodeCopies: xcodeCopies),
+                ],
             worthDeleting: worthDeleting)
     }
 
@@ -27,8 +29,13 @@ public struct MeasureLeftovers {
         self.worthDeleting = worthDeleting
     }
 
-    public func leftovers(announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
-        let found = sources.flatMap { $0.leftovers(announcing: announce) }
+    public func leftovers(
+        announcing announce: (String) -> Void = { _ in },
+        running: Running = { work in work.map { $0() } }
+    ) -> [Leftover] {
+        let found = withoutActuallyEscaping(announce) { announce in
+            running(sources.map { source in { source.leftovers(announcing: announce) } }).flatMap(\.self)
+        }
 
         return biggestFirst(found.filter { $0.bytes >= worthDeleting })
     }

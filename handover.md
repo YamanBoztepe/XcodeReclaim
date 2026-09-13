@@ -32,6 +32,30 @@ undone, and the only things on this machine to delete are the owner's. It needs
 a word from the owner before it is tried, and it should be tried on something
 chosen deliberately — a small simulator, not derived data.
 
+## How long the measuring takes
+
+Measured on this machine, with the product's own code:
+
+| what it walks | before | now |
+|---|---|---|
+| simulators, 114 folders | 73 s | **0.6 s** — `simctl` reports `dataPathSize`, so nothing is walked |
+| derived data, 45.6 GB | 47.9 s | 47.9 s, and it now runs beside the others |
+| copies of Xcode | 26.6 s | 26.6 s, beside the others |
+| everything | ~157 s | **49.6 s** in the probe, **61 s** in the running app |
+
+Two changes bought it. The simulator sizes come from `simctl` rather than from
+walking every device folder, and the sources run together rather than one after
+another — `MeasureLeftovers` takes a `running:` function, the app target hands it
+one that runs them at once, and the engine still holds no threading word of its
+own. What is left is the floor: derived data alone takes 48 s and everything else
+now hides behind it.
+
+**The cost of the first change is accuracy.** `dataPathSize` is what the simulator
+service already knows rather than what the disk holds: exact on small devices,
+about 8–11% low on large ones. The screen said 94.6 GB of simulators before and
+84.3 GB now; one device read 13.7 GB and now reads 13.3 GB. The owner chose this
+trade knowingly.
+
 ## Two notes from watching it
 
 - The window opens at 900×450 and the simulator list is long enough that the
