@@ -2,12 +2,12 @@ import SwiftUI
 import XcodeReclaimPresentation
 
 public struct LeftoverListView: View {
-    private let model: LeftoverListUIModel
-    private let onAppear: () -> Void
-    private let onRefresh: () -> Void
-    private let onAskAboutDeleting: (LeftoverRow) -> Void
-    private let onConfirm: () -> Void
-    private let onBackOut: () -> Void
+    public let model: LeftoverListUIModel
+    public let onAppear: () -> Void
+    public let onRefresh: () -> Void
+    public let onAskAboutDeleting: (LeftoverRow) -> Void
+    public let onConfirm: () -> Void
+    public let onBackOut: () -> Void
 
     public init(
         model: LeftoverListUIModel,

@@ -9,9 +9,9 @@ Every verdict below is the runner's exit code, never a search of its output.
 
 | file | mutants planned | suite that judges it | done |
 |---|---|---|---|
-| XcodeReclaim/XcodeLeftovers.swift | 4 | app target | 3 |
-| XcodeReclaim/LeftoverCrossing.swift | 5 | app target | 4 |
-| XcodeReclaim/TheMachine.swift | 3 | none — see below | 0 |
+| XcodeReclaim/LatestMeasuringOnlyDecorator.swift | 3 | app target | 3 |
+| XcodeReclaim/LeftoverListContainerView.swift | 4 | app target | 4 |
+| XcodeReclaim/XcodeLeftovers.swift, the machine-side half | 3 | none — see below | 1, and it survives |
 | XcodeReclaim/LeftoverListUIComposer.swift | 1 | app target | 0 |
 | XcodeReclaim/XcodeReclaimApp.swift | 1 | none — the entry point | 0 |
 | Core/Leftover.swift | 2 | engine package | 2 |
@@ -137,19 +137,43 @@ Every verdict below is the runner's exit code, never a search of its output.
 | LeftoverListUIComposer the deletion's callback | A deletion's outcome reaches the screen | app | killed |
 | LeftoverListUIComposer `latestOnly.measure(...)` | An opened screen asks for a measuring | app | killed |
 | WeakReference `weak var object` | The wiring does not keep the screen alive | app | killed |
-| LeftoverCrossing `PlaceCrossing.init` | A crossing keeps which place a leftover sits in | none | **survives — no suite can reach it** |
+| LeftoverListContainerView each of its four wires | The container binds the screen's inputs to the view model | app | killed |
+| LatestMeasuringOnlyDecorator `latestMeasuring += 1` | Each measuring is a new one | app | killed |
+| LeftoverListView `Text(model.title)` | The screen draws the title it was given | ui (snapshot) | killed |
+| LeftoverListView `if model.isMeasuring` | A measuring screen says so | ui (snapshot) | killed |
+| LeftoverListView `if let being = model.leftoverBeingMeasured` | A measuring screen names what it is working on | ui (snapshot) | killed |
+| LeftoverListView `if let said = model.whatTheDeletionSaid` | A screen after a deletion says what came back | ui (snapshot) | killed |
+| LeftoverListView `Text(section.element.size)` | The bar's key says how much each section holds | ui (snapshot) | killed |
+| LeftoverListUIModel `whatTheDeletionSaid` | The drawn model carries what the deletion said | presentation | killed |
+| LeftoverListViewModel `deletionUnderWay` | A row being deleted says so | presentation | killed |
+| XcodeLeftovers `whatCameBack(from:in:)` | A deletion is what the deleter did, not what was asked for | none | **survives — no suite reaches the machine** |
 
 ## The tally
 
-109 mutants across 22 production files.
+The whole sweep was run again, one mutant at a time, after a defect was found in
+the runner itself: it judged by the exit code alone, and a mutant that *failed to
+compile* also exits non-zero, so a mutant that was never judged was being written
+down as killed. The runner now builds first and says **"did not compile — not a
+mutant"**; three rows in this file had been recorded on runs that never happened.
+All three were rewritten so they compile, and all three then died — the
+conclusions held, the evidence did not.
 
-- **104 killed** — 99 outright, 4 after a missing test was written, 1 after a fixture
-  that could not discriminate was repaired.
+**112 mutants across 21 production files, every one re-judged.**
+
+- **108 killed.**
 - **3 pardoned**, each with its sentence below.
-- **2 deleted as excess** — the code went, not the mutant.
-- **1 survives with no answer**: `LeftoverCrossing.PlaceCrossing.init` can turn a
-  copy of Xcode into a folder and nothing goes red. It used to die; after the
-  review made the crossings internal, no suite can reach them. See below.
+- **1 survives with no answer**: the machine-side wiring in `XcodeLeftovers` can
+  free a leftover's room without asking `DeleteLeftover` at all, and nothing goes
+  red — the acceptance suite puts a spy where the machine is. See "What no suite
+  can judge".
+- **2 were answered earlier by deleting the code** rather than the mutant; that
+  code is gone, so those two are history rather than rows.
+
+The re-run found one more thing, and it is the reason for running it: the
+`LeftoverListUIModel` refactor silently took the teeth out of a test. "Nothing to
+delete is said while measuring too" had been killed by a test that called `open()`
+— and after the refactor `open()` no longer redraws, so the test passed either
+way. The test now refreshes over a finished measuring, and the mutant dies again.
 
 One further change was discarded rather than judged: adding an unused case to
 `Deletion` falsifies no rule, so it is a typo, not a mutant (rule 1).
@@ -196,12 +220,16 @@ measured 2026-09-13: an `NSHostingView` in a key window reports zero
 accessibility children and no labels — so what the view *says* is read back from
 its pixels rather than from its words.
 
-**`LeftoverCrossing.swift`, `MainThreadDecorator` and `WhereXcodeLeavesThings`** — the values and the machinery that carry
-a leftover across the thread boundary. The review settled that none of them is
-public, and the app's suite is a separate module, so nothing can reach them: the
-crossing round trip had a test and no longer does, and one mutant on it now
-survives with no answer. Three ways out, all the owner's to pick: let the
-acceptance suite reach them (public, or `@testable`), give the crossing a package
-of its own where `Sendable` is allowed to live, or leave it to QA and accept that
-a conversion defect there is caught by running the product rather than by a
-suite. Until one is picked it is written down here rather than hidden.
+**`XcodeLeftovers`'s two machine-side functions, `MainThreadDecorator` and
+`WhereXcodeLeavesThings`** — the wiring that names the folders Xcode leaves
+things in, builds the four adapters, and carries the answers back across the
+thread boundary. The acceptance suite puts a spy exactly where that wiring sits,
+so nothing can judge it: a mutant that frees a leftover's room without asking
+`DeleteLeftover` at all survives. It is judged by running the product instead,
+and the evidence for that is owed by QA.
+
+The crossing types that used to sit here are gone. Declaring `Sendable` on the
+core values — measured 2026-09-13: a checked `@retroactive Sendable` in the app
+target compiles and carries `[Leftover]` across a `Task.detached` boundary, but
+`swift-format`'s `AvoidRetroactiveConformances` refuses it — removed 86 lines
+that mirrored the models and the one mutant no suite could reach.

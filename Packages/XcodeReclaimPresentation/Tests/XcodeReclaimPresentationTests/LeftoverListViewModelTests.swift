@@ -53,10 +53,11 @@ final class LeftoverListViewModelTests {
     }
 
     @Test
-    func open_doesNotSayThereIsNothingToDeleteWhileMeasuring() {
+    func refresh_doesNotSayThereIsNothingToDeleteWhileMeasuringAgain() {
         let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [])
 
-        sut.open()
+        sut.refresh()
 
         #expect(sut.uiModel.nothingToDelete == false)
     }

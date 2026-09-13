@@ -1,13 +1,13 @@
 import Foundation
 
-public struct Leftover: Hashable {
-    public enum Place: Hashable {
+public struct Leftover: Hashable, Sendable {
+    public enum Place: Hashable, Sendable {
         case folder(URL)
         case simulator(String)
         case xcodeCopy(URL)
     }
 
-    public enum Refusal: Hashable {
+    public enum Refusal: Hashable, Sendable {
         case theSimulatorIsRunning
         case xcodeIsOpen
         case theCommandLineToolsPointAtIt

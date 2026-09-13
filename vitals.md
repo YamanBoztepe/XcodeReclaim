@@ -126,3 +126,27 @@ the suite red on the recorded pixels.
 runs a piece of work somewhere else and sends its answer back the same way. Four
 types went — the two background-thread adapters and the two view-model adapters —
 and the wiring they carried reads as six lines inside the composer and the root.
+
+## After the third review — Sendable where the type lives, and an honest re-run, 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 147 — engine 49, infra 35, presentation 45, ui 9, app 9 |
+| files in the composition root | 8 (was 9, was 13) |
+| lines the crossing layer cost | 86, now zero |
+| mutation, re-judged from scratch | 112 mutants, 108 killed, 3 pardoned, 1 survives with no answer |
+| threading grep over the packages' sources | 4 lines, all of them `Sendable` on a core value type; no `async`, no `Task`, no actor, no Dispatch |
+
+Two defects of my own came out of the re-run, and neither would have been found by
+reading. The mutation runner judged by exit code alone, and a mutant that fails to
+compile exits non-zero too — so three mutants that were never judged had been written
+down as killed. And the `LeftoverListUIModel` refactor quietly took the teeth out of
+one test: it drove `open()`, which after the refactor no longer redraws, so the
+mutant it used to kill walked through it.
+
+The measurement behind dropping the crossing layer: a checked
+`extension Leftover: @retroactive Sendable {}` in the app target compiles under
+strict concurrency and really does carry `[Leftover]` across a `Task.detached`
+boundary — nothing is silenced, the compiler checks every stored property — but
+`swift-format`'s `AvoidRetroactiveConformances` refuses it, so the conformance
+went where the type lives instead.

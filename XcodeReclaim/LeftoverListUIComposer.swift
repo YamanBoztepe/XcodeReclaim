@@ -7,6 +7,10 @@ public enum LeftoverListUIComposer {
     public typealias Deleting = @MainActor (_ leftover: Leftover, _ reporting: @escaping (Deletion) -> Void) -> Void
 
     public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListContainerView {
+        LeftoverListContainerView(model: viewModel(measuring: measuring, deleting: deleting))
+    }
+
+    private static func viewModel(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListViewModel {
         let latestOnly = LatestMeasuringOnlyDecorator(decorating: measuring)
         let screen = WeakReference<LeftoverListViewModel>()
         let model = LeftoverListViewModel(
@@ -20,6 +24,6 @@ public enum LeftoverListUIComposer {
             })
 
         screen.object = model
-        return LeftoverListContainerView(model: model)
+        return model
     }
 }

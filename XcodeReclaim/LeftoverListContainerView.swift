@@ -9,7 +9,7 @@ public struct LeftoverListContainerView: View {
         self.model = model
     }
 
-    public var body: some View {
+    public var screen: LeftoverListView {
         LeftoverListView(
             model: model.uiModel,
             onAppear: model.open,
@@ -17,5 +17,9 @@ public struct LeftoverListContainerView: View {
             onAskAboutDeleting: model.askAboutDeleting,
             onConfirm: model.confirm,
             onBackOut: model.backOut)
+    }
+
+    public var body: some View {
+        screen
     }
 }
