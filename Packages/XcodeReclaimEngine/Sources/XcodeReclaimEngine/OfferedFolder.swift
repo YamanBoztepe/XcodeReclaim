@@ -3,17 +3,18 @@ import XcodeReclaimCore
 
 struct OfferedFolder: LeftoverSource {
     struct Offered {
+        static let derivedData = Offered(name: "Derived data", relativePath: "Xcode/DerivedData", cost: nil)
+        static let interfaceBuilderCache = Offered(name: "Interface builder cache", relativePath: "Xcode/UserData/IB Support", cost: nil)
+        static let previews = Offered(name: "Previews", relativePath: "Xcode/UserData/Previews", cost: "the previews are built again")
+        static let documentationCache = Offered(
+            name: "Documentation cache",
+            relativePath: "Xcode/DocumentationCache",
+            cost: "the documentation is downloaded again")
+
         let name: String
         let relativePath: String
         let cost: String?
     }
-
-    static let everyOne = [
-        Offered(name: "Derived data", relativePath: "Xcode/DerivedData", cost: nil),
-        Offered(name: "Interface builder cache", relativePath: "Xcode/UserData/IB Support", cost: nil),
-        Offered(name: "Previews", relativePath: "Xcode/UserData/Previews", cost: "the previews are built again"),
-        Offered(name: "Documentation cache", relativePath: "Xcode/DocumentationCache", cost: "the documentation is downloaded again"),
-    ]
 
     let offered: Offered
     let developerFolder: URL

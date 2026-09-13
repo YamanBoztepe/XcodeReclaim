@@ -3,7 +3,7 @@ import XcodeReclaimPresentation
 
 @MainActor
 public enum LeftoverListUIComposer {
-    public typealias Measuring = @Sendable (_ announcing: @Sendable (String) -> Void) -> [Leftover]
+    public typealias Measuring = @Sendable (_ announcing: @escaping @Sendable (String) -> Void) async -> [Leftover]
     public typealias Deleting = @Sendable (Leftover) -> Deletion
 
     public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListContainerView {
@@ -32,6 +32,6 @@ public enum LeftoverListUIComposer {
         let announced = MainThreadDecorator<String> { onlyTheLatest.announce($0, from: thisMeasuring) }
 
         MainThreadDecorator<[Leftover]> { onlyTheLatest.deliver($0, from: thisMeasuring) }
-            .answer(from: { measuring({ announced($0) }) })
+            .answer(from: { await measuring({ announced($0) }) })
     }
 }

@@ -41,14 +41,15 @@ Measured on this machine, with the product's own code:
 | simulators, 114 folders | 73 s | **0.6 s** — `simctl` reports `dataPathSize`, so nothing is walked |
 | derived data, 45.6 GB | 47.9 s | 47.9 s, and it now runs beside the others |
 | copies of Xcode | 26.6 s | 26.6 s, beside the others |
-| everything | ~157 s | **49.6 s** in the probe, **61 s** in the running app |
+| everything | ~157 s | **56 s** in the running app |
 
 Two changes bought it. The simulator sizes come from `simctl` rather than from
-walking every device folder, and the sources run together rather than one after
-another — `MeasureLeftovers` takes a `running:` function, the app target hands it
-one that runs them at once, and the engine still holds no threading word of its
-own. What is left is the floor: derived data alone takes 48 s and everything else
-now hides behind it.
+walking every device folder, and the seven sources run together rather than one
+after another — `MeasureLeftovers` can measure one source at a time, and the app
+target runs them in a task group, each child rebuilding its own engine objects
+from `WhereXcodeLeavesThings`, which is the value that crosses. The engine holds
+no threading word of its own. What is left is the floor: derived data alone takes
+48 s and everything else now hides behind it.
 
 **The cost of the first change is accuracy.** `dataPathSize` is what the simulator
 service already knows rather than what the disk holds: exact on small devices,

@@ -44,7 +44,19 @@ private extension WhereXcodeLeavesThings {
     }
 
     var measuring: LeftoverListUIComposer.Measuring {
-        { [self] announce in measureLeftovers.leftovers(announcing: announce, running: AllAtOnce.running) }
+        { [self] announce in
+            let found = await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
+                for place in MeasureLeftovers.Offered.allCases.indices {
+                    measurings.addTask {
+                        (place, measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[place], announcing: announce))
+                    }
+                }
+
+                return await measurings.reduce(into: [:]) { found, each in found[each.0] = each.1 }
+            }
+
+            return measureLeftovers.leftovers(from: found.sorted { $0.key < $1.key }.map(\.value))
+        }
     }
 
     var deleting: LeftoverListUIComposer.Deleting {
