@@ -50,32 +50,21 @@ struct XcodeCopiesStub: XcodeCopies, Sendable {
     }
 }
 
-final class DiskWhoseFoldersWaitForEachOther: Disk, Sendable {
-    private static let secondsAnOverlapShowsItselfIn = 2
-    private static let longerThanAnOverlapNeedsToShowItself = DispatchTimeInterval.seconds(secondsAnOverlapShowsItselfIn)
+final class DiskSpy: Disk, Sendable {
+    private let held: DispatchSemaphore
+    private let asked = Mutex<[URL]>([])
 
-    private let folders: Int
-    private let arrived = Atomic(0)
-    private let everyFolderHasArrived = DispatchSemaphore(value: 0)
-    private let waits = Mutex<[DispatchTimeoutResult]>([])
-
-    init(folders: Int) {
-        self.folders = folders
+    init(heldAt held: DispatchSemaphore) {
+        self.held = held
     }
 
-    var howEachFolderWaited: [DispatchTimeoutResult] {
-        waits.withLock { $0 }
+    var foldersAskedAbout: [URL] {
+        asked.withLock { $0 }
     }
 
     func bytesUsedByFolder(at url: URL) -> Int {
-        if arrived.wrappingAdd(1, ordering: .relaxed).newValue == folders {
-            for _ in 0..<folders {
-                everyFolderHasArrived.signal()
-            }
-        }
-
-        let waited = everyFolderHasArrived.wait(timeout: .now() + Self.longerThanAnOverlapNeedsToShowItself)
-        waits.withLock { $0.append(waited) }
+        asked.withLock { $0.append(url) }
+        held.wait()
 
         return 0
     }

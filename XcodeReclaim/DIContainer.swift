@@ -1,19 +1,14 @@
-import XcodeReclaimEngine
+import Foundation
 import XcodeReclaimInfra
 
 struct DIContainer {
-    private let places: WhereXcodeLeavesThings
+    let disk: XcodeLeftovers.MakingADisk
+    let simulatorService: XcodeLeftovers.MakingASimulatorService
+    let xcodeCopies: XcodeLeftovers.MakingXcodeCopies
 
-    init(in places: WhereXcodeLeavesThings = .onThisMachine) {
-        self.places = places
-    }
-
-    var xcodeLeftovers: XcodeLeftovers {
-        XcodeLeftovers(
-            developerFolder: places.developerFolder,
-            worthDeleting: places.worthDeleting,
-            disk: { FileManagerDisk() },
-            simulatorService: { SimctlSimulatorService(tool: ProcessTool()) },
-            xcodeCopies: { SystemXcodeCopies(tool: ProcessTool(), disk: FileManagerDisk(), applicationsFolder: places.applicationsFolder) })
+    init(applicationsFolder: URL) {
+        disk = { FileManagerDisk() }
+        simulatorService = { SimctlSimulatorService(tool: ProcessTool()) }
+        xcodeCopies = { SystemXcodeCopies(tool: ProcessTool(), disk: FileManagerDisk(), applicationsFolder: applicationsFolder) }
     }
 }

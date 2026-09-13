@@ -18,7 +18,7 @@ struct AppDriver {
             xcodeCopies: XcodeCopiesStub(taking: copiesHeld(in: held)))
     }
 
-    init(theFoldersMeasuredBy disk: DiskWhoseFoldersWaitForEachOther) {
+    init(theFoldersMeasuredBy disk: DiskSpy) {
         self.init(disk: disk, simulatorService: SimulatorServiceStub(taking: []), xcodeCopies: XcodeCopiesStub(taking: []))
     }
 
@@ -58,6 +58,18 @@ extension AppDriver {
 
     func waitForMeasuringToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
         await wait(for: { !$0.isMeasuring }, sourceLocation: sourceLocation)
+    }
+
+    func waitUntil(_ settled: () -> Bool, sourceLocation: SourceLocation = #_sourceLocation) async {
+        let longerThanAnyStubbedMachineTakes = 100_000
+
+        for _ in 0..<longerThanAnyStubbedMachineTakes where !settled() {
+            await Task.yield()
+        }
+
+        if !settled() {
+            Issue.record("the machine never got there", sourceLocation: sourceLocation)
+        }
     }
 
     func waitForDeletionToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
