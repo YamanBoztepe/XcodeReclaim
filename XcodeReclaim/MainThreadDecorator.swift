@@ -9,4 +9,8 @@ final class MainThreadDecorator<Message: Sendable> {
     nonisolated func callAsFunction(_ message: Message) {
         Task { @MainActor in decoratee(message) }
     }
+
+    func answer(from work: @escaping @Sendable () -> Message) {
+        Task.detached(priority: .userInitiated) { self(work()) }
+    }
 }

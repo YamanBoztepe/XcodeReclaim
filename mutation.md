@@ -132,10 +132,11 @@ Every verdict below is the runner's exit code, never a search of its output.
 | LeftoverListView `if model.nothingToDelete` | A screen with nothing to delete says so | ui (snapshot) | killed |
 | LatestMeasuringOnlyDecorator the guard around `deliver` | A measuring the screen has replaced does not reach it | app | killed |
 | LatestMeasuringOnlyDecorator the guard around `announce` | nor do its announcements | app | killed |
-| LeftoverListViewModelMeasureAdapter `measuringEnded(with:)` | What the machine measured reaches the screen | app | killed |
-| LeftoverListViewModelMeasureAdapter `weak var screen` | The adapters do not keep the screen alive | app | killed |
-| LeftoverListViewModelDeleteAdapter `deletionEnded(with:)` | A deletion's outcome reaches the screen | app | killed |
-| LeftoverListUIComposer `measure.screen = model` | The composer feeds the view model it built | app | killed |
+| LeftoverListUIComposer `delivering:` | What the machine measured reaches the screen | app | killed |
+| LeftoverListUIComposer `announcing:` | What the machine is working on reaches the screen | app | killed |
+| LeftoverListUIComposer the deletion's callback | A deletion's outcome reaches the screen | app | killed |
+| LeftoverListUIComposer `latestOnly.measure(...)` | An opened screen asks for a measuring | app | killed |
+| WeakReference `weak var object` | The wiring does not keep the screen alive | app | killed |
 | LeftoverCrossing `PlaceCrossing.init` | A crossing keeps which place a leftover sits in | none | **survives — no suite can reach it** |
 
 ## The tally
@@ -195,8 +196,7 @@ measured 2026-09-13: an `NSHostingView` in a key window reports zero
 accessibility children and no labels — so what the view *says* is read back from
 its pixels rather than from its words.
 
-**`LeftoverCrossing.swift`, `MainThreadDecorator`, the two background-thread
-adapters and `WhereXcodeLeavesThings`** — the values and the machinery that carry
+**`LeftoverCrossing.swift`, `MainThreadDecorator` and `WhereXcodeLeavesThings`** — the values and the machinery that carry
 a leftover across the thread boundary. The review settled that none of them is
 public, and the app's suite is a separate module, so nothing can reach them: the
 crossing round trip had a test and no longer does, and one mutant on it now

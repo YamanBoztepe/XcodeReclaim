@@ -110,3 +110,19 @@ capacity bar gone, a row's refusal not drawn, the row being deleted still showin
 its size, a refused row still offering its button, the largest row unmarked, a
 section's symbol dropped, "Nothing to delete." missing — every one of them turns
 the suite red on the recorded pixels.
+
+## After the second review — one generic decorator instead of six parts, 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 147, unchanged |
+| files in the composition root | 9 (was 13) |
+| adapter and decorator types | 3 (was 6): `MainThreadDecorator<Message>` used three times, `LatestMeasuringOnlyDecorator` and `WeakReference<Object>` once each |
+| mutants re-run against the collapsed wiring | 7, all killed — the rules did not move, only the parts holding them |
+| threading grep over the packages' sources | empty |
+
+`MainThreadDecorator` now carries both halves of the one purpose the root has:
+`callAsFunction` sends a message back to the main thread, and `answer(from:)`
+runs a piece of work somewhere else and sends its answer back the same way. Four
+types went — the two background-thread adapters and the two view-model adapters —
+and the wiring they carried reads as six lines inside the composer and the root.

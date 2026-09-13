@@ -8,12 +8,18 @@ public enum LeftoverListUIComposer {
 
     public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListContainerView {
         let latestOnly = LatestMeasuringOnlyDecorator(decorating: measuring)
-        let measure = LeftoverListViewModelMeasureAdapter(measuring: latestOnly.measure)
-        let delete = LeftoverListViewModelDeleteAdapter(deleting: deleting)
-        let model = LeftoverListViewModel(measure: measure.measure, delete: delete.delete)
+        let screen = WeakReference<LeftoverListViewModel>()
+        let model = LeftoverListViewModel(
+            measure: {
+                latestOnly.measure(
+                    announcing: { screen.object?.announced($0) },
+                    delivering: { screen.object?.measuringEnded(with: $0) })
+            },
+            delete: { leftover in
+                deleting(leftover) { screen.object?.deletionEnded(with: $0) }
+            })
 
-        measure.screen = model
-        delete.screen = model
+        screen.object = model
         return LeftoverListContainerView(model: model)
     }
 }
