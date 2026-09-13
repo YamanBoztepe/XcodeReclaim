@@ -55,3 +55,23 @@ nothing observable, because a folder reports no allocated size at all —
 measured 2026-09-13 — so counting folders adds zero. The test is not toothless:
 the second falsification of the same rule, counting only what is *not* a regular
 file, dies at exit 1.
+
+## Part 4 — What the screen holds (presentation), 2026-09-13
+
+| reading | value |
+|---|---|
+| tests, presentation package | 44 in 4 suites (engine 49, infra 33 — 126 together) |
+| how long the tests take, tests alone | 0.001 s presentation, 0.034 s infra, 0.002 s engine |
+| ten slowest tests | every presentation test at 0.001 s; the suite's whole run is still under the runner's resolution. The four `/bin/sh` tests in infra remain the only ones that cost anything. |
+| ten pieces with the most branches | `FileManagerDisk.bytesUsedByFolder(at:)` 4; `LeftoverListViewModel.whyItCannotBeDeleted(_:)`, `.identity(of:)`, `.kind(of:)` and `MeasureLeftovers.refusal(for:)` 3; four pieces at 2; every other piece 1 |
+| coverage, presentation package | regions 100.00%, functions 100.00%, lines 100.00% (96 regions, 48 functions, 209 lines) |
+| mutation tally beside it | 16 by hand on presentation: 14 killed, 1 deleted as excess, 1 leak-tracker sabotage killed. Running total 42 mutants, 38 killed, 1 pardoned, 2 deleted as excess. |
+
+The excess: `deletionEnded(with:)` carried `guard !isMeasuring else { return }` to stop a
+finished deletion putting the old list back, but `refresh()` already clears what the last
+measuring found, so the guard could be removed with every test still green. The rule is held
+structurally rather than checked — proved by the second falsification, making `refresh()`
+keep the old list, which dies at exit 1.
+
+The leak tracking is not decorative: keeping the view model alive past the end of a test
+turns the suite red (exit 1).
