@@ -4,26 +4,17 @@ import Testing
 import XcodeReclaimCore
 
 @MainActor
-struct LeftoverListAcceptanceTests {
+struct XcodeReclaimAcceptanceTests {
     @Test("The developer opens the app and sees what may be deleted")
     func open_showsEveryLeftoverWithItsSize() async {
         let app = TheApp(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
 
         app.theDeveloperOpensIt()
-        #expect(app.theScreenIsMeasuring)
-        #expect(app.whatTheScreenShows.isEmpty)
+        #expect(app.theLeftoverListIsMeasuring)
+        #expect(app.whatTheLeftoverListShows.isEmpty)
 
         await app.untilTheMeasuringEnds()
-        #expect(app.whatTheScreenShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
-    }
-
-    @Test func open_measuresAwayFromTheScreensThread() async {
-        let app = TheApp(theMachineSaysWhereItRan: TheMachineThatSaysWhereItRan())
-
-        app.theDeveloperOpensIt()
-        await app.untilTheMeasuringEnds()
-
-        #expect(app.whatTheScreenShows == ["away from the screen's thread — 300 bytes"])
+        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
     }
 
     @Test("The developer deletes a leftover")
@@ -33,17 +24,16 @@ struct LeftoverListAcceptanceTests {
         await app.untilTheMeasuringEnds()
 
         app.theDeveloperAsksToDelete("Derived data")
-        #expect(app.whatTheScreenIsAskingToConfirm == "Derived data")
+        #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
 
         app.theDeveloperConfirms()
-        #expect(app.whatTheScreenIsAskingToConfirm == nil)
+        #expect(app.whatTheLeftoverListIsAskingToConfirm == nil)
         #expect(app.whichRowsSayTheyAreBeingDeleted == ["Derived data"])
         #expect(app.whichRowsOfferDeletion.isEmpty)
 
         await app.untilTheDeletionEnds()
-        #expect(app.whatTheScreenShows == ["iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
-        #expect(app.whatTheScreenSaysAboutTheDeletion == "300 bytes came back.")
-        #expect(app.whichRowsOfferDeletion == ["iPhone 17 (iOS 26.4, 21B507D3)"])
+        #expect(app.whatTheLeftoverListShows == ["iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
+        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == "300 bytes came back.")
     }
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
@@ -53,12 +43,12 @@ struct LeftoverListAcceptanceTests {
         await app.untilTheMeasuringEnds()
 
         app.theDeveloperAsksToDelete("Derived data")
-        #expect(app.whatTheScreenIsAskingToConfirm == "Derived data")
+        #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
 
         app.theDeveloperBacksOut()
-        #expect(app.whatTheScreenIsAskingToConfirm == nil)
-        #expect(app.whatTheScreenShows == ["Derived data — 300 bytes"])
-        #expect(app.whatTheScreenSaysAboutTheDeletion == nil)
+        #expect(app.whatTheLeftoverListIsAskingToConfirm == nil)
+        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes"])
+        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == nil)
     }
 
     @Test("The developer refreshes the list")
@@ -68,11 +58,11 @@ struct LeftoverListAcceptanceTests {
         await app.untilTheMeasuringEnds()
 
         app.theDeveloperAsksToRefresh()
-        #expect(app.theScreenIsMeasuring)
-        #expect(app.whatTheScreenShows.isEmpty)
+        #expect(app.theLeftoverListIsMeasuring)
+        #expect(app.whatTheLeftoverListShows.isEmpty)
 
         await app.untilTheMeasuringEnds()
-        #expect(app.whatTheScreenShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
+        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
     }
 
     @Test("The developer deletes a copy of Xcode they no longer use")
@@ -87,8 +77,8 @@ struct LeftoverListAcceptanceTests {
 
         app.theDeveloperConfirms()
         await app.untilTheDeletionEnds()
-        #expect(app.whatTheScreenShows == ["Derived data — 300 bytes"])
-        #expect(app.whatTheScreenSaysAboutTheDeletion == "4.0 GB came back.")
+        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes"])
+        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == "4.0 GB came back.")
     }
 
     @Test("The developer opens the app and it takes its place among the regular applications")
@@ -98,7 +88,7 @@ struct LeftoverListAcceptanceTests {
     }
 }
 
-private extension LeftoverListAcceptanceTests {
+private extension XcodeReclaimAcceptanceTests {
     func derivedData(taking bytes: Int) -> Leftover {
         ALeftoverOnTheMachine.derivedData(taking: bytes)
     }

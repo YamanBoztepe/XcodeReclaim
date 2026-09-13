@@ -2,11 +2,11 @@ import SwiftUI
 
 @main
 struct XcodeReclaimApp: App {
-    @State private var leftovers = XcodeLeftovers()
+    @State private var leftoverList = XcodeLeftovers().leftoverList()
 
     var body: some Scene {
         WindowGroup {
-            leftovers.screen
+            leftoverList
         }
         .windowResizability(.contentMinSize)
     }

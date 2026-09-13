@@ -2,27 +2,29 @@ import XcodeReclaimCore
 
 @MainActor
 final class LatestMeasuringOnlyDecorator {
-    private let decoratee: LeftoverListUIComposer.Measuring
+    private let announcing: (String) -> Void
+    private let delivering: ([Leftover]) -> Void
     private var latestMeasuring = 0
 
-    init(decorating decoratee: @escaping LeftoverListUIComposer.Measuring) {
-        self.decoratee = decoratee
+    init(announcing: @escaping (String) -> Void, delivering: @escaping ([Leftover]) -> Void) {
+        self.announcing = announcing
+        self.delivering = delivering
     }
 
-    func measure(announcing announce: @escaping (String) -> Void, delivering deliver: @escaping ([Leftover]) -> Void) {
+    func aMeasuringBegins() -> Int {
         latestMeasuring += 1
-        let thisMeasuring = latestMeasuring
+        return latestMeasuring
+    }
 
-        decoratee(
-            { [weak self] name in
-                guard self?.latestMeasuring == thisMeasuring else { return }
+    func announce(_ name: String, from measuring: Int) {
+        guard measuring == latestMeasuring else { return }
 
-                announce(name)
-            },
-            { [weak self] measured in
-                guard self?.latestMeasuring == thisMeasuring else { return }
+        announcing(name)
+    }
 
-                deliver(measured)
-            })
+    func deliver(_ leftovers: [Leftover], from measuring: Int) {
+        guard measuring == latestMeasuring else { return }
+
+        delivering(leftovers)
     }
 }

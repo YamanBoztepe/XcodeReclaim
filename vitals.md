@@ -17,6 +17,7 @@ says something. These are observations, not targets.
 | 8 — after the third review | 0.002 s / 49 | 0.074 s / 35 | 0.002 s / 45 | 0.406 s / 9 | 0.17 s / 16 |
 | 9 — after the fourth review | 0.002 s / 49 | 0.070 s / 35 | 0.002 s / 45 | 0.355 s / 9 | 0.25 s / 17 |
 | 10 — after the fifth review | 0.002 s / 49 | 0.070 s / 35 | 0.001 s / 45 | 0.355 s / 9 | 0.61 s / 21 |
+| 11 — app acceptance, screen integration | 0.002 s / 49 | 0.070 s / 35 | 0.001 s / 45 | 0.355 s / 9 | 21 tests: 6 acceptance, 11 integration, 4 places |
 
 ## The ten slowest tests
 
@@ -58,3 +59,4 @@ says something. These are observations, not targets.
 | 4 | 100% | 97.53% | 100% | 42 | 38 | 1 | 2 | 0 |
 | 5 | 100% | 97.53% | 100% | 52 | 49 | 1 | 2 | 0 |
 | 6 (re-judged from scratch) | 100% | 97.53% | 100% | 112 | 108 | 3 | 2 | 1 |
+| 7 | 100% | 97.53% | 100% | 3 re-judged on the moved wiring | 3 | — | — | — |
