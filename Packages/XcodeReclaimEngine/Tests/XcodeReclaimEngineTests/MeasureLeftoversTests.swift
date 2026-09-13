@@ -154,6 +154,16 @@ struct MeasureLeftoversTests {
 
         #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
     }
+
+    @Test
+    func measureOne_deliversALeftoverTheWholeMeasuringWouldFindTooSmall() {
+        let worthDeleting = 100
+        let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
+        disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
+
+        #expect(sut.leftovers(of: .derivedData, announcing: disk.announce).map(\.name) == ["Derived data"])
+        #expect(sut.leftovers(announcing: disk.announce).isEmpty)
+    }
 }
 
 private struct TheSimulatorsCannotBeListed: Error {}
