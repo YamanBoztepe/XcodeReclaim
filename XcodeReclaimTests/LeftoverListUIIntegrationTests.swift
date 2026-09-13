@@ -81,6 +81,48 @@ struct LeftoverListUIIntegrationTests {
         #expect(drawn(container).title == "XcodeReclaim")
     }
 
+    @Test("The developer watches the measuring work through the leftovers")
+    func announced_namesEachLeftoverAsTheMeasuringReachesIt() {
+        let (container, machine) = makeSUT()
+        container.screen.onAppear()
+        #expect(drawn(container).leftoverBeingMeasured == nil)
+
+        machine.announce("Derived data", from: 0)
+        #expect(drawn(container).leftoverBeingMeasured == "Derived data")
+
+        machine.announce("Previews", from: 0)
+        #expect(drawn(container).leftoverBeingMeasured == "Previews")
+
+        machine.deliver([derivedData(taking: 300)], from: 0)
+        #expect(drawn(container).leftoverBeingMeasured == nil)
+    }
+
+    @Test("A measuring the screen has replaced does not reach it")
+    func refresh_dropsWhatAReplacedMeasuringDelivers() {
+        let (container, machine) = makeSUT()
+        container.screen.onAppear()
+
+        container.screen.onRefresh()
+        machine.deliver([derivedData(taking: 27_700_000_000)], from: 0)
+        #expect(drawn(container).isMeasuring)
+        #expect(drawn(container).sections.isEmpty)
+
+        machine.deliver([derivedData(taking: 300)], from: 1)
+        #expect(drawn(container).sections.flatMap(\.rows).map(\.name) == ["Derived data"])
+    }
+
+    @Test func refresh_dropsWhatAReplacedMeasuringAnnounces() {
+        let (container, machine) = makeSUT()
+        container.screen.onAppear()
+
+        container.screen.onRefresh()
+        machine.announce("Derived data", from: 0)
+        #expect(drawn(container).leftoverBeingMeasured == nil)
+
+        machine.announce("Previews", from: 1)
+        #expect(drawn(container).leftoverBeingMeasured == "Previews")
+    }
+
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {
         let machine = TheMachineSpy()
         var container: LeftoverListContainerView? = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)

@@ -5,29 +5,39 @@ import XcodeReclaimInfra
 
 @MainActor
 public final class XcodeLeftovers {
+    public typealias Measuring = @Sendable (_ announcing: @Sendable (String) -> Void) -> [Leftover]
+    public typealias Deleting = @Sendable (Leftover) -> Deletion
+
     public private(set) lazy var screen = LeftoverListUIComposer.screen(measuring: measure, deleting: delete)
 
-    private let places: WhereXcodeLeavesThings
+    private let measuring: Measuring
+    private let deleting: Deleting
 
-    public init() {
-        places = .onThisMachine
+    public init(measuring: @escaping Measuring, deleting: @escaping Deleting) {
+        self.measuring = measuring
+        self.deleting = deleting
+    }
+
+    public convenience init() {
+        let places = WhereXcodeLeavesThings.onThisMachine
+        self.init(
+            measuring: { announce in whatXcodeLeft(in: places, announcing: announce) },
+            deleting: { leftover in whatCameBack(from: leftover, in: places) })
     }
 }
 
 private extension XcodeLeftovers {
     func measure(announcing announce: @escaping (String) -> Void, delivering deliver: @escaping ([Leftover]) -> Void) {
         let announced = MainThreadDecorator(announce)
-        let whereThingsAre = places
+        let measuring = measuring
 
-        MainThreadDecorator(deliver)
-            .answer(from: { whatXcodeLeft(in: whereThingsAre, announcing: { announced($0) }) })
+        MainThreadDecorator(deliver).answer(from: { measuring({ announced($0) }) })
     }
 
     func delete(_ leftover: Leftover, reporting report: @escaping (Deletion) -> Void) {
-        let whereThingsAre = places
+        let deleting = deleting
 
-        MainThreadDecorator(report)
-            .answer(from: { whatCameBack(from: $0, in: whereThingsAre) }, given: leftover)
+        MainThreadDecorator(report).answer(from: { deleting(leftover) })
     }
 }
 

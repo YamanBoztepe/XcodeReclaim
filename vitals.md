@@ -166,3 +166,28 @@ at all. It cannot carry the deletion's request, and the compiler says exactly wh
 at `LeftoverListViewModel.confirm()`: the screen keeps the leftover it asked about,
 because the row has to say "Deleting…" while the deletion runs. A value you keep
 is copied, not handed over, and `Sendable` is what says a copy is safe.
+
+## After the fifth review — the acceptance suite drives the real root, 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 155 — engine 49, infra 35, presentation 45, ui 9, app 17 (7 acceptance, 10 integration) |
+| what the acceptance suite drives | `XcodeLeftovers` — the real root, the real composer, the real view model, the real view and the real thread hop; only the machine is stubbed |
+| what the integration suite drives | `LeftoverListUIComposer` — the UI parts together, synchronous and deterministic |
+| internal detail reachable from a test | none; the dual-compiled `MainThreadDecorator.swift` is out of `project.yml` |
+| `Sendable` in the packages' sources | 4 words on the two core values that cross |
+
+The threading is now held by an acceptance test rather than by QA: the stubbed
+machine reports which thread it ran on, and the screen shows
+"away from the screen's thread". Running the measuring on the main thread instead
+kills it (exit 65).
+
+Two scenarios moved from acceptance to integration, and the reason is honest
+rather than tidy: with a real thread hop, a transient state cannot be observed
+without controlling the machine mid-flight. "The developer watches the measuring
+work through the leftovers" and "A measuring the screen has replaced does not
+reach it" are both about a moment between two answers, so they are asserted where
+the answers are synchronous. Listening for them was tried first and measured:
+`withObservationTracking` is one-shot and demonstrably missed the announcements,
+and `Observations` — the tool that does not miss — needs macOS 26 while the app
+targets 15.

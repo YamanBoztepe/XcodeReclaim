@@ -6,57 +6,49 @@ import XcodeReclaimUI
 
 @MainActor
 final class TheApp {
-    private let machine = TheMachineSpy()
-    private let container: LeftoverListContainerView
+    private let leftovers: XcodeLeftovers
 
-    init() {
-        container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+    init(theMachineFinds finds: [Leftover] = [], announcing announces: [String] = []) {
+        let machine = TheMachine(finds: finds, announces: announces)
+        leftovers = XcodeLeftovers(measuring: machine.measuring, deleting: machine.deleting)
+    }
+
+    init(theMachineSaysWhereItRan machine: TheMachineThatSaysWhereItRan) {
+        leftovers = XcodeLeftovers(measuring: machine.measuring, deleting: machine.deleting)
     }
 }
 
 extension TheApp {
     func theDeveloperOpensIt() {
-        container.screen.onAppear()
+        screen.onAppear()
     }
 
     func theDeveloperAsksToRefresh() {
-        container.screen.onRefresh()
+        screen.onRefresh()
     }
 
     func theDeveloperAsksToDelete(_ name: String) {
         guard let row = everyRow.first(where: { $0.name == name }) else { return }
 
-        container.screen.onAskAboutDeleting(row)
+        screen.onAskAboutDeleting(row)
     }
 
     func theDeveloperConfirms() {
-        container.screen.onConfirm()
+        screen.onConfirm()
     }
 
     func theDeveloperBacksOut() {
-        container.screen.onBackOut()
+        screen.onBackOut()
     }
 }
 
 extension TheApp {
-    func theMeasuringAnnounces(_ name: String) {
-        machine.announce(name, from: theMeasuringUnderWay)
+    func untilTheMeasuringEnds() async {
+        await untilTheScreen { !$0.isMeasuring }
     }
 
-    func theMeasuringFinds(_ leftovers: [Leftover]) {
-        machine.deliver(leftovers, from: theMeasuringUnderWay)
-    }
-
-    func theMeasuringThatWasReplacedAnnounces(_ name: String) {
-        machine.announce(name, from: theMeasuringThatWasReplaced)
-    }
-
-    func theMeasuringThatWasReplacedFinds(_ leftovers: [Leftover]) {
-        machine.deliver(leftovers, from: theMeasuringThatWasReplaced)
-    }
-
-    func theDeletionFrees(_ bytes: Int) {
-        machine.report(.freed(bytes), from: theDeletionUnderWay)
+    func untilTheDeletionEnds() async {
+        await untilTheScreen { $0.whatTheDeletionSaid != nil }
     }
 }
 
@@ -66,23 +58,23 @@ extension TheApp {
     }
 
     var whatTheScreenSaysAboutTheDeletion: String? {
-        container.screen.model.whatTheDeletionSaid
+        screen.model.whatTheDeletionSaid
     }
 
     var theScreenIsMeasuring: Bool {
-        container.screen.model.isMeasuring
+        screen.model.isMeasuring
     }
 
     var whatTheScreenIsMeasuring: String? {
-        container.screen.model.leftoverBeingMeasured
+        screen.model.leftoverBeingMeasured
     }
 
     var whatTheScreenIsAskingToConfirm: String? {
-        container.screen.model.confirmation?.name
+        screen.model.confirmation?.name
     }
 
     var whatTheConfirmationReads: String? {
-        container.screen.model.confirmation?.sentence
+        screen.model.confirmation?.sentence
     }
 
     var whichRowsSayTheyAreBeingDeleted: [String] {
@@ -92,30 +84,22 @@ extension TheApp {
     var whichRowsOfferDeletion: [String] {
         everyRow.filter(\.canBeDeleted).map(\.name)
     }
-
-    var whatTheMachineWasAskedToDelete: [String] {
-        machine.deletions.map(\.name)
-    }
-
-    var howManyMeasuringsWereAskedFor: Int {
-        machine.measurings
-    }
 }
 
 private extension TheApp {
+    var screen: LeftoverListView {
+        leftovers.screen.screen
+    }
+
     var everyRow: [LeftoverRow] {
-        container.screen.model.sections.flatMap(\.rows)
+        screen.model.sections.flatMap(\.rows)
     }
 
-    var theMeasuringUnderWay: Int {
-        machine.measurings - 1
-    }
+    func untilTheScreen(_ settles: (LeftoverListUIModel) -> Bool) async {
+        let longerThanAnyStubbedMachineTakes = 100_000
 
-    var theMeasuringThatWasReplaced: Int {
-        0
-    }
-
-    var theDeletionUnderWay: Int {
-        machine.deletions.count - 1
+        for _ in 0..<longerThanAnyStubbedMachineTakes where !settles(screen.model) {
+            await Task.yield()
+        }
     }
 }
