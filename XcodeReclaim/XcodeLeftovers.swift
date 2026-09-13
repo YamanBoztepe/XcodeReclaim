@@ -27,7 +27,7 @@ private extension XcodeLeftovers {
         let whereThingsAre = places
 
         MainThreadDecorator(report)
-            .answer(from: { whatCameBack(from: leftover, in: whereThingsAre) })
+            .answer(from: { whatCameBack(from: $0, in: whereThingsAre) }, given: leftover)
     }
 }
 

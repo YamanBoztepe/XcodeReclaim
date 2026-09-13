@@ -32,6 +32,10 @@ extension TheApp {
     func theDeveloperConfirms() {
         container.screen.onConfirm()
     }
+
+    func theDeveloperBacksOut() {
+        container.screen.onBackOut()
+    }
 }
 
 extension TheApp {
@@ -71,6 +75,22 @@ extension TheApp {
 
     var whatTheScreenIsMeasuring: String? {
         container.screen.model.leftoverBeingMeasured
+    }
+
+    var whatTheScreenIsAskingToConfirm: String? {
+        container.screen.model.confirmation?.name
+    }
+
+    var whatTheConfirmationReads: String? {
+        container.screen.model.confirmation?.sentence
+    }
+
+    var whichRowsSayTheyAreBeingDeleted: [String] {
+        everyRow.compactMap { $0.deletionUnderWay == nil ? nil : $0.name }
+    }
+
+    var whichRowsOfferDeletion: [String] {
+        everyRow.filter(\.canBeDeleted).map(\.name)
     }
 
     var whatTheMachineWasAskedToDelete: [String] {

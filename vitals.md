@@ -150,3 +150,19 @@ strict concurrency and really does carry `[Leftover]` across a `Task.detached`
 boundary — nothing is silenced, the compiler checks every stored property — but
 `swift-format`'s `AvoidRetroactiveConformances` refuses it, so the conformance
 went where the type lives instead.
+
+## After the fourth review — sending, temporal flows, an integration suite, 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 154 — engine 49, infra 35, presentation 45, ui 9, app 16 (9 acceptance, 7 integration) |
+| `Sendable` in the packages' sources | 3 words, all on `Leftover` and its two nested enums; `Deletion` needs none |
+| the decorator's constraint on its payload | none — `MainThreadDecorator<Message>` is unconstrained and carries values with `sending` |
+| acceptance tests written as temporal flows | 8 of 9; the ninth is about the app bundle and has no flow |
+
+Measured rather than argued: `sending` carries a value that is *born* in the
+background — the measured leftovers and the deletion's outcome need no `Sendable`
+at all. It cannot carry the deletion's request, and the compiler says exactly why
+at `LeftoverListViewModel.confirm()`: the screen keeps the leftover it asked about,
+because the row has to say "Deleting…" while the deletion runs. A value you keep
+is copied, not handed over, and `Sendable` is what says a copy is safe.
