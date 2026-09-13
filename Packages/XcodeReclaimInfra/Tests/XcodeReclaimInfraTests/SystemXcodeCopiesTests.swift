@@ -1,0 +1,201 @@
+import Foundation
+import Testing
+import XcodeReclaimEngine
+import XcodeReclaimInfra
+
+struct SystemXcodeCopiesTests {
+    @Test func aCopyCarriesTheVersionAndBuildItsBundleDeclares() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+
+        let received = sut.copies()
+
+        #expect(received.map(\.version) == [XcodeCopy.Version(number: "26.2", build: "17C51")])
+        #expect(received.map(\.path) == [app])
+    }
+
+    @Test func aCopyWhoseBundleDeclaresNoBuildCarriesNoVersion() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.madeCarryingNoBuild(named: "Xcode.app", carrying: "26.1.1", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+
+        let received = sut.copies()
+
+        #expect(received.map(\.version) == [nil])
+    }
+
+    @Test func whenTheSearchAnswersNothingTheApplicationsFolderIsReadInstead() {
+        let roomItTakes = 4_000_000_000
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let somethingElse = AnXcodeBundle.madeForSomethingElse(named: "Safari.app", inside: applications)
+        let (sut, tool, disk) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("")
+        disk.folders[applications] = [app, somethingElse]
+        disk.sizes[app] = roomItTakes
+
+        let received = sut.copies()
+
+        #expect(received.map(\.path) == [app])
+        #expect(received.map(\.bytes) == [roomItTakes])
+    }
+
+    @Test func whenTheSearchCannotBeAskedTheApplicationsFolderIsReadInstead() {
+        let roomItTakes = 4_000_000_000
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let (sut, tool, disk) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .failure(WhatTheWorldSaid(sentence: "the search is not running"))
+        disk.folders[applications] = [app]
+        disk.sizes[app] = roomItTakes
+
+        let received = sut.copies()
+
+        #expect(received.map(\.path) == [app])
+        #expect(received.map(\.bytes) == [roomItTakes])
+    }
+
+    @Test func aMachineWithNoCopyOfXcodeDeliversNone() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let somethingElse = AnXcodeBundle.madeForSomethingElse(named: "Safari.app", inside: applications)
+        let (sut, tool, disk) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("")
+        disk.folders[applications] = [somethingElse]
+
+        let received = sut.copies()
+
+        #expect(received.isEmpty)
+    }
+
+    @Test func aCopyIsOpenWhenSomethingInsideItIsRunning() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let open = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let beside = AnXcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("\(open.path(percentEncoded: false))\n\(beside.path(percentEncoded: false))")
+        tool.answers["ps"] = .success("\(open.path(percentEncoded: false))/Contents/MacOS/Xcode")
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isOpen) == [true, false])
+    }
+
+    @Test func aCopyWhoseWholeNameStartsAnotherCopysNameIsNotTheOneThatIsRunning() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let shorter = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let longer = AnXcodeBundle.made(named: "Xcode.app.old", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("\(shorter.path(percentEncoded: false))\n\(longer.path(percentEncoded: false))")
+        tool.answers["ps"] = .success("\(longer.path(percentEncoded: false))/Contents/MacOS/Xcode")
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isOpen) == [false, true])
+    }
+
+    @Test func aCopyWhoseWholeNameStartsAnotherCopysNameIsNotTheOneTheToolsPointAt() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let shorter = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let longer = AnXcodeBundle.made(named: "Xcode.app.old", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("\(shorter.path(percentEncoded: false))\n\(longer.path(percentEncoded: false))")
+        tool.answers["xcode-select"] = .success("\(longer.path(percentEncoded: false))/Contents/Developer")
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isPointedAtByTheCommandLineTools) == [false, true])
+    }
+
+    @Test func theCopyHoldingTheDeveloperFolderTheToolsPointAtIsTheOneTheyPointAt() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let pointedAt = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let beside = AnXcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("\(pointedAt.path(percentEncoded: false))\n\(beside.path(percentEncoded: false))")
+        tool.answers["xcode-select"] = .success("\(pointedAt.path(percentEncoded: false))/Contents/Developer\n")
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isPointedAtByTheCommandLineTools) == [true, false])
+    }
+
+    @Test func aCopyIsNotOpenWhenTheMachineCannotSayWhatIsRunning() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+        tool.answers["ps"] = .failure(WhatTheWorldSaid(sentence: "ps cannot be run"))
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isOpen) == [false])
+    }
+
+    @Test func noCopyIsTheOneTheCommandLineToolsPointAtWhenTheyCannotBeAsked() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+        tool.answers["xcode-select"] = .failure(WhatTheWorldSaid(sentence: "xcode-select cannot be run"))
+
+        let received = sut.copies()
+
+        #expect(received.map(\.isPointedAtByTheCommandLineTools) == [false])
+    }
+
+    @Test func aSearchAnsweringOverSeveralLinesReportsEveryCopyItNamed() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let first = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
+        let second = AnXcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, _) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success("\(first.path(percentEncoded: false))\r\n\(second.path(percentEncoded: false))\n")
+
+        let received = sut.copies()
+
+        #expect(received.map(\.path) == [first, second])
+    }
+
+    @Test func aFileWithMoreThanOnePathIsCountedOnce() {
+        let applications = AFolderOnTheDisk.made()
+        defer { AFolderOnTheDisk.throwAway(applications) }
+        let app = AFolderOnTheDisk.putAFolder(named: "Xcode.app", inside: applications)
+        AFolderOnTheDisk.put(1, named: "one block", inside: app)
+        AFolderOnTheDisk.putASecondPathTo("one block", named: "the same block again", inside: app)
+        let (sut, tool) = makeSUTReadingTheRealDisk(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+
+        let received = sut.copies()
+
+        #expect(received.map(\.bytes) == [AFolderOnTheDisk.oneBlock])
+    }
+}
+
+private extension SystemXcodeCopiesTests {
+    func makeSUT(applicationsFolder: URL) -> (sut: SystemXcodeCopies, tool: ToolSpy, disk: DiskStub) {
+        let tool = ToolSpy()
+        let disk = DiskStub()
+        let sut = SystemXcodeCopies(tool: tool, disk: disk, applicationsFolder: applicationsFolder)
+        return (sut, tool, disk)
+    }
+
+    func makeSUTReadingTheRealDisk(applicationsFolder: URL) -> (sut: SystemXcodeCopies, tool: ToolSpy) {
+        let tool = ToolSpy()
+        let sut = SystemXcodeCopies(tool: tool, disk: FileManagerDisk(), applicationsFolder: applicationsFolder)
+        return (sut, tool)
+    }
+}
