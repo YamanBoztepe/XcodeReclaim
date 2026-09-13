@@ -116,18 +116,20 @@ private extension LeftoverListViewModel {
 
         let marked = largest(in: shown.flatMap(\.held))
         let roomOnTheScreen = roomIn(leftovers)
-        let sections = shown.map { section in
+        let tints = LeftoverSection.Tint.allCases
+        let sections = shown.enumerated().map { place, section in
             LeftoverSection(
                 id: section.kind.name,
                 name: section.kind.name,
                 symbol: section.kind.symbol,
-                size: roomWritten(roomIn(section.held)),
+                tint: tints[place % tints.count],
+                size: Room.written(roomIn(section.held)),
                 share: Double(roomIn(section.held)) / Double(roomOnTheScreen),
                 rows: section.held.map { row(for: $0, marked: marked) })
         }
 
         uiModel = LeftoverListUIModel(
-            title: title(over: shown.reduce(0) { $0 + roomRounded(roomIn($1.held)) }),
+            title: title(over: shown.reduce(0) { $0 + Room.rounded(roomIn($1.held)) }),
             isMeasuring: isMeasuring,
             leftoverBeingMeasured: leftoverBeingMeasured,
             nothingToDelete: !isMeasuring && sections.isEmpty,
@@ -139,7 +141,7 @@ private extension LeftoverListViewModel {
     func title(over roomToReclaim: Int) -> String {
         guard !leftovers.isEmpty else { return appName }
 
-        return "\(roomWritten(roomToReclaim)) to reclaim"
+        return "\(Room.written(roomToReclaim)) to reclaim"
     }
 
     func roomIn(_ held: [Leftover]) -> Int {
@@ -156,7 +158,7 @@ private extension LeftoverListViewModel {
         LeftoverRow(
             id: identity(of: leftover.place),
             name: leftover.name,
-            size: roomWritten(leftover.bytes),
+            size: Room.written(leftover.bytes),
             refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
             deletionUnderWay: leftover == beingDeleted ? "Deleting…" : nil,
@@ -187,7 +189,7 @@ private extension LeftoverListViewModel {
     }
 
     func confirmationSentence(for leftover: Leftover) -> String {
-        let frees = "Frees \(roomWritten(leftover.bytes))."
+        let frees = "Frees \(Room.written(leftover.bytes))."
         guard let cost = leftover.cost else { return "\(frees) This cannot be undone." }
 
         return "\(frees) \(sentence(from: cost)) This cannot be undone."
@@ -195,7 +197,7 @@ private extension LeftoverListViewModel {
 
     func deletionSentence(for deletion: Deletion, about deleted: Leftover) -> String {
         switch deletion {
-        case .freed(let bytes): "\(roomWritten(bytes)) came back."
+        case .freed(let bytes): "\(Room.written(bytes)) came back."
         case .refused(let refusal): refusalSentence(for: refusal)
         case .failed(let why): "\(deleted.name) could not be deleted. \(why)"
         }

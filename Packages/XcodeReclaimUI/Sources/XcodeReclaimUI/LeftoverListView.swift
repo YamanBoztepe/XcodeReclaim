@@ -67,13 +67,17 @@ private enum Layout {
     static let underSectionHeading: CGFloat = 8
 }
 
-private let sectionColours: [Color] = [.accentColor, .teal, .orange]
+private extension LeftoverSection.Tint {
+    var colour: Color {
+        switch self {
+        case .accent: .accentColor
+        case .teal: .teal
+        case .orange: .orange
+        }
+    }
+}
 
 private extension LeftoverListView {
-    var numberedSections: [(offset: Int, element: LeftoverSection)] {
-        Array(model.sections.enumerated())
-    }
-
     var header: some View {
         VStack(alignment: .leading, spacing: Layout.betweenHeaderLines) {
             HStack(alignment: .firstTextBaseline) {
@@ -102,9 +106,9 @@ private extension LeftoverListView {
     var capacityBar: some View {
         GeometryReader { space in
             HStack(spacing: Layout.betweenBarSegments) {
-                ForEach(numberedSections, id: \.element.id) { section in
-                    sectionColours[section.offset % sectionColours.count]
-                        .frame(width: max(space.size.width * section.element.share - Layout.betweenBarSegments, 0))
+                ForEach(model.sections) { section in
+                    section.tint.colour
+                        .frame(width: max(space.size.width * section.share - Layout.betweenBarSegments, 0))
                 }
             }
         }
@@ -114,13 +118,13 @@ private extension LeftoverListView {
 
     var legend: some View {
         HStack(spacing: Layout.betweenKeys) {
-            ForEach(numberedSections, id: \.element.id) { section in
+            ForEach(model.sections) { section in
                 HStack(spacing: Layout.besideSymbol) {
                     Circle()
-                        .fill(sectionColours[section.offset % sectionColours.count])
+                        .fill(section.tint.colour)
                         .frame(width: Layout.keyDot, height: Layout.keyDot)
-                    Text(section.element.name).font(.callout)
-                    Text(section.element.size).font(.callout).foregroundStyle(.secondary)
+                    Text(section.name).font(.callout)
+                    Text(section.size).font(.callout).foregroundStyle(.secondary)
                 }
             }
             Spacer()

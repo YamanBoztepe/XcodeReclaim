@@ -8,22 +8,20 @@ private let units: [(divisor: Int, unit: String)] = [
     (kilobyte, "KB"),
 ]
 
-extension LeftoverListViewModel {
-    func roomWritten(_ bytes: Int) -> String {
+enum Room {
+    static func written(_ bytes: Int) -> String {
         guard let read = unitReading(of: bytes) else { return "\(bytes) bytes" }
 
         return "\(read.tenths / tenthsPerUnit).\(read.tenths % tenthsPerUnit) \(read.unit)"
     }
 
-    func roomRounded(_ bytes: Int) -> Int {
+    static func rounded(_ bytes: Int) -> Int {
         guard let read = unitReading(of: bytes) else { return bytes }
 
         return read.tenths * (read.divisor / tenthsPerUnit)
     }
-}
 
-private extension LeftoverListViewModel {
-    func unitReading(of bytes: Int) -> (tenths: Int, divisor: Int, unit: String)? {
+    private static func unitReading(of bytes: Int) -> (tenths: Int, divisor: Int, unit: String)? {
         guard let read = units.first(where: { bytes >= $0.divisor }) else { return nil }
 
         let roundingUpFromAHalf = read.divisor / halvesInAUnit

@@ -33,6 +33,7 @@ private extension LeftoverListViewDrawingTests {
             id: "Caches and support files",
             name: "Caches and support files",
             symbol: "folder.fill",
+            tint: .teal,
             size: "68.0 GB",
             share: 1,
             rows: (1...rows).map(row(numbered:)))
