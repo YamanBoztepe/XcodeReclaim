@@ -15,7 +15,7 @@ struct LeftoverListUIIntegrationTests {
         #expect(screen.whatTheRowsAreCalled == ["away from the screen's thread"])
     }
 
-    @Test func screen_isHandedWhatTheViewModelHoldsAfterEveryEvent() async {
+    @Test func screen_isHandedWhatTheViewModelHoldsAfterEveryEvent() async throws {
         let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300)])
 
         screen.isOpened()
@@ -24,7 +24,7 @@ struct LeftoverListUIIntegrationTests {
         await screen.untilItHasMeasured()
         #expect(screen.whatIsHandedToTheView == screen.whatTheViewModelHolds)
 
-        screen.isAskedAboutDeleting("Derived data")
+        try screen.isAskedAboutDeleting("Derived data")
         #expect(screen.whatIsHandedToTheView == screen.whatTheViewModelHolds)
     }
 
@@ -39,26 +39,26 @@ struct LeftoverListUIIntegrationTests {
         #expect(screen.whichRowIsMarkedAsHoldingTheMostRoom == ["Derived data"])
     }
 
-    @Test func askAboutDeleting_reachesTheAlertTheScreenDraws() async {
+    @Test func askAboutDeleting_reachesTheAlertTheScreenDraws() async throws {
         let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300)])
         screen.isOpened()
         await screen.untilItHasMeasured()
         #expect(screen.whatIsBeingConfirmed == nil)
 
-        screen.isAskedAboutDeleting("Derived data")
+        try screen.isAskedAboutDeleting("Derived data")
         #expect(screen.whatIsBeingConfirmed == .init(name: "Derived data", sentence: "Frees 300 bytes. This cannot be undone."))
 
         screen.hasTheDeletionBackedOutOf()
         #expect(screen.whatIsBeingConfirmed == nil)
     }
 
-    @Test func confirm_takesEveryRowsDeletionAwayUntilTheDeletionEnds() async {
+    @Test func confirm_takesEveryRowsDeletionAwayUntilTheDeletionEnds() async throws {
         let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
         screen.isOpened()
         await screen.untilItHasMeasured()
         #expect(screen.whichRowsOfferDeletion == ["Derived data", "iPhone 17 (iOS 26.4, 21B507D3)"])
 
-        screen.isAskedAboutDeleting("Derived data")
+        try screen.isAskedAboutDeleting("Derived data")
         screen.hasTheDeletionConfirmed()
         #expect(screen.whichRowsOfferDeletion.isEmpty)
         #expect(screen.whichRowsSayTheyAreBeingDeleted == ["Derived data"])
@@ -105,27 +105,31 @@ struct LeftoverListUIIntegrationTests {
 
     @Test("A measuring the screen has replaced does not reach it")
     func refresh_dropsWhatAReplacedMeasuringDelivers() async {
-        let screen = TheLeftoverListScreen(theMeasuringTakesAWhileThenAnnounces: [], finding: [derivedData(taking: 27_700_000_000)])
+        let screen = TheLeftoverListScreen(
+            eachMeasuringWaitsThenFinds: [[derivedData(taking: 27_700_000_000)], [previews(taking: 300)]],
+            announcing: [[], []])
         screen.isOpened()
-
         screen.isRefreshed()
-        screen.theMeasuringFinishes()
-        await screen.untilItSettles()
 
-        #expect(screen.itIsMeasuring)
-        #expect(screen.whatTheRowsAreCalled.isEmpty)
+        screen.everyMeasuringFinishes()
+        await screen.untilItHasMeasured()
+
+        #expect(screen.whatTheRowsAreCalled == ["Previews"])
     }
 
     @Test func refresh_dropsWhatAReplacedMeasuringAnnounces() async {
-        let screen = TheLeftoverListScreen(theMeasuringTakesAWhileThenAnnounces: ["Derived data"])
+        let screen = TheLeftoverListScreen(
+            eachMeasuringWaitsThenFinds: [[derivedData(taking: 300)], [previews(taking: 300)]],
+            announcing: [["Derived data"], ["Previews"]])
         screen.isOpened()
-
         screen.isRefreshed()
-        screen.theMeasuringFinishes()
-        await screen.untilItSettles()
+
+        screen.theMeasuringFinishes(0)
+        await screen.untilEverythingQueuedHasRun()
 
         #expect(screen.whatIsBeingMeasured == nil)
         #expect(screen.itIsMeasuring)
+        screen.everyMeasuringFinishes()
     }
 
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {
@@ -150,5 +154,9 @@ private extension LeftoverListUIIntegrationTests {
 
     func aCopyOfXcode(taking bytes: Int) -> Leftover {
         ALeftoverOnTheMachine.aCopyOfXcode(taking: bytes)
+    }
+
+    func previews(taking bytes: Int) -> Leftover {
+        ALeftoverOnTheMachine.previews(taking: bytes)
     }
 }

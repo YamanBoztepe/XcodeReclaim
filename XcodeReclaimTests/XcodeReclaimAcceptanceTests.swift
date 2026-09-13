@@ -18,12 +18,12 @@ struct XcodeReclaimAcceptanceTests {
     }
 
     @Test("The developer deletes a leftover")
-    func confirm_takesTheDeletedLeftoverOffTheScreen() async {
+    func confirm_takesTheDeletedLeftoverOffTheScreen() async throws {
         let app = TheApp(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
         app.theDeveloperOpensIt()
         await app.untilTheMeasuringEnds()
 
-        app.theDeveloperAsksToDelete("Derived data")
+        try app.theDeveloperAsksToDelete("Derived data")
         #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
 
         app.theDeveloperConfirms()
@@ -37,12 +37,12 @@ struct XcodeReclaimAcceptanceTests {
     }
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
-    func backOut_leavesTheLeftoverAsItWas() async {
+    func backOut_leavesTheLeftoverAsItWas() async throws {
         let app = TheApp(theMachineFinds: [derivedData(taking: 300)])
         app.theDeveloperOpensIt()
         await app.untilTheMeasuringEnds()
 
-        app.theDeveloperAsksToDelete("Derived data")
+        try app.theDeveloperAsksToDelete("Derived data")
         #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
 
         app.theDeveloperBacksOut()
@@ -66,13 +66,13 @@ struct XcodeReclaimAcceptanceTests {
     }
 
     @Test("The developer deletes a copy of Xcode they no longer use")
-    func confirm_takesTheDeletedCopyOfXcodeOffTheScreenAndSaysWhatCameBack() async {
+    func confirm_takesTheDeletedCopyOfXcodeOffTheScreenAndSaysWhatCameBack() async throws {
         let roomItTook = 4_000_000_000
         let app = TheApp(theMachineFinds: [aCopyOfXcode(taking: roomItTook), derivedData(taking: 300)])
         app.theDeveloperOpensIt()
         await app.untilTheMeasuringEnds()
 
-        app.theDeveloperAsksToDelete("Xcode 26.2 (17C51) — Applications")
+        try app.theDeveloperAsksToDelete("Xcode 26.2 (17C51) — Applications")
         #expect(app.whatTheConfirmationReads == "Frees 4.0 GB. That version has to be downloaded again. This cannot be undone.")
 
         app.theDeveloperConfirms()

@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 import XcodeReclaim
 import XcodeReclaimCore
 import XcodeReclaimPresentation
@@ -24,7 +25,7 @@ final class TheLeftoverListScreen {
         waitingThenAnnouncing = nil
     }
 
-    init(theMeasuringTakesAWhileThenAnnounces announces: [String], finding finds: [Leftover] = []) {
+    init(eachMeasuringWaitsThenFinds finds: [[Leftover]], announcing announces: [[String]]) {
         let machine = AMeasuringThatWaitsThenAnnounces(finds: finds, announces: announces)
         container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: TheMachine().deleting)
         announcingThenWaiting = nil
@@ -47,8 +48,8 @@ extension TheLeftoverListScreen {
         drawn.onRefresh()
     }
 
-    func isAskedAboutDeleting(_ name: String) {
-        guard let row = everyRow.first(where: { $0.name == name }) else { return }
+    func isAskedAboutDeleting(_ name: String, sourceLocation: SourceLocation = #_sourceLocation) throws {
+        let row = try #require(everyRow.first(where: { $0.name == name }), "no row named \(name)", sourceLocation: sourceLocation)
 
         drawn.onAskAboutDeleting(row)
     }
@@ -63,7 +64,14 @@ extension TheLeftoverListScreen {
 
     func theMeasuringFinishes() {
         announcingThenWaiting?.itFinishes()
-        waitingThenAnnouncing?.theFirstMeasuringFinishes()
+    }
+
+    func theMeasuringFinishes(_ measuring: Int) {
+        waitingThenAnnouncing?.theMeasuringFinishes(measuring)
+    }
+
+    func everyMeasuringFinishes() {
+        waitingThenAnnouncing?.everyMeasuringFinishes()
     }
 }
 
@@ -76,16 +84,16 @@ extension TheLeftoverListScreen {
         await until { $0.leftoverBeingMeasured == name }
     }
 
-    func untilItSaysSomethingAboutTheDeletion() async {
-        await until { $0.whatTheDeletionSaid != nil }
-    }
+    func untilEverythingQueuedHasRun() async {
+        let moreTurnsThanAnyStubbedMachineAsksFor = 200
 
-    func untilItSettles() async {
-        let longEnoughForAnythingQueuedToRun = 200
-
-        for _ in 0..<longEnoughForAnythingQueuedToRun {
+        for _ in 0..<moreTurnsThanAnyStubbedMachineAsksFor {
             await Task.yield()
         }
+    }
+
+    func untilItSaysSomethingAboutTheDeletion() async {
+        await until { $0.whatTheDeletionSaid != nil }
     }
 }
 

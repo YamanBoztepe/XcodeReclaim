@@ -6,6 +6,10 @@ enum ALeftoverOnTheMachine {
         Leftover(name: "Derived data", bytes: bytes, place: .folder(URL(filePath: "/developer/Xcode/DerivedData")))
     }
 
+    static func previews(taking bytes: Int) -> Leftover {
+        Leftover(name: "Previews", bytes: bytes, place: .folder(URL(filePath: "/developer/Xcode/UserData/Previews")))
+    }
+
     static func aSimulator(taking bytes: Int) -> Leftover {
         Leftover(
             name: "iPhone 17 (iOS 26.4, 21B507D3)",

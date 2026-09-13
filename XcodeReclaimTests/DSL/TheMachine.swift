@@ -47,13 +47,12 @@ final class AMeasuringThatAnnouncesThenWaits: Sendable {
 }
 
 final class AMeasuringThatWaitsThenAnnounces: Sendable {
-    private let theFirst = DispatchSemaphore(value: 0)
-    private let theSecond = DispatchSemaphore(value: 0)
+    private let gates = [DispatchSemaphore(value: 0), DispatchSemaphore(value: 0)]
     private let howManyHaveBegun = Mutex(0)
-    private let finds: [Leftover]
-    private let announces: [String]
+    private let finds: [[Leftover]]
+    private let announces: [[String]]
 
-    init(finds: [Leftover] = [], announces: [String] = []) {
+    init(finds: [[Leftover]], announces: [[String]]) {
         self.finds = finds
         self.announces = announces
     }
@@ -61,18 +60,24 @@ final class AMeasuringThatWaitsThenAnnounces: Sendable {
     func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
         let thisMeasuring = howManyHaveBegun.withLock { begun in
             begun += 1
-            return begun
+            return begun - 1
         }
-        (thisMeasuring == 1 ? theFirst : theSecond).wait()
+        gates[thisMeasuring].wait()
 
-        for name in announces {
+        for name in announces[thisMeasuring] {
             announce(name)
         }
-        return finds
+        return finds[thisMeasuring]
     }
 
-    func theFirstMeasuringFinishes() {
-        theFirst.signal()
+    func theMeasuringFinishes(_ measuring: Int) {
+        gates[measuring].signal()
+    }
+
+    func everyMeasuringFinishes() {
+        for gate in gates {
+            gate.signal()
+        }
     }
 }
 

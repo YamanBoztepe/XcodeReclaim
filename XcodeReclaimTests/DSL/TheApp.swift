@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 import XcodeReclaim
 import XcodeReclaimCore
 import XcodeReclaimPresentation
@@ -24,8 +25,8 @@ extension TheApp {
         leftoverList.onRefresh()
     }
 
-    func theDeveloperAsksToDelete(_ name: String) {
-        guard let row = everyRow.first(where: { $0.name == name }) else { return }
+    func theDeveloperAsksToDelete(_ name: String, sourceLocation: SourceLocation = #_sourceLocation) throws {
+        let row = try #require(everyRow.first(where: { $0.name == name }), "no row named \(name)", sourceLocation: sourceLocation)
 
         leftoverList.onAskAboutDeleting(row)
     }
