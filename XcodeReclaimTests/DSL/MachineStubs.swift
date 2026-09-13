@@ -2,9 +2,9 @@ import Foundation
 import Synchronization
 import XcodeReclaimCore
 
-struct TheMachine: Sendable {
-    let announces: [String]
-    let finds: [Leftover]
+struct MachineStub: Sendable {
+    private let announces: [String]
+    private let finds: [Leftover]
 
     init(announcing announces: [String] = [], finding finds: [Leftover] = []) {
         self.announces = announces
@@ -23,12 +23,12 @@ struct TheMachine: Sendable {
     }
 }
 
-final class AMachineHeldUntilLetGo: Sendable {
-    private let measurings: [TheMachine]
+final class SlowMachineStub: Sendable {
+    private let measurings: [MachineStub]
     private let gates: [DispatchSemaphore]
     private let howManyHaveBegun = Atomic(0)
 
-    init(eachMeasuring measurings: [TheMachine]) {
+    init(eachMeasuring measurings: [MachineStub]) {
         self.measurings = measurings
         gates = measurings.map { _ in DispatchSemaphore(value: 0) }
     }
@@ -45,24 +45,24 @@ final class AMachineHeldUntilLetGo: Sendable {
         .freed(leftover.bytes)
     }
 
-    func theMeasuringFinishes(_ measuring: Int) {
+    func letMeasuringFinish(_ measuring: Int) {
         gates[measuring].signal()
     }
 
-    func everyMeasuringFinishes() {
+    func letEveryMeasuringFinish() {
         for gate in gates {
             gate.signal()
         }
     }
 }
 
-struct AMachineThatSaysWhereItRan: Sendable {
-    static let roomItSaysTheLeftoverTakes = 300
+struct ThreadReportingMachineStub: Sendable {
+    private let roomItSaysTheLeftoverTakes = 300
 
     func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
         let whereItRan = Thread.isMainThread ? "the screen's thread" : "away from the screen's thread"
 
-        return [Leftover(name: whereItRan, bytes: Self.roomItSaysTheLeftoverTakes, place: .folder(URL(filePath: "/developer/\(whereItRan)")))]
+        return [Leftover(name: whereItRan, bytes: roomItSaysTheLeftoverTakes, place: .folder(URL(filePath: "/developer/\(whereItRan)")))]
     }
 
     func deleting(_ leftover: Leftover) -> Deletion {

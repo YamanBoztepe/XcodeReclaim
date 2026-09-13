@@ -200,7 +200,7 @@ verdict. The rule is held: never asking the tools at all dies at exit 1.
 
 ## What no suite can judge
 
-**`TheMachine.swift`** — the one file where the product meets the thread and the
+**`XcodeLeftovers.swift`** — the one file where the product meets the thread and the
 real machine. It builds `FileManagerDisk`, `ProcessTool`,
 `SimctlSimulatorService` and `SystemXcodeCopies`, names the folders Xcode leaves
 things in, declares that 100 MB is worth deleting, and hops the answers back to

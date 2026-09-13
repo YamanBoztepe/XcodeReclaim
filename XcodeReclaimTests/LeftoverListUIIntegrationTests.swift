@@ -1,154 +1,135 @@
 import Foundation
 import Testing
 import XcodeReclaim
-import XcodeReclaimCore
 import XcodeReclaimPresentation
 
 @MainActor
 struct LeftoverListUIIntegrationTests {
     @Test func measure_runsAwayFromTheScreensThreadAndLandsBackOnIt() async {
-        let screen = TheLeftoverListScreen(theMachineSaysWhereItRan: AMachineThatSaysWhereItRan())
+        let screen = LeftoverListDriver.withAMachineThatReportsItsThread()
 
-        screen.isOpened()
-        await screen.untilItHasMeasured()
+        screen.open()
+        await screen.waitForMeasuringToEnd()
 
-        #expect(screen.whatTheRowsAreCalled == ["away from the screen's thread"])
+        #expect(screen.rowNames == ["away from the screen's thread"])
     }
 
     @Test func screen_isHandedWhatTheViewModelHoldsAfterEveryEvent() async throws {
-        let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300)])
+        let screen = LeftoverListDriver(machineFinds: [derivedData(taking: 300)])
 
-        screen.isOpened()
-        #expect(screen.whatIsHandedToTheView == screen.whatTheViewModelHolds)
+        screen.open()
+        #expect(screen.uiModelHandedToTheView == screen.uiModelTheViewModelHolds)
 
-        await screen.untilItHasMeasured()
-        #expect(screen.whatIsHandedToTheView == screen.whatTheViewModelHolds)
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.uiModelHandedToTheView == screen.uiModelTheViewModelHolds)
 
-        try screen.isAskedAboutDeleting("Derived data")
-        #expect(screen.whatIsHandedToTheView == screen.whatTheViewModelHolds)
+        try screen.askToDelete("Derived data")
+        #expect(screen.uiModelHandedToTheView == screen.uiModelTheViewModelHolds)
     }
 
     @Test func screen_drawsTheSectionsAndRowsTheMeasuringFound() async {
-        let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200), aCopyOfXcode(taking: 100)])
+        let screen = LeftoverListDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200), copyOfXcode(taking: 100)])
 
-        screen.isOpened()
-        await screen.untilItHasMeasured()
+        screen.open()
+        await screen.waitForMeasuringToEnd()
 
-        #expect(screen.whatTheSectionsAreCalled == ["Caches and support files", "Simulators", "Xcode versions"])
-        #expect(screen.whatTheSectionsAreDrawnWith == ["folder.fill", "iphone", "hammer.fill"])
-        #expect(screen.whichRowIsMarkedAsHoldingTheMostRoom == ["Derived data"])
+        #expect(screen.sectionNames == ["Caches and support files", "Simulators", "Xcode versions"])
+        #expect(screen.sectionSymbols == ["folder.fill", "iphone", "hammer.fill"])
+        #expect(screen.rowsHoldingTheMostRoom == ["Derived data"])
     }
 
     @Test func askAboutDeleting_reachesTheAlertTheScreenDraws() async throws {
-        let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300)])
-        screen.isOpened()
-        await screen.untilItHasMeasured()
-        #expect(screen.whatIsBeingConfirmed == nil)
+        let screen = LeftoverListDriver(machineFinds: [derivedData(taking: 300)])
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.confirmation == nil)
 
-        try screen.isAskedAboutDeleting("Derived data")
-        #expect(screen.whatIsBeingConfirmed == .init(name: "Derived data", sentence: "Frees 300 bytes. This cannot be undone."))
+        try screen.askToDelete("Derived data")
+        #expect(screen.confirmation == .init(name: "Derived data", sentence: "Frees 300 bytes. This cannot be undone."))
 
-        screen.hasTheDeletionBackedOutOf()
-        #expect(screen.whatIsBeingConfirmed == nil)
+        screen.backOut()
+        #expect(screen.confirmation == nil)
     }
 
     @Test func confirm_takesEveryRowsDeletionAwayUntilTheDeletionEnds() async throws {
-        let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
-        screen.isOpened()
-        await screen.untilItHasMeasured()
-        #expect(screen.whichRowsOfferDeletion == ["Derived data", "iPhone 17 (iOS 26.4, 21B507D3)"])
+        let screen = LeftoverListDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.deletableRows == ["Derived data", "iPhone 17 (iOS 26.4, 21B507D3)"])
 
-        try screen.isAskedAboutDeleting("Derived data")
-        screen.hasTheDeletionConfirmed()
-        #expect(screen.whichRowsOfferDeletion.isEmpty)
-        #expect(screen.whichRowsSayTheyAreBeingDeleted == ["Derived data"])
+        try screen.askToDelete("Derived data")
+        screen.confirm()
+        #expect(screen.deletableRows.isEmpty)
+        #expect(screen.rowsBeingDeleted == ["Derived data"])
 
-        await screen.untilItSaysSomethingAboutTheDeletion()
-        #expect(screen.whichRowsOfferDeletion == ["iPhone 17 (iOS 26.4, 21B507D3)"])
-        #expect(screen.whatTheRowsAreCalled == ["iPhone 17 (iOS 26.4, 21B507D3)"])
+        await screen.waitForDeletionToEnd()
+        #expect(screen.deletableRows == ["iPhone 17 (iOS 26.4, 21B507D3)"])
+        #expect(screen.rowNames == ["iPhone 17 (iOS 26.4, 21B507D3)"])
     }
 
     @Test func refresh_putsTheScreenBackToMeasuring() async {
-        let screen = TheLeftoverListScreen(theMachineFinds: [derivedData(taking: 300)])
-        screen.isOpened()
-        await screen.untilItHasMeasured()
-        #expect(screen.itIsMeasuring == false)
+        let screen = LeftoverListDriver(machineFinds: [derivedData(taking: 300)])
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.isMeasuring == false)
 
-        screen.isRefreshed()
-        #expect(screen.itIsMeasuring)
-        #expect(screen.whatTheRowsAreCalled.isEmpty)
+        screen.refresh()
+        #expect(screen.isMeasuring)
+        #expect(screen.rowNames.isEmpty)
     }
 
     @Test func measuringEnded_drawsNothingToDeleteOnlyOnceTheMeasuringIsOver() async {
-        let screen = TheLeftoverListScreen()
+        let screen = LeftoverListDriver()
 
-        screen.isOpened()
-        #expect(screen.itSaysThereIsNothingToDelete == false)
+        screen.open()
+        #expect(screen.saysThereIsNothingToDelete == false)
 
-        await screen.untilItHasMeasured()
-        #expect(screen.itSaysThereIsNothingToDelete)
-        #expect(screen.whatItIsCalled == "XcodeReclaim")
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.saysThereIsNothingToDelete)
+        #expect(screen.title == "XcodeReclaim")
     }
 
     @Test("The developer watches the measuring work through the leftovers")
     func announced_namesEachLeftoverAsTheMeasuringReachesIt() async {
-        let screen = TheLeftoverListScreen(
-            eachMeasuringHeldUntilLetGo: [TheMachine(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
+        let screen = LeftoverListDriver(
+            eachMeasuringHeldUntilLetGo: [MachineStub(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
 
-        screen.isOpened()
-        await screen.untilItNames("Previews")
-        #expect(screen.itIsMeasuring)
+        screen.open()
+        await screen.waitForMeasuringToReach("Previews")
+        #expect(screen.isMeasuring)
 
-        screen.everyMeasuringFinishes()
-        await screen.untilItHasMeasured()
-        #expect(screen.whatIsBeingMeasured == nil)
+        screen.letEveryMeasuringFinish()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.leftoverBeingMeasured == nil)
     }
 
     @Test("A measuring the screen has replaced does not reach it")
     func refresh_dropsWhatAReplacedMeasuringDelivers() async {
-        let screen = TheLeftoverListScreen(
+        let screen = LeftoverListDriver(
             eachMeasuringHeldUntilLetGo: [
-                TheMachine(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
-                TheMachine(finding: [previews(taking: 300)]),
+                MachineStub(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
+                MachineStub(finding: [previews(taking: 300)]),
             ])
-        screen.isOpened()
-        await screen.untilItNames("Derived data")
-        screen.isRefreshed()
+        screen.open()
+        await screen.waitForMeasuringToReach("Derived data")
+        screen.refresh()
 
-        screen.theMeasuringFinishes(1)
-        await screen.untilItHasMeasured()
-        #expect(screen.whatTheRowsAreCalled == ["Previews"])
+        screen.letMeasuringFinish(1)
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.rowNames == ["Previews"])
 
-        screen.theMeasuringFinishes(0)
-        await screen.untilEverythingQueuedHasRun()
-        #expect(screen.whatTheRowsAreCalled == ["Previews"])
+        screen.letMeasuringFinish(0)
+        await screen.waitForEverythingQueuedToRun()
+        #expect(screen.rowNames == ["Previews"])
     }
 
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {
-        let machine = TheMachine()
+        let machine = MachineStub()
         var container: LeftoverListContainerView? = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
         weak let model = container?.model
 
         container = nil
 
         #expect(model == nil)
-    }
-}
-
-private extension LeftoverListUIIntegrationTests {
-    func derivedData(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.derivedData(taking: bytes)
-    }
-
-    func aSimulator(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.aSimulator(taking: bytes)
-    }
-
-    func aCopyOfXcode(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.aCopyOfXcode(taking: bytes)
-    }
-
-    func previews(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.previews(taking: bytes)
     }
 }

@@ -1,103 +1,87 @@
 import AppKit
 import Foundation
 import Testing
-import XcodeReclaimCore
 
 @MainActor
 struct XcodeReclaimAcceptanceTests {
     @Test("The developer opens the app and sees what may be deleted")
     func open_showsEveryLeftoverWithItsSize() async {
-        let app = TheApp(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
+        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
 
-        app.theDeveloperOpensIt()
-        #expect(app.theLeftoverListIsMeasuring)
-        #expect(app.whatTheLeftoverListShows.isEmpty)
+        app.open()
+        #expect(app.isMeasuring)
+        #expect(app.shownLeftovers.isEmpty)
 
-        await app.untilTheMeasuringEnds()
-        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
+        await app.waitForMeasuringToEnd()
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
     }
 
     @Test("The developer deletes a leftover")
     func confirm_takesTheDeletedLeftoverOffTheScreen() async throws {
-        let app = TheApp(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
-        app.theDeveloperOpensIt()
-        await app.untilTheMeasuringEnds()
+        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        app.open()
+        await app.waitForMeasuringToEnd()
 
-        try app.theDeveloperAsksToDelete("Derived data")
-        #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
+        try app.askToDelete("Derived data")
+        #expect(app.leftoverAwaitingConfirmation == "Derived data")
 
-        app.theDeveloperConfirms()
-        #expect(app.whatTheLeftoverListIsAskingToConfirm == nil)
-        #expect(app.whichRowsSayTheyAreBeingDeleted == ["Derived data"])
-        #expect(app.whichRowsOfferDeletion.isEmpty)
+        app.confirm()
+        #expect(app.leftoverAwaitingConfirmation == nil)
+        #expect(app.rowsBeingDeleted == ["Derived data"])
+        #expect(app.deletableRows.isEmpty)
 
-        await app.untilTheDeletionEnds()
-        #expect(app.whatTheLeftoverListShows == ["iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
-        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == "300 bytes came back.")
+        await app.waitForDeletionToEnd()
+        #expect(app.shownLeftovers == ["iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
+        #expect(app.deletionMessage == "300 bytes came back.")
     }
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
     func backOut_leavesTheLeftoverAsItWas() async throws {
-        let app = TheApp(theMachineFinds: [derivedData(taking: 300)])
-        app.theDeveloperOpensIt()
-        await app.untilTheMeasuringEnds()
+        let app = AppDriver(machineFinds: [derivedData(taking: 300)])
+        app.open()
+        await app.waitForMeasuringToEnd()
 
-        try app.theDeveloperAsksToDelete("Derived data")
-        #expect(app.whatTheLeftoverListIsAskingToConfirm == "Derived data")
+        try app.askToDelete("Derived data")
+        #expect(app.leftoverAwaitingConfirmation == "Derived data")
 
-        app.theDeveloperBacksOut()
-        #expect(app.whatTheLeftoverListIsAskingToConfirm == nil)
-        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes"])
-        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == nil)
+        app.backOut()
+        #expect(app.leftoverAwaitingConfirmation == nil)
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
+        #expect(app.deletionMessage == nil)
     }
 
     @Test("The developer refreshes the list")
     func refresh_showsEveryLeftoverTheSecondMeasuringFound() async {
-        let app = TheApp(theMachineFinds: [derivedData(taking: 300), aSimulator(taking: 200)])
-        app.theDeveloperOpensIt()
-        await app.untilTheMeasuringEnds()
+        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        app.open()
+        await app.waitForMeasuringToEnd()
 
-        app.theDeveloperAsksToRefresh()
-        #expect(app.theLeftoverListIsMeasuring)
-        #expect(app.whatTheLeftoverListShows.isEmpty)
+        app.refresh()
+        #expect(app.isMeasuring)
+        #expect(app.shownLeftovers.isEmpty)
 
-        await app.untilTheMeasuringEnds()
-        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
+        await app.waitForMeasuringToEnd()
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes", "iPhone 17 (iOS 26.4, 21B507D3) — 200 bytes"])
     }
 
     @Test("The developer deletes a copy of Xcode they no longer use")
     func confirm_takesTheDeletedCopyOfXcodeOffTheScreenAndSaysWhatCameBack() async throws {
-        let roomItTook = 4_000_000_000
-        let app = TheApp(theMachineFinds: [aCopyOfXcode(taking: roomItTook), derivedData(taking: 300)])
-        app.theDeveloperOpensIt()
-        await app.untilTheMeasuringEnds()
+        let app = AppDriver(machineFinds: [copyOfXcode(taking: 4_000_000_000), derivedData(taking: 300)])
+        app.open()
+        await app.waitForMeasuringToEnd()
 
-        try app.theDeveloperAsksToDelete("Xcode 26.2 (17C51) — Applications")
-        #expect(app.whatTheConfirmationReads == "Frees 4.0 GB. That version has to be downloaded again. This cannot be undone.")
+        try app.askToDelete("Xcode 26.2 (17C51) — Applications")
+        #expect(app.confirmationMessage == "Frees 4.0 GB. That version has to be downloaded again. This cannot be undone.")
 
-        app.theDeveloperConfirms()
-        await app.untilTheDeletionEnds()
-        #expect(app.whatTheLeftoverListShows == ["Derived data — 300 bytes"])
-        #expect(app.whatTheLeftoverListSaysAboutTheDeletion == "4.0 GB came back.")
+        app.confirm()
+        await app.waitForDeletionToEnd()
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
+        #expect(app.deletionMessage == "4.0 GB came back.")
     }
 
     @Test("The developer opens the app and it takes its place among the regular applications")
     func open_takesItsPlaceAmongTheRegularApplications() {
         #expect(NSApplication.shared.activationPolicy() == .regular)
         #expect(Bundle.main.object(forInfoDictionaryKey: "LSUIElement") == nil)
-    }
-}
-
-private extension XcodeReclaimAcceptanceTests {
-    func derivedData(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.derivedData(taking: bytes)
-    }
-
-    func aSimulator(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.aSimulator(taking: bytes)
-    }
-
-    func aCopyOfXcode(taking bytes: Int) -> Leftover {
-        ALeftoverOnTheMachine.aCopyOfXcode(taking: bytes)
     }
 }
