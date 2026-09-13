@@ -121,24 +121,34 @@ Every verdict below is the runner's exit code, never a search of its output.
 | LeftoverRow `self.canBeDeleted` | A row carries whether it can be deleted | presentation | killed |
 | LeftoverSection `self.share` | A section carries the share it was built with | presentation | killed |
 | the suite's own leak tracker (sabotage) | The view model is released when the test ends | presentation | killed |
-| LeftoverListView `.frame(idealHeight:)` | The screen asks for no more height than a window can give | app | killed |
-| LeftoverListView `ForEach(section.rows)` | Every measured leftover is drawn | app | killed |
-| XcodeLeftovers `guard measuring == latestMeasuring` in `measuringEnded` | A measuring the screen has replaced does not reach it | app | killed |
-| XcodeLeftovers the same guard in `announced` | nor do its announcements | app | killed |
-| XcodeLeftovers `model.deletionEnded(with:)` | A deletion's outcome reaches the screen | app | killed |
-| LeftoverCrossing `PlaceCrossing.init` | A crossing keeps which place a leftover sits in | app | killed after the missing test was written |
-| LeftoverCrossing `cost = leftover.cost` | A crossing keeps a leftover's cost | app | killed |
-| LeftoverCrossing `RefusalCrossing.init` | A crossing keeps which refusal a leftover carries | app | killed |
-| DeletionCrossing `case .failed` | A crossing keeps which deletion came back | app | killed |
+| LeftoverListView `.frame(idealHeight:)` | The screen asks for no more height than a window can give | ui | killed |
+| LeftoverListView `ForEach(section.rows)` | Every measured leftover is drawn | ui | killed |
+| LeftoverListView `capacityBar` | A measured screen draws its capacity bar | ui (snapshot) | killed |
+| LeftoverListView `if let refusal = row.refusal` | A row says under its name why it cannot be deleted | ui (snapshot) | killed |
+| LeftoverListView `row.deletionUnderWay ?? row.size` | A row being deleted says so where its size was | ui (snapshot) | killed |
+| LeftoverListView `.disabled(!row.canBeDeleted)` | A row that cannot be deleted offers no button | ui (snapshot) | killed |
+| LeftoverListView `if row.holdsTheMostRoom` | The row holding the most room is marked | ui (snapshot) | killed |
+| LeftoverListView `Label(section.name, systemImage:)` | A section draws the symbol that names it | ui (snapshot) | killed |
+| LeftoverListView `if model.nothingToDelete` | A screen with nothing to delete says so | ui (snapshot) | killed |
+| LatestMeasuringOnlyDecorator the guard around `deliver` | A measuring the screen has replaced does not reach it | app | killed |
+| LatestMeasuringOnlyDecorator the guard around `announce` | nor do its announcements | app | killed |
+| LeftoverListViewModelMeasureAdapter `measuringEnded(with:)` | What the machine measured reaches the screen | app | killed |
+| LeftoverListViewModelMeasureAdapter `weak var screen` | The adapters do not keep the screen alive | app | killed |
+| LeftoverListViewModelDeleteAdapter `deletionEnded(with:)` | A deletion's outcome reaches the screen | app | killed |
+| LeftoverListUIComposer `measure.screen = model` | The composer feeds the view model it built | app | killed |
+| LeftoverCrossing `PlaceCrossing.init` | A crossing keeps which place a leftover sits in | none | **survives — no suite can reach it** |
 
 ## The tally
 
-96 mutants across 16 production files.
+109 mutants across 22 production files.
 
-- **91 killed** — 86 outright, 4 after a missing test was written, 1 after a fixture
+- **104 killed** — 99 outright, 4 after a missing test was written, 1 after a fixture
   that could not discriminate was repaired.
 - **3 pardoned**, each with its sentence below.
 - **2 deleted as excess** — the code went, not the mutant.
+- **1 survives with no answer**: `LeftoverCrossing.PlaceCrossing.init` can turn a
+  copy of Xcode into a folder and nothing goes red. It used to die; after the
+  review made the crossings internal, no suite can reach them. See below.
 
 One further change was discarded rather than judged: adding an unused case to
 `Deletion` falsifies no rule, so it is a typo, not a mutant (rule 1).
@@ -178,8 +188,20 @@ for that is owed by QA, not by this file.
 
 **`LeftoverListUIComposer.swift`** — one expression with no branch in it.
 
-**`LeftoverListView.swift`** — only its layout is judged, and only by two mutants.
-SwiftUI's accessibility tree is not reachable from inside the process in this
-harness — measured 2026-09-13: an `NSHostingView` in a key window reports zero
-accessibility children and no labels — so what the view *says* cannot be read
-back by a test. What it lays out can, and is. The rest is QA's.
+**`LeftoverListView.swift`** — judged, since the review, by seven recorded
+snapshots as well as the two layout mutants, and every one of the nine dies.
+SwiftUI's accessibility tree is still not reachable from inside the process —
+measured 2026-09-13: an `NSHostingView` in a key window reports zero
+accessibility children and no labels — so what the view *says* is read back from
+its pixels rather than from its words.
+
+**`LeftoverCrossing.swift`, `MainThreadDecorator`, the two background-thread
+adapters and `WhereXcodeLeavesThings`** — the values and the machinery that carry
+a leftover across the thread boundary. The review settled that none of them is
+public, and the app's suite is a separate module, so nothing can reach them: the
+crossing round trip had a test and no longer does, and one mutant on it now
+survives with no answer. Three ways out, all the owner's to pick: let the
+acceptance suite reach them (public, or `@testable`), give the crossing a package
+of its own where `Sendable` is allowed to live, or leave it to QA and accept that
+a conversion defect there is caught by running the product rather than by a
+suite. Until one is picked it is written down here rather than hidden.
