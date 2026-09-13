@@ -75,3 +75,20 @@ keep the old list, which dies at exit 1.
 
 The leak tracking is not decorative: keeping the view model alive past the end of a test
 turns the suite red (exit 1).
+
+## Part 5 — The screen, the composition root and the journeys (ui + app), 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 13 in the app target; 126 in the packages (engine 49, infra 33, presentation 44) — 139 together |
+| how long the tests take, tests alone | app target 0.18 s of test time; packages 0.037 s |
+| ten slowest tests | `everyMeasuredLeftoverIsDrawnWithItsSize` 0.082 s, `theScreenAsksForNoMoreHeightThanAWindowCanGive` 0.060 s, `theScreenDoesNotKeepTheCompositionRootAlive` 0.035 s, then everything under 0.0005 s. The top three lay a SwiftUI view out in a real window; the four `/bin/sh` tests in infra are next. |
+| ten pieces with the most branches | unchanged: `FileManagerDisk.bytesUsedByFolder(at:)` 4; four pieces at 3; five at 2 |
+| coverage | engine 100%, presentation 100%, infra 97.53% (two named API artifacts). The app target's coverage is not read here — the crossings and the root are judged by mutation below, which is the reading that matters. |
+| mutation tally beside it | 10 by hand on ui + app: 9 killed, 1 survived and then killed after the missing test was written. Running total 52 mutants, 49 killed, 1 pardoned, 2 deleted as excess. |
+
+Two findings a test made rather than a reading. The screen asked to be 2650 points
+tall for sixty rows — the very defect feature 04 records — and the survivor was a
+crossing that could turn a copy of Xcode into a folder with nothing noticing,
+because the acceptance suite stopped at the root's edge. The crossings are now the
+root's own currency, so every journey crosses, and the round trip has a test of its own.

@@ -15,12 +15,30 @@ settings:
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
 
+packages:
+  XcodeReclaimCore:
+    path: Packages/XcodeReclaimCore
+  XcodeReclaimEngine:
+    path: Packages/XcodeReclaimEngine
+  XcodeReclaimInfra:
+    path: Packages/XcodeReclaimInfra
+  XcodeReclaimPresentation:
+    path: Packages/XcodeReclaimPresentation
+  XcodeReclaimUI:
+    path: Packages/XcodeReclaimUI
+
 targets:
   XcodeReclaim:
     type: application
     platform: macOS
     sources:
       - XcodeReclaim
+    dependencies:
+      - package: XcodeReclaimCore
+      - package: XcodeReclaimEngine
+      - package: XcodeReclaimInfra
+      - package: XcodeReclaimPresentation
+      - package: XcodeReclaimUI
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
@@ -28,4 +46,16 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES
     scheme:
-      testTargets: []
+      testTargets:
+        - XcodeReclaimTests
+
+  XcodeReclaimTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - XcodeReclaimTests
+    dependencies:
+      - target: XcodeReclaim
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
