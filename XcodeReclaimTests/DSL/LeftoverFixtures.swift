@@ -1,12 +1,25 @@
 import Foundation
 import XcodeReclaimCore
 
+let developerFolder = URL(filePath: "/developer")
+
+enum LeftoverOnTheMachine: Sendable {
+    case folder(String, Int)
+    case simulator(Int)
+    case copyOfXcode(Int)
+
+    static func derivedData(taking bytes: Int) -> Self { .folder("Xcode/DerivedData", bytes) }
+    static func previews(taking bytes: Int) -> Self { .folder("Xcode/UserData/Previews", bytes) }
+    static func simulator(taking bytes: Int) -> Self { .simulator(bytes) }
+    static func copyOfXcode(taking bytes: Int) -> Self { .copyOfXcode(bytes) }
+}
+
 func derivedData(taking bytes: Int) -> Leftover {
-    Leftover(name: "Derived data", bytes: bytes, place: .folder(URL(filePath: "/developer/Xcode/DerivedData")))
+    Leftover(name: "Derived data", bytes: bytes, place: .folder(developerFolder.appending(path: "Xcode/DerivedData")))
 }
 
 func previews(taking bytes: Int) -> Leftover {
-    Leftover(name: "Previews", bytes: bytes, place: .folder(URL(filePath: "/developer/Xcode/UserData/Previews")))
+    Leftover(name: "Previews", bytes: bytes, place: .folder(developerFolder.appending(path: "Xcode/UserData/Previews")))
 }
 
 func simulator(taking bytes: Int) -> Leftover {

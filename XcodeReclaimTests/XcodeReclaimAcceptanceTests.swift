@@ -2,11 +2,13 @@ import AppKit
 import Foundation
 import Testing
 
+private let theFoldersTheMachineOffers = 4
+
 @MainActor
 struct XcodeReclaimAcceptanceTests {
     @Test("The developer opens the app and sees what may be deleted")
     func open_showsEveryLeftoverWithItsSize() async {
-        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        let app = AppDriver(machineHolding: .derivedData(taking: 300), .simulator(taking: 200))
 
         app.open()
         #expect(app.isMeasuring)
@@ -18,7 +20,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer deletes a leftover")
     func confirm_takesTheDeletedLeftoverOffTheScreen() async throws {
-        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        let app = AppDriver(machineHolding: .derivedData(taking: 300), .simulator(taking: 200))
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -37,7 +39,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
     func backOut_leavesTheLeftoverAsItWas() async throws {
-        let app = AppDriver(machineFinds: [derivedData(taking: 300)])
+        let app = AppDriver(machineHolding: .derivedData(taking: 300))
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -52,7 +54,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer refreshes the list")
     func refresh_showsEveryLeftoverTheSecondMeasuringFound() async {
-        let app = AppDriver(machineFinds: [derivedData(taking: 300), simulator(taking: 200)])
+        let app = AppDriver(machineHolding: .derivedData(taking: 300), .simulator(taking: 200))
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -66,7 +68,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer deletes a copy of Xcode they no longer use")
     func confirm_takesTheDeletedCopyOfXcodeOffTheScreenAndSaysWhatCameBack() async throws {
-        let app = AppDriver(machineFinds: [copyOfXcode(taking: 4_000_000_000), derivedData(taking: 300)])
+        let app = AppDriver(machineHolding: .copyOfXcode(taking: 4_000_000_000), .derivedData(taking: 300))
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -77,6 +79,28 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForDeletionToEnd()
         #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
         #expect(app.deletionMessage == "4.0 GB came back.")
+    }
+
+    @Test("Every part of the machine is measured at once rather than one after another")
+    func open_measuresEveryPartOfTheMachineAtOnce() async {
+        let disk = DiskWhoseFoldersWaitForEachOther(folders: theFoldersTheMachineOffers)
+        let app = AppDriver(theFoldersMeasuredBy: disk)
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(disk.howEachFolderWaited == Array(repeating: .success, count: theFoldersTheMachineOffers))
+    }
+
+    @Test("Leftovers of equal size are shown in the order the machine offers them")
+    func open_showsLeftoversOfEqualSizeInTheOrderTheyAreOffered() async {
+        let roomTheyBothTake = 300
+        let app = AppDriver(machineHolding: .previews(taking: roomTheyBothTake), .derivedData(taking: roomTheyBothTake))
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes", "Previews — 300 bytes"])
     }
 
     @Test("The developer opens the app and it takes its place among the regular applications")

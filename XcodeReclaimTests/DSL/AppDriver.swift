@@ -10,10 +10,22 @@ struct AppDriver {
     private let leftovers: XcodeLeftovers
     private let container: LeftoverListContainerView
 
-    init(machineFinds finds: [Leftover] = []) {
-        let machine = MachineStub(finding: finds)
+    init(machineHolding held: LeftoverOnTheMachine...) {
+        self.init(machine: machine(holding: held))
+    }
 
-        leftovers = XcodeLeftovers(measuring: machine.measuring, deleting: machine.deleting)
+    init(theFoldersMeasuredBy disk: DiskWhoseFoldersWaitForEachOther) {
+        self.init(
+            machine: Machine(
+                developerFolder: developerFolder,
+                worthDeleting: anythingIsWorthDeleting,
+                disk: { disk },
+                simulatorService: { SimulatorServiceStub(taking: []) },
+                xcodeCopies: { XcodeCopiesStub(taking: []) }))
+    }
+
+    private init(machine: Machine) {
+        leftovers = XcodeLeftovers(measuring: machine)
         container = leftovers.leftoverList()
     }
 }

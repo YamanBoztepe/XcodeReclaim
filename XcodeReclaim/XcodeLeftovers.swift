@@ -1,69 +1,54 @@
 import Foundation
 import XcodeReclaimCore
 import XcodeReclaimEngine
-import XcodeReclaimInfra
 
 public struct XcodeLeftovers: Sendable {
-    private let measuring: LeftoverListUIComposer.Measuring
-    private let deleting: LeftoverListUIComposer.Deleting
+    private let machine: Machine
 
-    public init(measuring: @escaping LeftoverListUIComposer.Measuring, deleting: @escaping LeftoverListUIComposer.Deleting) {
-        self.measuring = measuring
-        self.deleting = deleting
+    public init(measuring machine: Machine) {
+        self.machine = machine
     }
 
     public init(in places: WhereXcodeLeavesThings = .onThisMachine) {
-        self.init(measuring: places.measuring, deleting: places.deleting)
+        self.init(measuring: .onThisMachine(places))
     }
 
     @MainActor public func leftoverList() -> LeftoverListContainerView {
-        LeftoverListUIComposer.screen(measuring: measuring, deleting: deleting)
+        LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
     }
 }
 
-private extension WhereXcodeLeavesThings {
-    var disk: any Disk { FileManagerDisk() }
-
-    var tool: any Tool { ProcessTool() }
-
-    var simulatorService: any SimulatorService { SimctlSimulatorService(tool: tool) }
-
-    var xcodeCopies: any XcodeCopies { SystemXcodeCopies(tool: tool, disk: disk, applicationsFolder: applicationsFolder) }
-
+private extension Machine {
     var measureLeftovers: MeasureLeftovers {
         MeasureLeftovers(
             developerFolder: developerFolder,
-            disk: disk,
-            simulatorService: simulatorService,
-            xcodeCopies: xcodeCopies,
+            disk: disk(),
+            simulatorService: simulatorService(),
+            xcodeCopies: xcodeCopies(),
             worthDeleting: worthDeleting)
     }
 
-    var deleteLeftover: DeleteLeftover {
-        DeleteLeftover(disk: disk, simulatorService: simulatorService)
+    var measuring: LeftoverListUIComposer.Measuring {
+        { [self] announce in
+            let found = await everySourceAtOnce(announcing: announce)
+
+            return LeftoversWorthDeleting(atLeast: worthDeleting).biggestFirst(from: found)
+        }
     }
 
-    var measuring: LeftoverListUIComposer.Measuring {
-        { [self] announce in measureLeftovers.leftovers(from: await everySourceAtOnce(announcing: announce)) }
+    var deleting: LeftoverListUIComposer.Deleting {
+        { [self] leftover in DeleteLeftover(disk: disk(), simulatorService: simulatorService()).delete(leftover) }
     }
 
     func everySourceAtOnce(announcing announce: @escaping @Sendable (String) -> Void) async -> [[Leftover]] {
         let measured = await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
             for source in MeasureLeftovers.Offered.allCases.indices {
-                measurings.addTask { [self] in (source, leftovers(of: source, announcing: announce)) }
+                measurings.addTask { [self] in (source, measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[source], announcing: announce)) }
             }
 
             return await measurings.reduce(into: [Int: [Leftover]]()) { measured, each in measured[each.0] = each.1 }
         }
 
         return measured.sorted { $0.key < $1.key }.map(\.value)
-    }
-
-    func leftovers(of source: Int, announcing announce: @Sendable (String) -> Void) -> [Leftover] {
-        measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[source], announcing: announce)
-    }
-
-    var deleting: LeftoverListUIComposer.Deleting {
-        { [self] leftover in deleteLeftover.delete(leftover) }
     }
 }

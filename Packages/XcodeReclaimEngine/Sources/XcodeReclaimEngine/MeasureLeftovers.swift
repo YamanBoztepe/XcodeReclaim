@@ -33,7 +33,8 @@ public struct MeasureLeftovers {
     }
 
     public func leftovers(announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
-        leftovers(from: Offered.allCases.map { leftovers(of: $0, announcing: announce) })
+        LeftoversWorthDeleting(atLeast: worthDeleting)
+            .biggestFirst(from: Offered.allCases.map { leftovers(of: $0, announcing: announce) })
     }
 
     public func leftovers(of offered: Offered, announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
@@ -48,24 +49,10 @@ public struct MeasureLeftovers {
         }
     }
 
-    public func leftovers(from found: [[Leftover]]) -> [Leftover] {
-        biggestFirst(found.flatMap(\.self).filter { $0.bytes >= worthDeleting })
-    }
 }
 
 private extension MeasureLeftovers {
     func offeredFolder(_ offered: OfferedFolder.Offered) -> OfferedFolder {
         OfferedFolder(offered: offered, developerFolder: developerFolder, disk: disk)
-    }
-
-    func biggestFirst(_ found: [Leftover]) -> [Leftover] {
-        found
-            .enumerated()
-            .sorted { offered, other in
-                offered.element.bytes == other.element.bytes
-                    ? offered.offset < other.offset
-                    : offered.element.bytes > other.element.bytes
-            }
-            .map(\.element)
     }
 }

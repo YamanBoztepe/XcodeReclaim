@@ -1,67 +1,105 @@
 import Foundation
 import Synchronization
+import XcodeReclaim
 import XcodeReclaimCore
+import XcodeReclaimEngine
 
-struct MachineStub: Sendable {
-    private let announces: [String]
-    private let finds: [Leftover]
+struct DiskStub: Disk, Sendable {
+    let sizes: [URL: Int]
 
-    init(announcing announces: [String] = [], finding finds: [Leftover] = []) {
-        self.announces = announces
-        self.finds = finds
+    func bytesUsedByFolder(at url: URL) -> Int {
+        sizes[url, default: 0]
     }
 
-    func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
-        for name in announces {
-            announce(name)
-        }
-        return finds
+    func foldersInside(_ url: URL) -> [URL] {
+        []
     }
 
-    func deleting(_ leftover: Leftover) -> Deletion {
-        .freed(leftover.bytes)
-    }
+    func removeItem(at url: URL) throws {}
 }
 
-final class SlowMachineStub: Sendable {
-    private let measurings: [MachineStub]
-    private let gates: [DispatchSemaphore]
-    private let howManyHaveBegun = Atomic(0)
+struct SimulatorServiceStub: SimulatorService, Sendable {
+    let taking: [Int]
 
-    init(eachMeasuring measurings: [MachineStub]) {
-        self.measurings = measurings
-        gates = measurings.map { _ in DispatchSemaphore(value: 0) }
+    func simulators() throws -> [Simulator] {
+        taking.map {
+            Simulator(
+                identifier: "21B507D3-909E-465B-957C-4B370278399F",
+                name: "iPhone 17",
+                runtime: "iOS 26.4",
+                isShutDown: true,
+                bytes: $0)
+        }
     }
 
-    func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
-        let thisMeasuring = howManyHaveBegun.wrappingAdd(1, ordering: .relaxed).oldValue
-        let found = measurings[thisMeasuring].measuring(announcing: announce)
-        gates[thisMeasuring].wait()
+    func delete(simulatorWithIdentifier identifier: String) throws {}
+}
 
-        return found
-    }
+struct XcodeCopiesStub: XcodeCopies, Sendable {
+    let taking: [Int]
 
-    func letMeasuringFinish(_ measuring: Int) {
-        gates[measuring].signal()
-    }
-
-    func letEveryMeasuringFinish() {
-        for gate in gates {
-            gate.signal()
+    func copies() -> [XcodeCopy] {
+        taking.map {
+            XcodeCopy(
+                path: URL(filePath: "/Applications/Xcode 26.2.app"),
+                version: XcodeCopy.Version(number: "26.2", build: "17C51"),
+                bytes: $0,
+                isOpen: false,
+                isPointedAtByCommandLineTools: false)
         }
     }
 }
 
-final class MachineThreadSpy: Sendable {
-    private let ranOn = Mutex<[String]>([])
+final class DiskWhoseFoldersWaitForEachOther: Disk, Sendable {
+    private static let secondsAnOverlapShowsItselfIn = 2
+    private static let longerThanAnOverlapNeedsToShowItself = DispatchTimeInterval.seconds(secondsAnOverlapShowsItselfIn)
 
-    var whereEachMeasuringRan: [String] {
-        ranOn.withLock { $0 }
+    private let folders: Int
+    private let arrived = Atomic(0)
+    private let everyFolderHasArrived = DispatchSemaphore(value: 0)
+    private let waits = Mutex<[DispatchTimeoutResult]>([])
+
+    init(folders: Int) {
+        self.folders = folders
     }
 
-    func measuring(announcing _: @Sendable (String) -> Void) -> [Leftover] {
-        ranOn.withLock { $0.append(Thread.isMainThread ? "the screen's thread" : "away from the screen's thread") }
-
-        return []
+    var howEachFolderWaited: [DispatchTimeoutResult] {
+        waits.withLock { $0 }
     }
+
+    func bytesUsedByFolder(at url: URL) -> Int {
+        if arrived.wrappingAdd(1, ordering: .relaxed).newValue == folders {
+            for _ in 0..<folders {
+                everyFolderHasArrived.signal()
+            }
+        }
+
+        let waited = everyFolderHasArrived.wait(timeout: .now() + Self.longerThanAnOverlapNeedsToShowItself)
+        waits.withLock { $0.append(waited) }
+
+        return 0
+    }
+
+    func foldersInside(_ url: URL) -> [URL] {
+        []
+    }
+
+    func removeItem(at url: URL) throws {}
+}
+
+let anythingIsWorthDeleting = 1
+
+func machine(holding held: [LeftoverOnTheMachine]) -> Machine {
+    let folders: [URL: Int] = held.reduce(into: [:]) { folders, leftover in
+        if case .folder(let path, let bytes) = leftover { folders[developerFolder.appending(path: path)] = bytes }
+    }
+    let simulators = held.compactMap { if case .simulator(let bytes) = $0 { bytes } else { nil } }
+    let copies = held.compactMap { if case .copyOfXcode(let bytes) = $0 { bytes } else { nil } }
+
+    return Machine(
+        developerFolder: developerFolder,
+        worthDeleting: anythingIsWorthDeleting,
+        disk: { DiskStub(sizes: folders) },
+        simulatorService: { SimulatorServiceStub(taking: simulators) },
+        xcodeCopies: { XcodeCopiesStub(taking: copies) })
 }
