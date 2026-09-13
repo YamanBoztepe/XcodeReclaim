@@ -5,13 +5,14 @@ import XcodeReclaimPresentation
 
 @MainActor
 struct LeftoverListUIIntegrationTests {
-    @Test func measure_runsAwayFromTheScreensThreadAndLandsBackOnIt() async {
-        let screen = LeftoverListDriver.withAMachineThatReportsItsThread()
+    @Test func measure_runsAwayFromTheScreensThread() async {
+        let machine = MachineThreadSpy()
+        let screen = LeftoverListDriver(machineWatchedBy: machine)
 
         screen.open()
         await screen.waitForMeasuringToEnd()
 
-        #expect(screen.rowNames == ["away from the screen's thread"])
+        #expect(machine.whereEachMeasuringRan == ["away from the screen's thread"])
     }
 
     @Test func screen_isHandedWhatTheViewModelHoldsAfterEveryEvent() async throws {

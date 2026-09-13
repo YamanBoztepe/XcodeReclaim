@@ -22,10 +22,8 @@ struct LeftoverListDriver {
         self.init(measuring: machine.measuring, heldBy: machine)
     }
 
-    static func withAMachineThatReportsItsThread() -> LeftoverListDriver {
-        let machine = ThreadReportingMachineStub()
-
-        return LeftoverListDriver(measuring: machine.measuring)
+    init(machineWatchedBy spy: MachineThreadSpy) {
+        self.init(measuring: spy.measuring)
     }
 
     private init(

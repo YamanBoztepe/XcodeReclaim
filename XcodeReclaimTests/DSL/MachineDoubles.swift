@@ -52,12 +52,16 @@ final class SlowMachineStub: Sendable {
     }
 }
 
-struct ThreadReportingMachineStub: Sendable {
-    private let roomItSaysTheLeftoverTakes = 300
+final class MachineThreadSpy: Sendable {
+    private let ranOn = Mutex<[String]>([])
+
+    var whereEachMeasuringRan: [String] {
+        ranOn.withLock { $0 }
+    }
 
     func measuring(announcing _: @Sendable (String) -> Void) -> [Leftover] {
-        let whereItRan = Thread.isMainThread ? "the screen's thread" : "away from the screen's thread"
+        ranOn.withLock { $0.append(Thread.isMainThread ? "the screen's thread" : "away from the screen's thread") }
 
-        return [Leftover(name: whereItRan, bytes: roomItSaysTheLeftoverTakes, place: .folder(URL(filePath: "/developer/\(whereItRan)")))]
+        return []
     }
 }

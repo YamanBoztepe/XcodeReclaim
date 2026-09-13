@@ -231,6 +231,16 @@ refused that complexity — rightly: the guard it bought protects a leftover's n
 flashing on screen for an instant during a refresh. The deliver guard, which
 protects a stale list replacing the screen, stays held.
 
+**`MainThreadDecorator`'s hop back to the screen** — held by the compiler, not
+by a test. Measured 2026-09-13: taking the hop out of `callAsFunction` and
+calling the decoratee straight gives `error: main actor-isolated property
+'decoratee' can not be referenced from a nonisolated context`, so the mutant
+never runs. Its twin, the hop *away* in `answer(from:)`, does compile and is
+killed by "the measuring runs away from the screen's thread" — judged with only
+that test, because running the measuring on the screen's thread deadlocks the two
+tests that hold a measuring at a gate, and a suite that never finishes is not a
+verdict.
+
 **`XcodeLeftovers`'s machine-side properties, `MainThreadDecorator` and
 `WhereXcodeLeavesThings`** — the wiring that names the folders Xcode leaves
 things in, builds the four adapters, and carries the answers back across the
