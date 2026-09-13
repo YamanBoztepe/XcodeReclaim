@@ -49,8 +49,8 @@ private extension WhereXcodeLeavesThings {
 
     func everySourceAtOnce(announcing announce: @escaping @Sendable (String) -> Void) async -> [[Leftover]] {
         let measured = await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
-            for place in MeasureLeftovers.Offered.allCases.indices {
-                measurings.addTask { [self] in (place, leftovers(of: place, announcing: announce)) }
+            for source in MeasureLeftovers.Offered.allCases.indices {
+                measurings.addTask { [self] in (source, leftovers(of: source, announcing: announce)) }
             }
 
             return await measurings.reduce(into: [Int: [Leftover]]()) { measured, each in measured[each.0] = each.1 }
@@ -59,8 +59,8 @@ private extension WhereXcodeLeavesThings {
         return measured.sorted { $0.key < $1.key }.map(\.value)
     }
 
-    func leftovers(of place: Int, announcing announce: @Sendable (String) -> Void) -> [Leftover] {
-        measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[place], announcing: announce)
+    func leftovers(of source: Int, announcing announce: @Sendable (String) -> Void) -> [Leftover] {
+        measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[source], announcing: announce)
     }
 
     var deleting: LeftoverListUIComposer.Deleting {
