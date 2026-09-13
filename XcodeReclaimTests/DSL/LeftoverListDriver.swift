@@ -19,18 +19,18 @@ struct LeftoverListDriver {
     init(eachMeasuringHeldUntilLetGo measurings: [MachineStub]) {
         let machine = SlowMachineStub(eachMeasuring: measurings)
 
-        self.init(measuring: machine.measuring, deleting: machine.deleting, heldBy: machine)
+        self.init(measuring: machine.measuring, heldBy: machine)
     }
 
     static func withAMachineThatReportsItsThread() -> LeftoverListDriver {
         let machine = ThreadReportingMachineStub()
 
-        return LeftoverListDriver(measuring: machine.measuring, deleting: machine.deleting)
+        return LeftoverListDriver(measuring: machine.measuring)
     }
 
     private init(
         measuring: @escaping LeftoverListUIComposer.Measuring,
-        deleting: @escaping LeftoverListUIComposer.Deleting,
+        deleting: @escaping LeftoverListUIComposer.Deleting = MachineStub().deleting,
         heldBy slowMachine: SlowMachineStub? = nil
     ) {
         container = LeftoverListUIComposer.screen(measuring: measuring, deleting: deleting)

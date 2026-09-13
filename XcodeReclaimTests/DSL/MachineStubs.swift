@@ -41,10 +41,6 @@ final class SlowMachineStub: Sendable {
         return found
     }
 
-    func deleting(_ leftover: Leftover) -> Deletion {
-        .freed(leftover.bytes)
-    }
-
     func letMeasuringFinish(_ measuring: Int) {
         gates[measuring].signal()
     }
@@ -59,13 +55,9 @@ final class SlowMachineStub: Sendable {
 struct ThreadReportingMachineStub: Sendable {
     private let roomItSaysTheLeftoverTakes = 300
 
-    func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
+    func measuring(announcing _: @Sendable (String) -> Void) -> [Leftover] {
         let whereItRan = Thread.isMainThread ? "the screen's thread" : "away from the screen's thread"
 
         return [Leftover(name: whereItRan, bytes: roomItSaysTheLeftoverTakes, place: .folder(URL(filePath: "/developer/\(whereItRan)")))]
-    }
-
-    func deleting(_ leftover: Leftover) -> Deletion {
-        .freed(leftover.bytes)
     }
 }
