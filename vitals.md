@@ -1,193 +1,60 @@
 # Vital signs
 
-Appended, never regenerated. One reading says nothing; a series says something.
+Four readings, appended and never regenerated. One reading says nothing; a series
+says something. These are observations, not targets.
 
-## Part 1 — Measure leftovers (core + engine), 2026-09-13
+## How long the tests take, tests alone
 
-| reading | value |
-|---|---|
-| tests, engine package | 37 in 5 suites |
-| how long the tests take, tests alone | 0.001 s ("Test run with 37 tests in 5 suites passed after 0.001 seconds") |
-| ten slowest tests | every test reports 0.001 s — the runner's resolution floor; no test stands out yet |
-| ten pieces with the most branches | `MeasureLeftovers.refusal(for:)` 3; every other piece 1 |
-| coverage, engine package | regions 100.00%, functions 100.00%, lines 100.00% (43 regions, 22 functions, 141 lines) |
-| mutation tally beside it | 6 mutants by hand on `MeasureLeftovers`, 6 killed, 0 survived |
+| reading | engine | infra | presentation | ui | app |
+|---|---|---|---|---|---|
+| 1 — measure leftovers | 0.001 s / 37 | — | — | — | — |
+| 2 — delete leftover | 0.002 s / 49 | — | — | — | — |
+| 3 — the adapters | 0.002 s / 49 | 0.034 s / 33 | — | — | — |
+| 4 — what the screen holds | 0.002 s / 49 | 0.034 s / 33 | 0.001 s / 44 | — | — |
+| 5 — the screen and the root | 0.002 s / 49 | 0.034 s / 33 | 0.001 s / 44 | — | 0.18 s / 13 |
+| 6 — after the first review | 0.002 s / 49 | 0.080 s / 35 | 0.002 s / 45 | 0.373 s / 9 | 0.16 s / 13 |
+| 7 — after the second review | 0.002 s / 49 | 0.080 s / 35 | 0.002 s / 45 | 0.373 s / 9 | 0.16 s / 13 |
+| 8 — after the third review | 0.002 s / 49 | 0.074 s / 35 | 0.002 s / 45 | 0.406 s / 9 | 0.17 s / 16 |
+| 9 — after the fourth review | 0.002 s / 49 | 0.070 s / 35 | 0.002 s / 45 | 0.355 s / 9 | 0.25 s / 17 |
+| 10 — after the fifth review | 0.002 s / 49 | 0.070 s / 35 | 0.001 s / 45 | 0.355 s / 9 | 0.61 s / 21 |
 
-The mutants: threshold `>=`→`>`; equal-room order `<`→`>`; shut-down/running swapped;
-open-and-pointed-at preferring the tools; device support named by the model instead of
-the version; the announcement moved after the size read. Each judged by the engine
-package's own suite, by exit code.
+## The ten slowest tests
 
-## Part 2 — Delete leftover (engine), 2026-09-13
+| reading | test | time |
+|---|---|---|
+| 3 | `removeItem_throwsWhatTheDiskSaid…` (infra) | 0.025 s |
+| 3 | `run_throwsWhenTheToolWroteBeforeItFailed` (infra) | 0.024 s |
+| 3 | `run_throwsWhenTheToolIsNotThere` (infra) | 0.022 s |
+| 3 | `run_throwsWhatTheToolSaidWhenItExitsWithAFailure` (infra) | 0.021 s |
+| 5 | `draws_everyLeftoverItWasGiven…` (app, then ui) | 0.082 s |
+| 5 | `draws_noMoreHeightThanAWindowCanGive` (app, then ui) | 0.060 s |
+| 6 | every one of the ui package's nine | 0.13–0.34 s |
+| 10 | "A screen with nothing to delete says so" (ui) | 0.319 s |
+| 10 | "A screen with a deletion under way…" (ui) | 0.319 s |
+| 10 | "The developer deletes a leftover" (app) | 0.140 s |
+| 10 | "The developer refreshes the list" (app) | 0.130 s |
 
-| reading | value |
-|---|---|
-| tests, engine package | 49 in 6 suites |
-| how long the tests take, tests alone | 0.002 s (was 0.001 s at part 1, over 37 tests) |
-| ten slowest tests | still every test at 0.001–0.002 s; nothing stands out |
-| ten pieces with the most branches | `DeleteLeftover.remove(_:)` 3, `MeasureLeftovers.refusal(for:)` 3; every other piece 1 |
-| coverage, engine package | regions 100.00%, functions 100.00%, lines 100.00% (55 regions, 25 functions, 165 lines) |
-| mutation tally beside it | 11 by hand so far on the engine, 11 killed, 0 survived (5 new on `DeleteLeftover`) |
+## The ten pieces with the most branches
 
-The five new mutants: the measured refusal ignored; a failure read as room coming
-back; the disk's sentence thrown away for a fixed one; a copy routed to the
-simulator service; the freed room measured again instead of carried.
+| reading | piece | branches |
+|---|---|---|
+| 1 | `MeasureLeftovers.refusal(for:)` | 3 |
+| 2 | `DeleteLeftover.remove(_:)` | 3 |
+| 3 | `FileManagerDisk.bytesUsedByFolder(at:)` | 4 |
+| 4 | `LeftoverListViewModel.whyItCannotBeDeleted(_:)`, `.identity(of:)`, `.kind(of:)` | 3 each |
+| 10 | `FileManagerDisk.bytesUsedByFolder(at:)` | 4 |
+| 10 | `MeasureLeftovers.refusal(for:)` | 3 |
+| 10 | `LeftoverListViewModel` — three pieces | 3 each |
+| 10 | `LeftoverListViewModel` — two pieces, `LeftoverListView.drawn(_:)` | 2 each |
+| 10 | every other piece | 1 |
 
-## Part 3 — The adapters that touch the machine (infra), 2026-09-13
+## Coverage, beside the mutation tally
 
-| reading | value |
-|---|---|
-| tests, infra package | 33 in 4 suites (engine still 49) |
-| how long the tests take, tests alone | 0.034 s infra, 0.002 s engine — the first reading where a suite is measurably slower than the runner's floor, because four of its tests launch a real process and eight write to a real disk |
-| ten slowest tests | `aFolderThatCouldNotBeDeletedSaysWhatTheDiskSaid` 0.025 s, `aToolThatWroteBeforeItFailedIsNotReadAsAnAnswer` 0.024 s, `aToolThatIsNotThereFails` 0.022 s, `aRefusalCarriesWhatTheToolSaid` 0.021 s; the rest under 0.01 s. The four at the top are the four that run `/bin/sh`. |
-| ten pieces with the most branches | `FileManagerDisk.bytesUsedByFolder(at:)` 4, `MeasureLeftovers.refusal(for:)` 3, `DeleteLeftover.remove(_:)` 2, `DeleteLeftover.delete(_:)` 2; every other piece 1 |
-| coverage, infra package | regions 97.53%, functions 97.78%, lines 98.97% |
-| mutation tally beside it | 15 by hand on infra: 13 killed, 1 pardoned, 1 deleted as excess. Engine unchanged at 11/11. |
-
-Coverage is not 100% here and the two missing regions are named: the `guard let`
-around `FileManager.enumerator`, which never returns nil for any URL, and the
-`?? 0` behind `totalFileAllocatedSize`, which a regular file always carries. Both
-are optionals the API declares and the world does not produce.
-
-The pardon: dropping `read.isRegularFile == true` from the walk's guard changes
-nothing observable, because a folder reports no allocated size at all —
-`totalFileAllocatedSize` and `fileAllocatedSize` are both nil for a directory,
-measured 2026-09-13 — so counting folders adds zero. The test is not toothless:
-the second falsification of the same rule, counting only what is *not* a regular
-file, dies at exit 1.
-
-## Part 4 — What the screen holds (presentation), 2026-09-13
-
-| reading | value |
-|---|---|
-| tests, presentation package | 44 in 4 suites (engine 49, infra 33 — 126 together) |
-| how long the tests take, tests alone | 0.001 s presentation, 0.034 s infra, 0.002 s engine |
-| ten slowest tests | every presentation test at 0.001 s; the suite's whole run is still under the runner's resolution. The four `/bin/sh` tests in infra remain the only ones that cost anything. |
-| ten pieces with the most branches | `FileManagerDisk.bytesUsedByFolder(at:)` 4; `LeftoverListViewModel.whyItCannotBeDeleted(_:)`, `.identity(of:)`, `.kind(of:)` and `MeasureLeftovers.refusal(for:)` 3; four pieces at 2; every other piece 1 |
-| coverage, presentation package | regions 100.00%, functions 100.00%, lines 100.00% (96 regions, 48 functions, 209 lines) |
-| mutation tally beside it | 16 by hand on presentation: 14 killed, 1 deleted as excess, 1 leak-tracker sabotage killed. Running total 42 mutants, 38 killed, 1 pardoned, 2 deleted as excess. |
-
-The excess: `deletionEnded(with:)` carried `guard !isMeasuring else { return }` to stop a
-finished deletion putting the old list back, but `refresh()` already clears what the last
-measuring found, so the guard could be removed with every test still green. The rule is held
-structurally rather than checked — proved by the second falsification, making `refresh()`
-keep the old list, which dies at exit 1.
-
-The leak tracking is not decorative: keeping the view model alive past the end of a test
-turns the suite red (exit 1).
-
-## Part 5 — The screen, the composition root and the journeys (ui + app), 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 13 in the app target; 126 in the packages (engine 49, infra 33, presentation 44) — 139 together |
-| how long the tests take, tests alone | app target 0.18 s of test time; packages 0.037 s |
-| ten slowest tests | `everyMeasuredLeftoverIsDrawnWithItsSize` 0.082 s, `theScreenAsksForNoMoreHeightThanAWindowCanGive` 0.060 s, `theScreenDoesNotKeepTheCompositionRootAlive` 0.035 s, then everything under 0.0005 s. The top three lay a SwiftUI view out in a real window; the four `/bin/sh` tests in infra are next. |
-| ten pieces with the most branches | unchanged: `FileManagerDisk.bytesUsedByFolder(at:)` 4; four pieces at 3; five at 2 |
-| coverage | engine 100%, presentation 100%, infra 97.53% (two named API artifacts). The app target's coverage is not read here — the crossings and the root are judged by mutation below, which is the reading that matters. |
-| mutation tally beside it | 10 by hand on ui + app: 9 killed, 1 survived and then killed after the missing test was written. Running total 52 mutants, 49 killed, 1 pardoned, 2 deleted as excess. |
-
-Two findings a test made rather than a reading. The screen asked to be 2650 points
-tall for sixty rows — the very defect feature 04 records — and the survivor was a
-crossing that could turn a copy of Xcode into a folder with nothing noticing,
-because the acceptance suite stopped at the root's edge. The crossings are now the
-root's own currency, so every journey crosses, and the round trip has a test of its own.
-
-## After the owner's review — dummy view, adapters, snapshots, 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 147 — engine 49, infra 35, presentation 45, ui 9, app 9 (was 142) |
-| how long the tests take, tests alone | ui 0.373 s, infra 0.080 s, presentation 0.002 s, engine 0.002 s; the app target 0.16 s |
-| ten slowest tests | every one of the ui package's nine, 0.13–0.34 s each — they lay a SwiftUI view out in a real window and read its pixels back. The suite's whole cost is now the snapshots, and that is the first reading where one suite costs more than all the others together. |
-| ten pieces with the most branches | `FileManagerDisk.bytesUsedByFolder(at:)` 4; three pieces of `LeftoverListViewModel`, `MeasureLeftovers.refusal(for:)` and the three crossing conversions at 3 |
-| coverage, presentation package | regions 100.00%, functions 100.00%, lines 100.00% (99 regions, 49 functions, 231 lines) |
-| mutation tally beside it | 13 new by hand: 7 on the view, judged by the snapshot suite, and 6 on the adapters and the decorator, judged by the app suite — all 13 killed. Running total 109 mutants, 104 killed, 3 pardoned, 2 deleted as excess. |
-| what went the other way | one mutant that used to die now survives: turning a copy of Xcode into a folder inside `LeftoverCrossing`. The crossings are internal now, so no suite can reach them. |
-
-The snapshot suite is not decorative: seven deliberate defects in the view — the
-capacity bar gone, a row's refusal not drawn, the row being deleted still showing
-its size, a refused row still offering its button, the largest row unmarked, a
-section's symbol dropped, "Nothing to delete." missing — every one of them turns
-the suite red on the recorded pixels.
-
-## After the second review — one generic decorator instead of six parts, 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 147, unchanged |
-| files in the composition root | 9 (was 13) |
-| adapter and decorator types | 3 (was 6): `MainThreadDecorator<Message>` used three times, `LatestMeasuringOnlyDecorator` and `WeakReference<Object>` once each |
-| mutants re-run against the collapsed wiring | 7, all killed — the rules did not move, only the parts holding them |
-| threading grep over the packages' sources | empty |
-
-`MainThreadDecorator` now carries both halves of the one purpose the root has:
-`callAsFunction` sends a message back to the main thread, and `answer(from:)`
-runs a piece of work somewhere else and sends its answer back the same way. Four
-types went — the two background-thread adapters and the two view-model adapters —
-and the wiring they carried reads as six lines inside the composer and the root.
-
-## After the third review — Sendable where the type lives, and an honest re-run, 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 147 — engine 49, infra 35, presentation 45, ui 9, app 9 |
-| files in the composition root | 8 (was 9, was 13) |
-| lines the crossing layer cost | 86, now zero |
-| mutation, re-judged from scratch | 112 mutants, 108 killed, 3 pardoned, 1 survives with no answer |
-| threading grep over the packages' sources | 4 lines, all of them `Sendable` on a core value type; no `async`, no `Task`, no actor, no Dispatch |
-
-Two defects of my own came out of the re-run, and neither would have been found by
-reading. The mutation runner judged by exit code alone, and a mutant that fails to
-compile exits non-zero too — so three mutants that were never judged had been written
-down as killed. And the `LeftoverListUIModel` refactor quietly took the teeth out of
-one test: it drove `open()`, which after the refactor no longer redraws, so the
-mutant it used to kill walked through it.
-
-The measurement behind dropping the crossing layer: a checked
-`extension Leftover: @retroactive Sendable {}` in the app target compiles under
-strict concurrency and really does carry `[Leftover]` across a `Task.detached`
-boundary — nothing is silenced, the compiler checks every stored property — but
-`swift-format`'s `AvoidRetroactiveConformances` refuses it, so the conformance
-went where the type lives instead.
-
-## After the fourth review — sending, temporal flows, an integration suite, 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 154 — engine 49, infra 35, presentation 45, ui 9, app 16 (9 acceptance, 7 integration) |
-| `Sendable` in the packages' sources | 3 words, all on `Leftover` and its two nested enums; `Deletion` needs none |
-| the decorator's constraint on its payload | none — `MainThreadDecorator<Message>` is unconstrained and carries values with `sending` |
-| acceptance tests written as temporal flows | 8 of 9; the ninth is about the app bundle and has no flow |
-
-Measured rather than argued: `sending` carries a value that is *born* in the
-background — the measured leftovers and the deletion's outcome need no `Sendable`
-at all. It cannot carry the deletion's request, and the compiler says exactly why
-at `LeftoverListViewModel.confirm()`: the screen keeps the leftover it asked about,
-because the row has to say "Deleting…" while the deletion runs. A value you keep
-is copied, not handed over, and `Sendable` is what says a copy is safe.
-
-## After the fifth review — the acceptance suite drives the real root, 2026-09-13
-
-| reading | value |
-|---|---|
-| tests | 155 — engine 49, infra 35, presentation 45, ui 9, app 17 (7 acceptance, 10 integration) |
-| what the acceptance suite drives | `XcodeLeftovers` — the real root, the real composer, the real view model, the real view and the real thread hop; only the machine is stubbed |
-| what the integration suite drives | `LeftoverListUIComposer` — the UI parts together, synchronous and deterministic |
-| internal detail reachable from a test | none; the dual-compiled `MainThreadDecorator.swift` is out of `project.yml` |
-| `Sendable` in the packages' sources | 4 words on the two core values that cross |
-
-The threading is now held by an acceptance test rather than by QA: the stubbed
-machine reports which thread it ran on, and the screen shows
-"away from the screen's thread". Running the measuring on the main thread instead
-kills it (exit 65).
-
-Two scenarios moved from acceptance to integration, and the reason is honest
-rather than tidy: with a real thread hop, a transient state cannot be observed
-without controlling the machine mid-flight. "The developer watches the measuring
-work through the leftovers" and "A measuring the screen has replaced does not
-reach it" are both about a moment between two answers, so they are asserted where
-the answers are synchronous. Listening for them was tried first and measured:
-`withObservationTracking` is one-shot and demonstrably missed the announcements,
-and `Observations` — the tool that does not miss — needs macOS 26 while the app
-targets 15.
+| reading | engine | infra | presentation | mutants | killed | pardoned | excess | survived |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 100% | — | — | 6 | 6 | 0 | 0 | 0 |
+| 2 | 100% | — | — | 11 | 11 | 0 | 0 | 0 |
+| 3 | 100% | 97.53% | — | 26 | 24 | 1 | 1 | 0 |
+| 4 | 100% | 97.53% | 100% | 42 | 38 | 1 | 2 | 0 |
+| 5 | 100% | 97.53% | 100% | 52 | 49 | 1 | 2 | 0 |
+| 6 (re-judged from scratch) | 100% | 97.53% | 100% | 112 | 108 | 3 | 2 | 1 |
