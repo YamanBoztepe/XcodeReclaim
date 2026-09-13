@@ -28,6 +28,18 @@ struct FileManagerDiskTests {
         #expect(received == AFolderOnTheDisk.oneBlock)
     }
 
+    @Test func aFolderCountsWhatItsSubfoldersHold() {
+        let sut = makeSUT()
+        let folder = makeFolder(holding: 1)
+        defer { throwAway(folder) }
+        let deeper = AFolderOnTheDisk.putAFolder(named: "deeper", inside: folder)
+        AFolderOnTheDisk.put(1, named: "a block further down", inside: deeper)
+
+        let received = sut.bytesUsedByFolder(at: folder)
+
+        #expect(received == AFolderOnTheDisk.oneBlock * 2)
+    }
+
     @Test func aFolderTakesTheRoomItsFilesOccupyRatherThanTheirLengths() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
@@ -53,6 +65,18 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         throwAway(folder)
+
+        let received = sut.foldersInside(folder)
+
+        #expect(received.isEmpty)
+    }
+
+    @Test func aFolderThatCannotBeReadHoldsNoFolders() {
+        let sut = makeSUT()
+        let folder = makeFolder(holding: 0)
+        defer { throwAway(folder) }
+        _ = AFolderOnTheDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: folder)
+        AFolderOnTheDisk.makeUnreadable(folder)
 
         let received = sut.foldersInside(folder)
 

@@ -76,7 +76,6 @@ public final class LeftoverListViewModel {
         beingConfirmed = nil
         confirmation = nil
         beingDeleted = leftover
-        whatTheDeletionSaid = nil
         redraw()
         delete(leftover)
     }

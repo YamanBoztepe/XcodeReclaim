@@ -72,14 +72,25 @@ final class LeftoverListViewModelDeletionTests {
     }
 
     @Test func aFinishedDeletionSaysHowMuchRoomCameBack() throws {
+        let whatCameBack = 200
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
+        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 300)])
         sut.askAboutDeleting(try #require(sut.sections.first?.rows.first))
         sut.confirm()
 
-        sut.deletionEnded(with: .freed(200))
+        sut.deletionEnded(with: .freed(whatCameBack))
 
         #expect(sut.whatTheDeletionSaid == "200 bytes came back.")
+    }
+
+    @Test func aConfirmedDeletionIsNoLongerAskedAbout() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
+        sut.askAboutDeleting(try #require(sut.sections.first?.rows.first))
+
+        sut.confirm()
+
+        #expect(sut.confirmation == nil)
     }
 
     @Test func aDeletionUnderWayOffersNoOtherDeletionUntilItEnds() throws {
