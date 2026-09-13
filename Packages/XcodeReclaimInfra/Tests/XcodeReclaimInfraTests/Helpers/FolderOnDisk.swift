@@ -9,11 +9,11 @@ enum FolderOnDisk {
         return folder
     }
 
-    static func put(_ blocks: Int, named name: String, inside folder: URL) {
+    static func put(blocks: Int, named name: String, inside folder: URL) {
         try? Data(count: blocks * oneBlock).write(to: folder.appending(path: name))
     }
 
-    static func putAFileOf(_ bytes: Int, named name: String, inside folder: URL) {
+    static func put(bytes: Int, named name: String, inside folder: URL) {
         try? Data(count: bytes).write(to: folder.appending(path: name))
     }
 

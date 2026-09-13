@@ -7,7 +7,7 @@ import XcodeReclaimPresentation
 struct LeftoverListUIIntegrationTests {
     @Test func measure_runsAwayFromTheScreensThread() async {
         let machine = MachineThreadSpy()
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: MachineStub().deleting)
+        let screen = screenMeasuring(machine)
 
         screen.open()
         await screen.waitForMeasuringToEnd()
@@ -17,7 +17,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func screen_isHandedWhatTheViewModelHoldsAfterEveryEvent() async throws {
         let machine = MachineStub(finding: [derivedData(taking: 300)])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
 
         screen.open()
         #expect(screen.uiModelHandedToTheView == screen.uiModelTheViewModelHolds)
@@ -31,7 +31,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func screen_drawsTheSectionsAndRowsTheMeasuringFound() async {
         let machine = MachineStub(finding: [derivedData(taking: 300), simulator(taking: 200), copyOfXcode(taking: 100)])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
 
         screen.open()
         await screen.waitForMeasuringToEnd()
@@ -43,7 +43,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func askAboutDeleting_reachesTheAlertTheScreenDraws() async throws {
         let machine = MachineStub(finding: [derivedData(taking: 300)])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
         screen.open()
         await screen.waitForMeasuringToEnd()
         #expect(screen.confirmation == nil)
@@ -57,7 +57,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func confirm_takesEveryRowsDeletionAwayUntilTheDeletionEnds() async throws {
         let machine = MachineStub(finding: [derivedData(taking: 300), simulator(taking: 200)])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
         screen.open()
         await screen.waitForMeasuringToEnd()
         #expect(screen.deletableRows == ["Derived data", "iPhone 17 (iOS 26.4, 21B507D3)"])
@@ -74,7 +74,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func refresh_putsTheScreenBackToMeasuring() async {
         let machine = MachineStub(finding: [derivedData(taking: 300)])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
         screen.open()
         await screen.waitForMeasuringToEnd()
         #expect(screen.isMeasuring == false)
@@ -85,7 +85,7 @@ struct LeftoverListUIIntegrationTests {
     }
 
     @Test func measuringEnded_drawsNothingToDeleteOnlyOnceTheMeasuringIsOver() async {
-        let screen = LeftoverListUIComposer.screen(measuring: MachineStub().measuring, deleting: MachineStub().deleting)
+        let screen = screenMeasuring(MachineStub())
 
         screen.open()
         #expect(screen.saysThereIsNothingToDelete == false)
@@ -98,7 +98,7 @@ struct LeftoverListUIIntegrationTests {
     @Test("The developer watches the measuring work through the leftovers")
     func announced_namesEachLeftoverAsTheMeasuringReachesIt() async {
         let machine = SlowMachineStub(eachMeasuring: [MachineStub(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
 
         screen.open()
         await screen.waitForMeasuringToReach("Previews")
@@ -118,7 +118,7 @@ struct LeftoverListUIIntegrationTests {
             MachineStub(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
             MachineStub(finding: [previews(taking: 300)]),
         ])
-        let screen = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        let screen = screenMeasuring(machine)
         screen.open()
         await screen.waitForMeasuringToReach("Derived data")
         screen.refresh()
@@ -134,7 +134,7 @@ struct LeftoverListUIIntegrationTests {
 
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {
         let machine = MachineStub()
-        var container: LeftoverListContainerView? = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        var container: LeftoverListContainerView? = screenMeasuring(machine)
         weak let model = container?.model
 
         container = nil

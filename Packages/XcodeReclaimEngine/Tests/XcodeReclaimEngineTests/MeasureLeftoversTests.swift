@@ -36,10 +36,10 @@ struct MeasureLeftoversTests {
     }
 
     @Test("The other leftovers are delivered even when the simulators cannot be listed")
-    func measure_deliversTheOtherLeftoversWhenTheSimulatorsCannotBeListed() {
+    func measure_deliversTheOtherLeftoversWhenSimulatorsCannotBeListed() {
         let roomItTakes = 200
         let (sut, disk, simulators, _) = makeSUT()
-        simulators.report = .failure(TheSimulatorsCannotBeListed())
+        simulators.report = .failure(SimulatorsCannotBeListed())
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
 
         let received = sut.leftovers(announcing: disk.announce)
@@ -166,7 +166,7 @@ struct MeasureLeftoversTests {
     }
 }
 
-private struct TheSimulatorsCannotBeListed: Error {}
+private struct SimulatorsCannotBeListed: Error {}
 
 private extension MeasureLeftoversTests {
     func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {

@@ -22,7 +22,7 @@ struct FileManagerDiskTests {
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
         let hidden = FolderOnDisk.putAFolder(named: "unreadable", inside: folder)
-        FolderOnDisk.put(1, named: "block out of reach", inside: hidden)
+        FolderOnDisk.put(blocks: 1, named: "block out of reach", inside: hidden)
         FolderOnDisk.makeUnreadable(hidden)
 
         let received = sut.bytesUsedByFolder(at: folder)
@@ -36,7 +36,7 @@ struct FileManagerDiskTests {
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
         let deeper = FolderOnDisk.putAFolder(named: "deeper", inside: folder)
-        FolderOnDisk.put(1, named: "a block further down", inside: deeper)
+        FolderOnDisk.put(blocks: 1, named: "a block further down", inside: deeper)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
@@ -48,7 +48,7 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
-        FolderOnDisk.putAFileOf(1, named: "one byte", inside: folder)
+        FolderOnDisk.put(bytes: 1, named: "one byte", inside: folder)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
@@ -96,7 +96,7 @@ struct FileManagerDiskTests {
         let deviceSupport = makeFolder(holding: 0)
         defer { throwAway(deviceSupport) }
         _ = FolderOnDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: deviceSupport)
-        FolderOnDisk.put(1, named: "a file sitting beside them", inside: deviceSupport)
+        FolderOnDisk.put(blocks: 1, named: "a file sitting beside them", inside: deviceSupport)
 
         let received = sut.foldersInside(deviceSupport)
 
@@ -147,7 +147,7 @@ private extension FileManagerDiskTests {
     func makeFolder(holding blocks: Int) -> URL {
         let folder = FolderOnDisk.made()
         for block in 0..<blocks {
-            FolderOnDisk.put(1, named: "block \(block)", inside: folder)
+            FolderOnDisk.put(blocks: 1, named: "block \(block)", inside: folder)
         }
         return folder
     }

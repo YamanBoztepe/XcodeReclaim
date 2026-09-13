@@ -187,7 +187,7 @@ struct SystemXcodeCopiesTests {
         let applications = FolderOnDisk.made()
         defer { FolderOnDisk.throwAway(applications) }
         let app = FolderOnDisk.putAFolder(named: "Xcode.app", inside: applications)
-        FolderOnDisk.put(1, named: "one block", inside: app)
+        FolderOnDisk.put(blocks: 1, named: "one block", inside: app)
         FolderOnDisk.putASecondPathTo("one block", named: "the same block again", inside: app)
         let (sut, tool) = makeSUTReadingTheRealDisk(applicationsFolder: applications)
         tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
