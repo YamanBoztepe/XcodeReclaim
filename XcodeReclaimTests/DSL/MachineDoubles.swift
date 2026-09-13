@@ -82,7 +82,7 @@ let anythingIsWorthDeleting = 1
 
 func foldersHeld(in held: [LeftoverOnTheMachine]) -> [URL: Int] {
     held.reduce(into: [:]) { folders, leftover in
-        if case .folder(let path, let bytes) = leftover { folders[developerFolder.appending(path: path)] = bytes }
+        if case .folder(let folder, let bytes) = leftover { folders[folder] = bytes }
     }
 }
 

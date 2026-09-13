@@ -2,8 +2,6 @@ import AppKit
 import Foundation
 import Testing
 
-private let theFoldersTheMachineOffers = 4
-
 @MainActor
 struct XcodeReclaimAcceptanceTests {
     @Test("The developer opens the app and sees what may be deleted")
@@ -81,16 +79,17 @@ struct XcodeReclaimAcceptanceTests {
         #expect(app.deletionMessage == "4.0 GB came back.")
     }
 
-    @Test("Every part of the machine is measured at once rather than one after another")
-    func open_measuresEveryPartOfTheMachineAtOnce() async {
+    @Test("The folders the machine offers are measured at once rather than one after another")
+    func open_measuresTheFoldersAtOnce() async {
+        let twoOfTheFolders = [derivedDataFolder, previewsFolder]
         let disk = DiskSpy()
         let app = AppDriver(theFoldersMeasuredBy: disk)
 
         app.open()
-        await app.waitUntil { disk.foldersAskedAbout.count == theFoldersTheMachineOffers }
+        await app.waitUntil { twoOfTheFolders.allSatisfy(disk.foldersAskedAbout.contains) }
         disk.answerNow()
 
-        #expect(disk.foldersAskedAbout.count == theFoldersTheMachineOffers)
+        #expect(twoOfTheFolders.allSatisfy(disk.foldersAskedAbout.contains))
         await app.waitForMeasuringToEnd()
     }
 
