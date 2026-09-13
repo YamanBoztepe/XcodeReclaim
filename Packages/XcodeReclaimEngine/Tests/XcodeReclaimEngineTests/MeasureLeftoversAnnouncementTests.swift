@@ -4,7 +4,8 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 struct MeasureLeftoversAnnouncementTests {
-    @Test func aMeasuringAnnouncesALeftoverBeforeItReadsItsSize() {
+    @Test("A measuring announces a leftover before it reads its size")
+    func measure_announcesALeftoverBeforeItReadsItsSize() {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = 200
 
@@ -20,7 +21,8 @@ struct MeasureLeftoversAnnouncementTests {
             ])
     }
 
-    @Test func aMeasuringAnnouncesEveryOfferedLeftoverInTheOrderItWorksOnThem() {
+    @Test("A measuring announces every offered leftover in the order it works on them")
+    func measure_announcesEveryOfferedLeftoverInTheOrderItWorksOnThem() {
         let roomEachTakes = 100
         let (sut, disk, simulators, copies) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(holding: "26.4")
@@ -54,7 +56,8 @@ struct MeasureLeftoversAnnouncementTests {
             ])
     }
 
-    @Test func aMeasuringThatIsNotListenedToStillDeliversItsLeftovers() {
+    @Test("A measuring that is not listened to still delivers its leftovers")
+    func measure_deliversItsLeftoversWhenNothingIsListening() {
         let roomItTakes = 200
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes

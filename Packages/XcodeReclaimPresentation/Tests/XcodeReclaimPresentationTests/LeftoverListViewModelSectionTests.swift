@@ -12,56 +12,63 @@ final class LeftoverListViewModelSectionTests {
         }
     }
 
-    @Test func leftoversAreShownInTwoSections() {
+    @Test("Leftovers are shown in two sections")
+    func measuringEnded_showsTheLeftoversInTwoSections() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 100)])
 
-        #expect(sut.sections.map(\.name) == ["Caches and support files", "Simulators"])
-        #expect(sut.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["iPhone 17 (iOS 26.4, 21B507D3)"]])
+        #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Simulators"])
+        #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["iPhone 17 (iOS 26.4, 21B507D3)"]])
     }
 
-    @Test func theSectionHoldingTheMostRoomIsShownFirst() {
+    @Test("The section holding the most room is shown first")
+    func measuringEnded_showsTheSectionHoldingTheMostRoomFirst() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 300)])
 
-        #expect(sut.sections.map(\.name) == ["Simulators", "Caches and support files"])
+        #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
     }
 
-    @Test func aSectionTheMeasuringFoundNothingForIsNotShown() {
+    @Test("A section the measuring found nothing for is not shown")
+    func measuringEnded_showsNoSectionTheMeasuringFoundNothingFor() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
 
-        #expect(sut.sections.map(\.name) == ["Caches and support files"])
+        #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files"])
     }
 
-    @Test func aSectionCarriesTheShareOfTheRoomItHolds() {
+    @Test("A section carries the share of the room it holds")
+    func measuringEnded_givesEachSectionTheShareOfTheRoomItHolds() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 300), ALeftover.simulator(taking: 100)])
 
-        #expect(sut.sections.map(\.share) == [0.75, 0.25])
+        #expect(sut.uiModel.sections.map(\.share) == [0.75, 0.25])
     }
 
-    @Test func aSectionCarriesTheSymbolThatNamesIt() {
+    @Test("A section carries the symbol that names it")
+    func measuringEnded_givesEachSectionTheSymbolThatNamesIt() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 100)])
 
-        #expect(sut.sections.map(\.symbol) == ["folder.fill", "iphone"])
+        #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "iphone"])
     }
 
-    @Test func aSectionSaysHowMuchRoomItHolds() {
+    @Test("A section says how much room it holds")
+    func measuringEnded_saysHowMuchRoomEachSectionHolds() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 300), ALeftover.simulator(taking: 100)])
 
-        #expect(sut.sections.map(\.size) == ["300 bytes", "100 bytes"])
+        #expect(sut.uiModel.sections.map(\.size) == ["300 bytes", "100 bytes"])
     }
 
-    @Test func theLeftoverHoldingTheMostRoomIsMarkedWhereverItSits() {
+    @Test("The leftover holding the most room is marked wherever it sits")
+    func measuringEnded_marksTheLeftoverHoldingTheMostRoomWhereverItSits() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [
@@ -70,41 +77,45 @@ final class LeftoverListViewModelSectionTests {
             ALeftover.simulator(named: "iPad Pro (iOS 26.4, 8FB6EB6C)", taking: 200),
         ])
 
-        #expect(sut.sections.map(\.name) == ["Simulators", "Caches and support files"])
-        #expect(sut.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false, false, true])
+        #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false, false, true])
     }
 
-    @Test func leftoversHoldingTheSameRoomMarkOnlyTheOneShownFirst() {
+    @Test("Leftovers holding the same room mark only the one shown first")
+    func measuringEnded_marksOnlyTheFirstOfTheLeftoversHoldingTheSameRoom() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 200)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [true, false])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [true, false])
     }
 
-    @Test func aScreenWithOneLeftoverMarksNothing() {
+    @Test("A screen with one leftover marks nothing")
+    func measuringEnded_marksNothingWhenThereIsOneLeftover() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false])
     }
 
-    @Test func copiesOfXcodeAreShownInTheirOwnSection() {
+    @Test("Copies of Xcode are shown in their own section")
+    func measuringEnded_showsTheCopiesOfXcodeInTheirOwnSection() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.copyOfXcode(taking: 100)])
 
-        #expect(sut.sections.map(\.name) == ["Caches and support files", "Xcode versions"])
-        #expect(sut.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["Xcode 26.2 (17C51) — Applications"]])
+        #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Xcode versions"])
+        #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["Xcode 26.2 (17C51) — Applications"]])
     }
 
-    @Test func theXcodeVersionsSectionCarriesTheSymbolThatNamesIt() {
+    @Test("The Xcode versions section carries the symbol that names it")
+    func measuringEnded_givesTheXcodeVersionsSectionTheSymbolThatNamesIt() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.copyOfXcode(taking: 100)])
 
-        #expect(sut.sections.map(\.symbol) == ["folder.fill", "hammer.fill"])
+        #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "hammer.fill"])
     }
 }
 

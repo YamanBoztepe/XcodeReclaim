@@ -4,7 +4,8 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 struct MeasureLeftoversTests {
-    @Test func aMeasuredFolderDeliversDerivedDataWithTheRoomItTakes() {
+    @Test("A measured folder delivers derived data with the room it takes")
+    func measure_deliversDerivedDataWithTheRoomItTakes() {
         let roomItTakes = 200
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
@@ -14,7 +15,8 @@ struct MeasureLeftoversTests {
         #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
-    @Test func aLeftoverTakingNoRoomIsNotDelivered() {
+    @Test("A leftover taking no room is not delivered")
+    func measure_doesNotDeliverALeftoverTakingNoRoom() {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.previews] = 0
         disk.sizes[DeveloperFolder.derivedData] = 200
@@ -24,7 +26,8 @@ struct MeasureLeftoversTests {
         #expect(received.map(\.name) == ["Derived data"])
     }
 
-    @Test func aFolderHoldingNothingToDeleteDeliversNoLeftover() {
+    @Test("A folder holding nothing to delete delivers no leftover")
+    func measure_deliversNoLeftoverFromAFolderHoldingNothingToDelete() {
         let (sut, disk, _, _) = makeSUT()
 
         let received = sut.leftovers(announcing: disk.announce)
@@ -32,7 +35,8 @@ struct MeasureLeftoversTests {
         #expect(received.isEmpty)
     }
 
-    @Test func theOtherLeftoversAreDeliveredEvenWhenTheSimulatorsCannotBeListed() {
+    @Test("The other leftovers are delivered even when the simulators cannot be listed")
+    func measure_deliversTheOtherLeftoversWhenTheSimulatorsCannotBeListed() {
         let roomItTakes = 200
         let (sut, disk, simulators, _) = makeSUT()
         simulators.report = .failure(TheSimulatorsCannotBeListed())
@@ -43,7 +47,8 @@ struct MeasureLeftoversTests {
         #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
-    @Test func everyOfferedLeftoverIsDeliveredWhenItTakesRoom() {
+    @Test("Every offered leftover is delivered when it takes room")
+    func measure_deliversEveryOfferedLeftoverThatTakesRoom() {
         let roomEachTakes = 100
         let (sut, disk, _, _) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(holding: "26.4")
@@ -72,7 +77,8 @@ struct MeasureLeftoversTests {
             ])
     }
 
-    @Test func twoLeftoversOfEqualSizeKeepTheOrderTheyWereOfferedIn() {
+    @Test("Two leftovers of equal size keep the order they were offered in")
+    func measure_keepsTheOfferedOrderForLeftoversOfEqualSize() {
         let roomEachTakes = 200
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = roomEachTakes
@@ -83,7 +89,8 @@ struct MeasureLeftoversTests {
         #expect(received.map(\.name) == ["Derived data", "Previews"])
     }
 
-    @Test func theLeftoversAreDeliveredBiggestFirst() {
+    @Test("The leftovers are delivered biggest first")
+    func measure_deliversTheLeftoversBiggestFirst() {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = 50
         disk.sizes[DeveloperFolder.previews] = 200
@@ -93,7 +100,8 @@ struct MeasureLeftoversTests {
         #expect(received.map(\.name) == ["Previews", "Derived data"])
     }
 
-    @Test func aLeftoverThatCostsSomethingIsDeliveredWithItsCost() {
+    @Test("A leftover that costs something is delivered with its cost")
+    func measure_deliversALeftoverThatCostsSomethingWithItsCost() {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.previews] = 200
 
@@ -102,7 +110,8 @@ struct MeasureLeftoversTests {
         #expect(received.first?.cost != nil)
     }
 
-    @Test func aLeftoverThatCostsNothingIsDeliveredWithoutACost() {
+    @Test("A leftover that costs nothing is delivered without a cost")
+    func measure_deliversALeftoverThatCostsNothingWithoutACost() {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.previews] = 200
         disk.sizes[DeveloperFolder.derivedData] = 120
@@ -112,7 +121,8 @@ struct MeasureLeftoversTests {
         #expect(received.last?.cost == nil)
     }
 
-    @Test func aLeftoverTooSmallToBeWorthDeletingIsNotDelivered() {
+    @Test("A leftover too small to be worth deleting is not delivered")
+    func measure_doesNotDeliverALeftoverTooSmallToBeWorthDeleting() {
         let worthDeleting = 100_000_000
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
@@ -123,7 +133,8 @@ struct MeasureLeftoversTests {
         #expect(received.map(\.name) == ["Previews"])
     }
 
-    @Test func aLeftoverExactlyAtTheThresholdIsDelivered() {
+    @Test("A leftover exactly at the threshold is delivered")
+    func measure_deliversALeftoverExactlyAtTheThreshold() {
         let worthDeleting = 100_000_000
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting
@@ -133,7 +144,8 @@ struct MeasureLeftoversTests {
         #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
     }
 
-    @Test func aLeftoverWithMoreRoomThanTheThresholdIsDelivered() {
+    @Test
+    func measure_deliversALeftoverWithMoreRoomThanTheThreshold() {
         let worthDeleting = 100_000_000
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting + 1

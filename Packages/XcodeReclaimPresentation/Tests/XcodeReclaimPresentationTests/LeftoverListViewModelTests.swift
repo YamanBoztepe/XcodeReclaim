@@ -12,16 +12,18 @@ final class LeftoverListViewModelTests {
         }
     }
 
-    @Test func anOpenedScreenIsMeasuring() {
+    @Test("An opened screen is measuring")
+    func open_isMeasuringNamingNothing() {
         let (sut, _) = makeSUT()
 
         sut.open()
 
-        #expect(sut.isMeasuring)
-        #expect(sut.leftoverBeingMeasured == nil)
+        #expect(sut.uiModel.isMeasuring)
+        #expect(sut.uiModel.leftoverBeingMeasured == nil)
     }
 
-    @Test func anOpenedScreenAsksForAMeasuring() {
+    @Test
+    func open_asksForAMeasuring() {
         let (sut, requests) = makeSUT()
 
         sut.open()
@@ -29,76 +31,83 @@ final class LeftoverListViewModelTests {
         #expect(requests.measurings == 1)
     }
 
-    @Test func measuredLeftoversAreShownWithTheirSizes() {
+    @Test("Measured leftovers are shown with their sizes")
+    func measuringEnded_showsTheMeasuredLeftoversWithTheirSizes() {
         let roomItTakes = 200
         let (sut, _) = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomItTakes)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
-        #expect(sut.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
-        #expect(sut.isMeasuring == false)
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
+        #expect(sut.uiModel.isMeasuring == false)
     }
 
-    @Test func aMeasuringThatEndsWithNothingSaysThereIsNothingToDelete() {
+    @Test("A measuring that ends with nothing says there is nothing to delete")
+    func measuringEnded_saysThereIsNothingToDeleteWhenItFoundNothing() {
         let (sut, _) = makeSUT()
 
         sut.measuringEnded(with: [])
 
-        #expect(sut.nothingToDelete)
+        #expect(sut.uiModel.nothingToDelete)
     }
 
-    @Test func aScreenStillMeasuringDoesNotSayThereIsNothingToDelete() {
+    @Test
+    func open_doesNotSayThereIsNothingToDeleteWhileMeasuring() {
         let (sut, _) = makeSUT()
 
         sut.open()
 
-        #expect(sut.nothingToDelete == false)
+        #expect(sut.uiModel.nothingToDelete == false)
     }
 
-    @Test func aRefreshMeasuresAgain() {
+    @Test("A refresh measures again")
+    func refresh_measuresAgainNamingNothing() {
         let (sut, requests) = makeSUT()
         sut.measuringEnded(with: [ALeftover.folder(taking: 200)])
 
         sut.refresh()
 
         #expect(requests.measurings == 1)
-        #expect(sut.isMeasuring)
-        #expect(sut.leftoverBeingMeasured == nil)
-        #expect(sut.sections.isEmpty)
+        #expect(sut.uiModel.isMeasuring)
+        #expect(sut.uiModel.leftoverBeingMeasured == nil)
+        #expect(sut.uiModel.sections.isEmpty)
     }
 
-    @Test func aMeasuringScreenSaysWhichLeftoverIsBeingMeasured() {
+    @Test("A measuring screen says which leftover is being measured")
+    func announced_saysWhichLeftoverIsBeingMeasured() {
         let (sut, _) = makeSUT()
 
         sut.announced("Derived data")
-        #expect(sut.leftoverBeingMeasured == "Derived data")
+        #expect(sut.uiModel.leftoverBeingMeasured == "Derived data")
 
         sut.announced("Previews")
-        #expect(sut.leftoverBeingMeasured == "Previews")
+        #expect(sut.uiModel.leftoverBeingMeasured == "Previews")
     }
 
-    @Test func aScreenThatHasFinishedMeasuringNamesNoLeftoverBeingMeasured() {
+    @Test("A screen that has finished measuring names no leftover being measured")
+    func measuringEnded_namesNoLeftoverBeingMeasured() {
         let roomItTakes = 200
         let (sut, _) = makeSUT()
         sut.announced("Derived data")
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomItTakes)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
-        #expect(sut.leftoverBeingMeasured == nil)
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
+        #expect(sut.uiModel.leftoverBeingMeasured == nil)
     }
 
-    @Test func aRefreshSaysNothingAboutTheDeletionBeforeIt() throws {
+    @Test("A refresh says nothing about the deletion before it")
+    func refresh_saysNothingAboutTheDeletionBeforeIt() throws {
         let (sut, _) = makeSUT()
         sut.measuringEnded(with: [ALeftover.folder(taking: 200)])
-        sut.askAboutDeleting(try #require(sut.sections.first?.rows.first))
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
         sut.confirm()
         sut.deletionEnded(with: .freed(200))
 
         sut.refresh()
 
-        #expect(sut.whatTheDeletionSaid == nil)
+        #expect(sut.uiModel.whatTheDeletionSaid == nil)
     }
 }
 

@@ -12,59 +12,65 @@ final class LeftoverListViewModelSizeTests {
         }
     }
 
-    @Test func aSizeIsShownTheWayAPersonReadsIt() {
+    @Test("A size is shown the way a person reads it")
+    func measuringEnded_showsASizeTheWayAPersonReadsIt() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 28_359_995_392)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.size) == ["28.4 GB"])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["28.4 GB"])
     }
 
-    @Test func aSizeIsShownInTheUnitItsMagnitudeAsksFor() {
+    @Test("A size is shown in the unit its magnitude asks for")
+    func measuringEnded_showsASizeInTheUnitItsMagnitudeAsksFor() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 323_137_536)])
 
-        #expect(sut.sections.flatMap(\.rows).map(\.size) == ["323.1 MB"])
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["323.1 MB"])
     }
 
-    @Test func everyMagnitudeIsShownInTheUnitItAsksFor() {
+    @Test
+    func measuringEnded_showsEveryMagnitudeInTheUnitItAsksFor() {
         let sut = makeSUT()
         let magnitudes = [999, 1_000, 999_999, 1_000_000, 999_999_999, 1_000_000_000, 1_000_000_000_000]
 
         sut.measuringEnded(with: magnitudes.map { ALeftover.folder(named: "taking \($0)", taking: $0) })
 
         #expect(
-            sut.sections.flatMap(\.rows).map(\.size) == [
+            sut.uiModel.sections.flatMap(\.rows).map(\.size) == [
                 "999 bytes", "1.0 KB", "1000.0 KB", "1.0 MB", "1000.0 MB", "1.0 GB", "1.0 TB",
             ])
     }
 
-    @Test func theScreenSaysHowMuchRoomThereIsToReclaim() {
+    @Test("The screen says how much room there is to reclaim")
+    func measuringEnded_saysHowMuchRoomThereIsToReclaim() {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 1_000_000_000), ALeftover.folder(named: "Previews", taking: 500_000_000)])
 
-        #expect(sut.roomToReclaim == "1.5 GB")
+        #expect(sut.uiModel.title == "1.5 GB to reclaim")
     }
 
-    @Test func aScreenWithNothingToDeleteHasNothingToReclaim() {
+    @Test("A screen with nothing to delete has nothing to reclaim")
+    func measuringEnded_saysNothingAboutReclaimingWhenThereIsNothingToDelete() {
         let sut = makeSUT()
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 1_000_000_000)])
 
         sut.measuringEnded(with: [])
 
-        #expect(sut.roomToReclaim == nil)
+        #expect(sut.uiModel.title == "XcodeReclaim")
     }
 
-    @Test func theRoomToReclaimIsWhatTheSectionsSayTheyHold() {
+    @Test("The room to reclaim is what the sections say they hold")
+    func measuringEnded_saysTheRoomToReclaimIsWhatTheSectionsHold() {
         let roomEachHolds = 1_750_000_000
         let sut = makeSUT()
 
         sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomEachHolds), ALeftover.simulator(taking: roomEachHolds)])
 
-        #expect(sut.sections.map(\.size) == ["1.8 GB", "1.8 GB"])
-        #expect(sut.roomToReclaim == "3.6 GB")
+        #expect(sut.uiModel.sections.map(\.size) == ["1.8 GB", "1.8 GB"])
+        #expect(sut.uiModel.title == "3.6 GB to reclaim")
     }
 }
 

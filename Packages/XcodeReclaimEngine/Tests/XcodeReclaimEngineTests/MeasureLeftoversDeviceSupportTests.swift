@@ -4,7 +4,8 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 struct MeasureLeftoversDeviceSupportTests {
-    @Test func deviceSupportIsDeliveredOneVersionAtATime() {
+    @Test("Device support is delivered one version at a time")
+    func measure_deliversDeviceSupportOneVersionAtATime() {
         let roomTheNewerTakes = 200_000_000
         let roomTheOlderTakes = 300_000_000
         let (sut, disk) = makeSUT()
@@ -20,7 +21,8 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.bytes) == [roomTheOlderTakes, roomTheNewerTakes])
     }
 
-    @Test func aDeviceSupportVersionTooSmallToBeWorthDeletingIsNotDelivered() {
+    @Test("A device support version too small to be worth deleting is not delivered")
+    func measure_doesNotDeliverADeviceSupportVersionTooSmallToBeWorthDeleting() {
         let worthDeleting = 100_000_000
         let (sut, disk) = makeSUT(worthDeleting: worthDeleting)
         let newer = DeveloperFolder.deviceSupportFolder(holding: "26.4")
@@ -34,7 +36,8 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.name) == ["Device support (iOS 26.4)"])
     }
 
-    @Test func deviceSupportHoldingNoVersionIsNotDelivered() {
+    @Test("Device support holding no version is not delivered")
+    func measure_doesNotDeliverDeviceSupportHoldingNoVersion() {
         let (sut, disk) = makeSUT()
         disk.folders[DeveloperFolder.deviceSupport] = []
         disk.sizes[DeveloperFolder.derivedData] = 200
@@ -44,7 +47,8 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.name) == ["Derived data"])
     }
 
-    @Test func aDeviceSupportVersionIsNamedByTheSystemVersionItHolds() {
+    @Test("A device support version is named by the system version it holds")
+    func measure_namesADeviceSupportVersionByTheSystemVersionItHolds() {
         let (sut, disk) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(named: "iPhone15,2 26.5.2 (23F84)")
         disk.folders[DeveloperFolder.deviceSupport] = [symbols]
@@ -55,14 +59,16 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.name) == ["Device support (iOS 26.5.2)"])
     }
 
-    @Test(arguments: [
-        "a folder nobody can parse",
-        "26.5.2 (23F84)",
-        "iPhone15,2 26.5.2 23F84",
-        "iPhone15,2 26.5.2 (23F84) arm64e",
-        "iPhone15,2 (23F84)",
-    ])
-    func aDeviceSupportFolderNamedSomeOtherWayIsDeliveredAsItIsNamed(folderName: String) {
+    @Test(
+        "A device support folder named some other way is delivered as it is named",
+        arguments: [
+            "a folder nobody can parse",
+            "26.5.2 (23F84)",
+            "iPhone15,2 26.5.2 23F84",
+            "iPhone15,2 26.5.2 (23F84) arm64e",
+            "iPhone15,2 (23F84)",
+        ])
+    func measure_namesADeviceSupportFolderAsItIsNamedWhenItsShapeIsUnknown(folderName: String) {
         let (sut, disk) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(named: folderName)
         disk.folders[DeveloperFolder.deviceSupport] = [symbols]

@@ -3,20 +3,20 @@ import XcodeReclaimCore
 
 @MainActor
 final class TheMachineSpy {
-    private(set) var announcings: [XcodeLeftovers.Announcing] = []
-    private(set) var deliverings: [XcodeLeftovers.Delivering] = []
-    private(set) var deletions: [LeftoverCrossing] = []
-    private(set) var reportings: [XcodeLeftovers.Reporting] = []
+    private(set) var announcings: [(String) -> Void] = []
+    private(set) var deliverings: [([Leftover]) -> Void] = []
+    private(set) var deletions: [Leftover] = []
+    private(set) var reportings: [(Deletion) -> Void] = []
 
     var measurings: Int { deliverings.count }
 
-    func measuring(_ announce: @escaping XcodeLeftovers.Announcing, _ deliver: @escaping XcodeLeftovers.Delivering) {
+    func measuring(_ announce: @escaping (String) -> Void, _ deliver: @escaping ([Leftover]) -> Void) {
         announcings.append(announce)
         deliverings.append(deliver)
     }
 
-    func deleting(_ crossing: LeftoverCrossing, _ report: @escaping XcodeLeftovers.Reporting) {
-        deletions.append(crossing)
+    func deleting(_ leftover: Leftover, _ report: @escaping (Deletion) -> Void) {
+        deletions.append(leftover)
         reportings.append(report)
     }
 
@@ -25,10 +25,10 @@ final class TheMachineSpy {
     }
 
     func deliver(_ leftovers: [Leftover], from measuring: Int) {
-        deliverings[measuring](leftovers.map(LeftoverCrossing.init))
+        deliverings[measuring](leftovers)
     }
 
     func report(_ deletion: Deletion, from deletionRequest: Int) {
-        reportings[deletionRequest](DeletionCrossing(deletion))
+        reportings[deletionRequest](deletion)
     }
 }

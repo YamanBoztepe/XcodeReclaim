@@ -2,10 +2,27 @@ import SwiftUI
 import XcodeReclaimPresentation
 
 public struct LeftoverListView: View {
-    public let model: LeftoverListViewModel
+    private let model: LeftoverListUIModel
+    private let onAppear: () -> Void
+    private let onRefresh: () -> Void
+    private let onAskAboutDeleting: (LeftoverRow) -> Void
+    private let onConfirm: () -> Void
+    private let onBackOut: () -> Void
 
-    public init(model: LeftoverListViewModel) {
+    public init(
+        model: LeftoverListUIModel,
+        onAppear: @escaping () -> Void,
+        onRefresh: @escaping () -> Void,
+        onAskAboutDeleting: @escaping (LeftoverRow) -> Void,
+        onConfirm: @escaping () -> Void,
+        onBackOut: @escaping () -> Void
+    ) {
         self.model = model
+        self.onAppear = onAppear
+        self.onRefresh = onRefresh
+        self.onAskAboutDeleting = onAskAboutDeleting
+        self.onConfirm = onConfirm
+        self.onBackOut = onBackOut
     }
 
     public var body: some View {
@@ -16,13 +33,13 @@ public struct LeftoverListView: View {
                 .frame(minHeight: Room.theShortestList, idealHeight: Room.theListAsItOpens, maxHeight: .infinity)
         }
         .frame(minWidth: Room.theNarrowestWindow)
-        .onAppear(perform: model.open)
+        .onAppear(perform: onAppear)
         .alert(
             model.confirmation?.name ?? "",
-            isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { model.backOut() } })
+            isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { onBackOut() } })
         ) {
-            Button("Delete", role: .destructive, action: model.confirm)
-            Button("Cancel", role: .cancel, action: model.backOut)
+            Button("Delete", role: .destructive, action: onConfirm)
+            Button("Cancel", role: .cancel, action: onBackOut)
         } message: {
             Text(model.confirmation?.sentence ?? "")
         }
@@ -50,14 +67,19 @@ private enum Room {
     static let underASectionHeading: CGFloat = 8
 }
 
+private let theSectionColours: [Color] = [.accentColor, .teal, .orange]
+
 private extension LeftoverListView {
+    var sectionsInOrder: [(offset: Int, element: LeftoverSection)] {
+        Array(model.sections.enumerated())
+    }
+
     var header: some View {
         VStack(alignment: .leading, spacing: Room.betweenHeaderLines) {
             HStack(alignment: .firstTextBaseline) {
-                Text(model.roomToReclaim.map { "\($0) to reclaim" } ?? "XcodeReclaim")
-                    .font(.largeTitle.weight(.semibold))
+                Text(model.title).font(.largeTitle.weight(.semibold))
                 Spacer()
-                Button("Refresh", systemImage: "arrow.clockwise", action: model.refresh)
+                Button("Refresh", systemImage: "arrow.clockwise", action: onRefresh)
                     .disabled(model.isMeasuring)
             }
 
@@ -80,9 +102,9 @@ private extension LeftoverListView {
     var capacityBar: some View {
         GeometryReader { space in
             HStack(spacing: Room.betweenBarSegments) {
-                ForEach(model.sections) { section in
-                    colour(of: section)
-                        .frame(width: max(space.size.width * section.share - Room.betweenBarSegments, 0))
+                ForEach(sectionsInOrder, id: \.element.id) { section in
+                    theSectionColours[section.offset % theSectionColours.count]
+                        .frame(width: max(space.size.width * section.element.share - Room.betweenBarSegments, 0))
                 }
             }
         }
@@ -92,11 +114,13 @@ private extension LeftoverListView {
 
     var key: some View {
         HStack(spacing: Room.betweenKeys) {
-            ForEach(model.sections) { section in
+            ForEach(sectionsInOrder, id: \.element.id) { section in
                 HStack(spacing: Room.besideASymbol) {
-                    Circle().fill(colour(of: section)).frame(width: Room.aKeysDot, height: Room.aKeysDot)
-                    Text(section.name).font(.callout)
-                    Text(section.size).font(.callout).foregroundStyle(.secondary)
+                    Circle()
+                        .fill(theSectionColours[section.offset % theSectionColours.count])
+                        .frame(width: Room.aKeysDot, height: Room.aKeysDot)
+                    Text(section.element.name).font(.callout)
+                    Text(section.element.size).font(.callout).foregroundStyle(.secondary)
                 }
             }
             Spacer()
@@ -156,18 +180,12 @@ private extension LeftoverListView {
                 }
             }
             Spacer()
-            Text(row.isBeingDeleted ? "Deleting…" : row.size)
+            Text(row.deletionUnderWay ?? row.size)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
-            Button("Delete") { model.askAboutDeleting(row) }
+            Button("Delete") { onAskAboutDeleting(row) }
                 .disabled(!row.canBeDeleted)
         }
         .padding(.vertical, Room.aroundARow)
-    }
-
-    func colour(of section: LeftoverSection) -> Color {
-        let colours: [Color] = [.accentColor, .teal, .orange]
-        let place = model.sections.firstIndex(of: section) ?? 0
-        return colours[place % colours.count]
     }
 }

@@ -4,7 +4,8 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 struct DeleteLeftoverTests {
-    @Test func aDeletedLeftoverIsGoneFromTheFolder() {
+    @Test("A deleted leftover is gone from the folder")
+    func delete_removesTheLeftoverFromTheFolderAndFreesItsRoom() {
         let roomItTook = 200
         let (sut, disk, _) = makeSUT()
 
@@ -14,7 +15,8 @@ struct DeleteLeftoverTests {
         #expect(received == .freed(roomItTook))
     }
 
-    @Test func aDeletedSimulatorDeliversTheRoomItTook() {
+    @Test("A deleted simulator delivers the room it took")
+    func delete_freesTheRoomADeletedSimulatorTook() {
         let roomItTook = 200
         let (sut, _, simulators) = makeSUT()
 
@@ -24,7 +26,8 @@ struct DeleteLeftoverTests {
         #expect(received == .freed(roomItTook))
     }
 
-    @Test func aRunningSimulatorIsNotDeleted() {
+    @Test("A running simulator is not deleted")
+    func delete_refusesARunningSimulatorAndRemovesNothing() {
         let (sut, disk, _) = makeSUT()
 
         let received = sut.delete(simulator(refusedFor: .theSimulatorIsRunning))
@@ -33,7 +36,8 @@ struct DeleteLeftoverTests {
         #expect(disk.messages.isEmpty)
     }
 
-    @Test func aSimulatorThatCannotBeDeletedDeliversNoFreedRoom() {
+    @Test("A simulator that cannot be deleted delivers no freed room")
+    func delete_freesNoRoomWhenTheSimulatorCannotBeDeleted() {
         let roomItTook = 200
         let (sut, _, simulators) = makeSUT()
         simulators.deletion = .failure(WhatTheWorldSaid(sentence: "the device is in use"))
@@ -43,7 +47,8 @@ struct DeleteLeftoverTests {
         #expect(received != .freed(roomItTook))
     }
 
-    @Test func deletingALeftoverThatIsAlreadyGoneFreesNothing() {
+    @Test("Deleting a leftover that is already gone frees nothing")
+    func delete_freesNothingForALeftoverThatIsAlreadyGone() {
         let (sut, _, _) = makeSUT()
 
         let received = sut.delete(derivedData(taking: 0))
@@ -51,7 +56,8 @@ struct DeleteLeftoverTests {
         #expect(received == .freed(0))
     }
 
-    @Test func aSimulatorThatIsNotShutDownIsNotDeleted() {
+    @Test("A simulator that is not shut down is not deleted")
+    func delete_neverAsksTheServiceForASimulatorThatIsNotShutDown() {
         let (sut, _, simulators) = makeSUT()
 
         _ = sut.delete(simulator(refusedFor: .theSimulatorIsRunning))
@@ -59,7 +65,8 @@ struct DeleteLeftoverTests {
         #expect(simulators.messages.isEmpty)
     }
 
-    @Test func aLeftoverNoneOfWhichCouldBeDeletedSaysSoAndStays() {
+    @Test("A leftover none of which could be deleted says so and stays")
+    func delete_freesNoRoomWhenNoneOfTheLeftoverCouldBeDeleted() {
         let roomItTook = 200
         let (sut, disk, _) = makeSUT()
         disk.removal = .failure(WhatTheWorldSaid(sentence: "you don't have permission to access it"))
@@ -70,7 +77,8 @@ struct DeleteLeftoverTests {
         #expect(disk.messages == [.removed(DeveloperFolder.derivedData)])
     }
 
-    @Test func aFailedDeletionCarriesWhyItFailed() {
+    @Test("A failed deletion carries why it failed")
+    func delete_carriesWhyItFailed() {
         let whatTheServiceSaid = "Invalid device"
         let (sut, _, simulators) = makeSUT()
         simulators.deletion = .failure(WhatTheWorldSaid(sentence: whatTheServiceSaid))
@@ -80,7 +88,8 @@ struct DeleteLeftoverTests {
         #expect(received == .failed(whatTheServiceSaid))
     }
 
-    @Test func aDeletionFreesTheRoomTheLeftoverWasCarrying() {
+    @Test("A deletion frees the room the leftover was carrying")
+    func delete_freesTheRoomTheLeftoverWasCarryingWithoutMeasuringAgain() {
         let roomItWasCarrying = 200
         let (sut, disk, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = 27_702_730_752
@@ -91,7 +100,8 @@ struct DeleteLeftoverTests {
         #expect(disk.messages == [.removed(DeveloperFolder.derivedData)])
     }
 
-    @Test func deletingACopyOfXcodeGivesBackTheRoomItTook() {
+    @Test("Deleting a copy of Xcode gives back the room it took")
+    func delete_givesBackTheRoomACopyOfXcodeTook() {
         let roomItTook = 4_000_000_000
         let (sut, disk, _) = makeSUT()
 
@@ -101,7 +111,8 @@ struct DeleteLeftoverTests {
         #expect(received == .freed(roomItTook))
     }
 
-    @Test func aCopyOfXcodeThatCouldNotBeRemovedSaysWhatTheDiskSaid() {
+    @Test("A copy of Xcode that could not be removed says what the disk said")
+    func delete_saysWhatTheDiskSaidWhenACopyCouldNotBeRemoved() {
         let whatTheDiskSaid = "“Xcode.app” couldn't be removed because you don't have permission to access it."
         let (sut, disk, _) = makeSUT()
         disk.removal = .failure(WhatTheWorldSaid(sentence: whatTheDiskSaid))
@@ -111,7 +122,8 @@ struct DeleteLeftoverTests {
         #expect(received == .failed(whatTheDiskSaid))
     }
 
-    @Test func aLeftoverRefusedWhenItWasMeasuredIsNotDeleted() {
+    @Test("A leftover refused when it was measured is not deleted")
+    func delete_refusesALeftoverForTheReasonTheMeasuringGave() {
         let refusedWhenItWasMeasured: [Leftover.Refusal] = [.xcodeIsOpen, .theCommandLineToolsPointAtIt]
         let (sut, disk, _) = makeSUT()
 

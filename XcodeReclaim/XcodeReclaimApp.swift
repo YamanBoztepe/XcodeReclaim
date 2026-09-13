@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct XcodeReclaimApp: App {
-    @State private var leftovers = XcodeLeftovers(measuring: TheMachine.measuring, deleting: TheMachine.deleting)
+    @State private var leftovers = XcodeLeftovers()
 
     var body: some Scene {
         WindowGroup {

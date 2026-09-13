@@ -4,7 +4,8 @@ import XcodeReclaimEngine
 import XcodeReclaimInfra
 
 struct FileManagerDiskTests {
-    @Test func aFolderCountsAFileWithMoreThanOnePathOnce() {
+    @Test("A folder counts a file with more than one path once")
+    func bytesUsed_countsAFileWithMoreThanOnePathOnce() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
@@ -15,7 +16,8 @@ struct FileManagerDiskTests {
         #expect(received == AFolderOnTheDisk.oneBlock)
     }
 
-    @Test func aLeftoverWhoseFolderCannotBeFullyReadIsDeliveredWithWhatCouldBeRead() {
+    @Test("A leftover whose folder cannot be fully read is delivered with what could be read")
+    func bytesUsed_countsWhatCouldBeReadWhenPartOfTheFolderCannotBe() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
@@ -28,7 +30,8 @@ struct FileManagerDiskTests {
         #expect(received == AFolderOnTheDisk.oneBlock)
     }
 
-    @Test func aFolderCountsWhatItsSubfoldersHold() {
+    @Test
+    func bytesUsed_countsWhatTheSubfoldersHold() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
@@ -40,7 +43,8 @@ struct FileManagerDiskTests {
         #expect(received == AFolderOnTheDisk.oneBlock * 2)
     }
 
-    @Test func aFolderTakesTheRoomItsFilesOccupyRatherThanTheirLengths() {
+    @Test
+    func bytesUsed_countsTheRoomAFileOccupiesRatherThanItsLength() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
@@ -51,7 +55,8 @@ struct FileManagerDiskTests {
         #expect(received == AFolderOnTheDisk.oneBlock)
     }
 
-    @Test func aFolderThatIsNotThereTakesNoRoom() {
+    @Test
+    func bytesUsed_countsNothingForAFolderThatIsNotThere() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         throwAway(folder)
@@ -61,7 +66,8 @@ struct FileManagerDiskTests {
         #expect(received == 0)
     }
 
-    @Test func aFolderThatIsNotThereHoldsNoFolders() {
+    @Test
+    func foldersInside_holdsNoneForAFolderThatIsNotThere() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         throwAway(folder)
@@ -71,7 +77,8 @@ struct FileManagerDiskTests {
         #expect(received.isEmpty)
     }
 
-    @Test func aFolderThatCannotBeReadHoldsNoFolders() {
+    @Test
+    func foldersInside_holdsNoneForAFolderThatCannotBeRead() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
@@ -83,7 +90,8 @@ struct FileManagerDiskTests {
         #expect(received.isEmpty)
     }
 
-    @Test func deviceSupportOffersTheFoldersItHoldsAndNothingElse() {
+    @Test("Device support offers the folders it holds and nothing else")
+    func foldersInside_offersTheFoldersItHoldsAndNothingElse() {
         let sut = makeSUT()
         let deviceSupport = makeFolder(holding: 0)
         defer { throwAway(deviceSupport) }
@@ -95,7 +103,8 @@ struct FileManagerDiskTests {
         #expect(received.map(\.lastPathComponent) == ["iPhone15,2 26.4 (22A1)"])
     }
 
-    @Test func aRemovedFolderIsGoneFromTheDisk() throws {
+    @Test
+    func removeItem_takesTheFolderOffTheDisk() throws {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
@@ -106,7 +115,8 @@ struct FileManagerDiskTests {
         #expect(sut.foldersInside(folder).isEmpty)
     }
 
-    @Test func removingSomethingThatIsNotThereIsNotAFailure() {
+    @Test
+    func removeItem_doesNotFailForSomethingThatIsNotThere() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
@@ -114,7 +124,8 @@ struct FileManagerDiskTests {
         #expect(throws: Never.self) { try sut.removeItem(at: folder.appending(path: "never made")) }
     }
 
-    @Test func aFolderThatCouldNotBeDeletedSaysWhatTheDiskSaid() {
+    @Test("A folder that could not be deleted says what the disk said")
+    func removeItem_throwsWhatTheDiskSaidWhenTheFolderCouldNotBeRemoved() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }

@@ -19,5 +19,9 @@ let package = Package(
         .target(
             name: "XcodeReclaimUI",
             dependencies: [.product(name: "XcodeReclaimPresentation", package: "XcodeReclaimPresentation")],
-            swiftSettings: strictness)
+            swiftSettings: strictness),
+        .testTarget(
+            name: "XcodeReclaimUITests",
+            dependencies: ["XcodeReclaimUI"],
+            swiftSettings: strictness),
     ])

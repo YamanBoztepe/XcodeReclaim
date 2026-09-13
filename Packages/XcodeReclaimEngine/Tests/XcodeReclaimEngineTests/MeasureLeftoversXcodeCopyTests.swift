@@ -4,7 +4,8 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 struct MeasureLeftoversXcodeCopyTests {
-    @Test func everyCopyOfXcodeTheSearchReportsIsDeliveredWithTheRoomItTakes() {
+    @Test("Every copy of Xcode the search reports is delivered with the room it takes")
+    func measure_deliversEveryCopyTheSearchReportsWithTheRoomItTakes() {
         let roomTheFirstTakes = 4_000_000_000
         let roomTheSecondTakes = 3_000_000_000
         let (sut, disk, copies) = makeSUT()
@@ -15,7 +16,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.bytes) == [roomTheFirstTakes, roomTheSecondTakes])
     }
 
-    @Test func aCopyOfXcodeIsNamedByItsVersionItsBuildAndWhereItSits() {
+    @Test("A copy of Xcode is named by its version, its build and where it sits")
+    func measure_namesACopyByItsVersionItsBuildAndWhereItSits() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: XcodeCopy.Version(number: "26.2", build: "17C51"), sittingIn: "Applications")]
 
@@ -24,7 +26,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications"])
     }
 
-    @Test func aCopyOfXcodeCarryingNoVersionIsNamedByWhereItSits() {
+    @Test("A copy of Xcode carrying no version is named by where it sits")
+    func measure_namesACopyCarryingNoVersionByWhereItSits() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: nil, sittingIn: "Desktop")]
 
@@ -33,7 +36,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.name) == ["Xcode — Desktop"])
     }
 
-    @Test func twoCopiesOfOneVersionAreToldApartByWhereTheySit() {
+    @Test("Two copies of one version are told apart by where they sit")
+    func measure_tellsTwoCopiesOfOneVersionApartByWhereTheySit() {
         let version = XcodeCopy.Version(number: "26.2", build: "17C51")
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: version, sittingIn: "Applications"), copy(carrying: version, sittingIn: "Desktop")]
@@ -43,7 +47,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications", "Xcode 26.2 (17C51) — Desktop"])
     }
 
-    @Test func aCopyOfXcodeThatIsOpenIsDeliveredAsOpen() {
+    @Test("A copy of Xcode that is open is delivered as open")
+    func measure_deliversAnOpenCopyAsOpen() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: true, isPointedAtByTheCommandLineTools: false)]
 
@@ -52,7 +57,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.refusal) == [.xcodeIsOpen])
     }
 
-    @Test func theCopyTheCommandLineToolsPointAtIsDeliveredAsTheOneTheyPointAt() {
+    @Test("The copy the command line tools point at is delivered as the one they point at")
+    func measure_deliversThePointedAtCopyAsTheOneTheToolsPointAt() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: false, isPointedAtByTheCommandLineTools: true)]
 
@@ -61,7 +67,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.refusal) == [.theCommandLineToolsPointAtIt])
     }
 
-    @Test func aCopyOfXcodeThatIsBothOpenAndPointedAtIsDeliveredAsOpen() {
+    @Test("A copy of Xcode that is both open and pointed at is delivered as open")
+    func measure_deliversACopyThatIsBothOpenAndPointedAtAsOpen() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: true, isPointedAtByTheCommandLineTools: true)]
 
@@ -70,7 +77,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.refusal) == [.xcodeIsOpen])
     }
 
-    @Test func aCopyOfXcodeNeitherOpenNorPointedAtIsDeliveredWithNothingRefusingIt() {
+    @Test
+    func measure_deliversACopyNeitherOpenNorPointedAtWithNothingRefusingIt() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: false, isPointedAtByTheCommandLineTools: false)]
 
@@ -79,7 +87,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.refusal) == [nil])
     }
 
-    @Test func aCopyOfXcodeCarriesWhatDeletingItCosts() {
+    @Test("A copy of Xcode carries what deleting it costs")
+    func measure_deliversACopyWithWhatDeletingItCosts() {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy()]
 
@@ -88,7 +97,8 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.cost) == ["that version has to be downloaded again"])
     }
 
-    @Test func aCopyOfXcodeIsDeletedWhereTheSearchFoundIt() {
+    @Test
+    func measure_deliversACopyWhereTheSearchFoundIt() {
         let (sut, disk, copies) = makeSUT()
         let found = copy(sittingIn: "Applications")
         copies.reported = [found]

@@ -92,3 +92,21 @@ tall for sixty rows — the very defect feature 04 records — and the survivor 
 crossing that could turn a copy of Xcode into a folder with nothing noticing,
 because the acceptance suite stopped at the root's edge. The crossings are now the
 root's own currency, so every journey crosses, and the round trip has a test of its own.
+
+## After the owner's review — dummy view, adapters, snapshots, 2026-09-13
+
+| reading | value |
+|---|---|
+| tests | 147 — engine 49, infra 35, presentation 45, ui 9, app 9 (was 142) |
+| how long the tests take, tests alone | ui 0.373 s, infra 0.080 s, presentation 0.002 s, engine 0.002 s; the app target 0.16 s |
+| ten slowest tests | every one of the ui package's nine, 0.13–0.34 s each — they lay a SwiftUI view out in a real window and read its pixels back. The suite's whole cost is now the snapshots, and that is the first reading where one suite costs more than all the others together. |
+| ten pieces with the most branches | `FileManagerDisk.bytesUsedByFolder(at:)` 4; three pieces of `LeftoverListViewModel`, `MeasureLeftovers.refusal(for:)` and the three crossing conversions at 3 |
+| coverage, presentation package | regions 100.00%, functions 100.00%, lines 100.00% (99 regions, 49 functions, 231 lines) |
+| mutation tally beside it | 13 new by hand: 7 on the view, judged by the snapshot suite, and 6 on the adapters and the decorator, judged by the app suite — all 13 killed. Running total 109 mutants, 104 killed, 3 pardoned, 2 deleted as excess. |
+| what went the other way | one mutant that used to die now survives: turning a copy of Xcode into a folder inside `LeftoverCrossing`. The crossings are internal now, so no suite can reach them. |
+
+The snapshot suite is not decorative: seven deliberate defects in the view — the
+capacity bar gone, a row's refusal not drawn, the row being deleted still showing
+its size, a refused row still offering its button, the largest row unmarked, a
+section's symbol dropped, "Nothing to delete." missing — every one of them turns
+the suite red on the recorded pixels.

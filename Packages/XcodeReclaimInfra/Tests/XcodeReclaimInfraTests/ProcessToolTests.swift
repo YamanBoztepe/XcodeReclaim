@@ -3,7 +3,8 @@ import Testing
 import XcodeReclaimInfra
 
 struct ProcessToolTests {
-    @Test func aRefusalCarriesWhatTheToolSaid() {
+    @Test("A refusal carries what the tool said")
+    func run_throwsWhatTheToolSaidWhenItExitsWithAFailure() {
         let sut = makeSUT()
         let refusing = aToolRefusingWith("Invalid device", exitingWith: 148)
 
@@ -12,7 +13,8 @@ struct ProcessToolTests {
         #expect(received?.localizedDescription == "Invalid device")
     }
 
-    @Test func aToolThatSucceedsAnswersWhatItWrote() throws {
+    @Test
+    func run_answersWhatTheToolWrote() throws {
         let sut = makeSUT()
         let writing = aToolWriting("21B507D3-909E-465B-957C-4B370278399F")
 
@@ -21,7 +23,8 @@ struct ProcessToolTests {
         #expect(received == "21B507D3-909E-465B-957C-4B370278399F\n")
     }
 
-    @Test func aToolThatWroteBeforeItFailedIsNotReadAsAnAnswer() {
+    @Test
+    func run_throwsWhenTheToolWroteBeforeItFailed() {
         let sut = makeSUT()
         let refusing = aToolWritingThenRefusingWith("some of the devices", said: "Invalid device", exitingWith: 148)
 
@@ -30,7 +33,8 @@ struct ProcessToolTests {
         #expect(received?.localizedDescription == "Invalid device")
     }
 
-    @Test func aToolThatIsNotThereFails() {
+    @Test
+    func run_throwsWhenTheToolIsNotThere() {
         let sut = makeSUT()
 
         #expect(throws: (any Error).self) {

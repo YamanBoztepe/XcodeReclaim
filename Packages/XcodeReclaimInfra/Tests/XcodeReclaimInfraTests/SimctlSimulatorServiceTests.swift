@@ -4,7 +4,8 @@ import XcodeReclaimEngine
 import XcodeReclaimInfra
 
 struct SimctlSimulatorServiceTests {
-    @Test func everyDeviceTheListReportsIsDelivered() throws {
+    @Test
+    func simulators_deliversEveryDeviceTheListReports() throws {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .success(
             TheSimulatorList.reporting([
@@ -19,7 +20,7 @@ struct SimctlSimulatorServiceTests {
     }
 
     @Test(arguments: [("Shutdown", true), ("Booted", false), ("Booting", false), ("Shutting Down", false), ("Creating", false), ("shutdown", false)])
-    func aDeviceInAnyStateOtherThanShutdownIsNotShutDown(state: String, isShutDown: Bool) throws {
+    func simulators_readsAnyStateOtherThanShutdownAsNotShutDown(state: String, isShutDown: Bool) throws {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .success(TheSimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
 
@@ -37,7 +38,7 @@ struct SimctlSimulatorServiceTests {
         ("iOS-26-4", "iOS-26-4"),
         ("com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro", "com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro"),
     ])
-    func aDeviceCarriesTheRuntimeItSitsUnder(runtime: String, named: String) throws {
+    func simulators_deliversADeviceWithTheRuntimeItSitsUnder(runtime: String, named: String) throws {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .success(TheSimulatorList.reporting([runtime: [.init()]]))
 
@@ -46,7 +47,8 @@ struct SimctlSimulatorServiceTests {
         #expect(received.map(\.runtime) == [named])
     }
 
-    @Test func aDeviceCarriesTheRoomItsFolderTakes() throws {
+    @Test
+    func simulators_deliversADeviceWithTheRoomItsFolderTakes() throws {
         let roomItTakes = 4_557_963_264
         let (sut, tool, disk) = makeSUT()
         tool.answers["xcrun"] = .success(TheSimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "AAAA-1")]]))
@@ -57,7 +59,8 @@ struct SimctlSimulatorServiceTests {
         #expect(received.map(\.bytes) == [roomItTakes])
     }
 
-    @Test func aSimulatorIsDeletedByTellingTheService() throws {
+    @Test
+    func delete_tellsTheServiceToRemoveTheDevice() throws {
         let deviceIdentifier = "21B507D3-909E-465B-957C-4B370278399F"
         let (sut, tool, _) = makeSUT()
 
@@ -66,7 +69,8 @@ struct SimctlSimulatorServiceTests {
         #expect(tool.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "delete", deviceIdentifier])])
     }
 
-    @Test func aDeletionTheServiceRefusesFreesNothing() {
+    @Test("A deletion the service refuses frees nothing")
+    func delete_throwsWhatTheServiceSaidWhenItRefuses() {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .failure(WhatTheWorldSaid(sentence: "Invalid device"))
 
@@ -75,7 +79,8 @@ struct SimctlSimulatorServiceTests {
         #expect(received?.localizedDescription == "Invalid device")
     }
 
-    @Test func aListThatCannotBeReadIsNotAnAnswer() {
+    @Test
+    func simulators_throwsWhenTheListCannotBeRead() {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .success("not the list at all")
 

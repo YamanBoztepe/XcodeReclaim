@@ -4,7 +4,8 @@ import XcodeReclaimEngine
 import XcodeReclaimInfra
 
 struct SystemXcodeCopiesTests {
-    @Test func aCopyCarriesTheVersionAndBuildItsBundleDeclares() {
+    @Test
+    func copies_deliversTheVersionAndBuildTheBundleDeclares() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let app = AnXcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
@@ -17,7 +18,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.path) == [app])
     }
 
-    @Test func aCopyWhoseBundleDeclaresNoBuildCarriesNoVersion() {
+    @Test
+    func copies_deliversNoVersionWhenTheBundleDeclaresNoBuild() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let app = AnXcodeBundle.madeCarryingNoBuild(named: "Xcode.app", carrying: "26.1.1", inside: applications)
@@ -29,7 +31,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.version) == [nil])
     }
 
-    @Test func whenTheSearchAnswersNothingTheApplicationsFolderIsReadInstead() {
+    @Test("When the search answers nothing, the applications folder is read instead")
+    func copies_readsTheApplicationsFolderWhenTheSearchAnswersNothing() {
         let roomItTakes = 4_000_000_000
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
@@ -46,7 +49,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.bytes) == [roomItTakes])
     }
 
-    @Test func whenTheSearchCannotBeAskedTheApplicationsFolderIsReadInstead() {
+    @Test("When the search cannot be asked, the applications folder is read instead")
+    func copies_readsTheApplicationsFolderWhenTheSearchCannotBeAsked() {
         let roomItTakes = 4_000_000_000
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
@@ -62,7 +66,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.bytes) == [roomItTakes])
     }
 
-    @Test func aMachineWithNoCopyOfXcodeDeliversNone() {
+    @Test("A machine with no copy of Xcode delivers none")
+    func copies_deliversNoneOnAMachineWithNoCopyOfXcode() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let somethingElse = AnXcodeBundle.madeForSomethingElse(named: "Safari.app", inside: applications)
@@ -75,7 +80,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.isEmpty)
     }
 
-    @Test func aCopyIsOpenWhenSomethingInsideItIsRunning() {
+    @Test
+    func copies_deliversACopyAsOpenWhenSomethingInsideItIsRunning() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let open = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -89,7 +95,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isOpen) == [true, false])
     }
 
-    @Test func aCopyWhoseWholeNameStartsAnotherCopysNameIsNotTheOneThatIsRunning() {
+    @Test
+    func copies_deliversNoCopyAsOpenWhenAnotherCopysNameStartsWithIts() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let shorter = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -103,7 +110,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isOpen) == [false, true])
     }
 
-    @Test func aCopyWhoseWholeNameStartsAnotherCopysNameIsNotTheOneTheToolsPointAt() {
+    @Test
+    func copies_deliversNoCopyAsPointedAtWhenAnotherCopysNameStartsWithIts() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let shorter = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -117,7 +125,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isPointedAtByTheCommandLineTools) == [false, true])
     }
 
-    @Test func theCopyHoldingTheDeveloperFolderTheToolsPointAtIsTheOneTheyPointAt() {
+    @Test
+    func copies_deliversTheCopyHoldingTheDeveloperFolderAsTheOneTheToolsPointAt() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let pointedAt = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -131,7 +140,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isPointedAtByTheCommandLineTools) == [true, false])
     }
 
-    @Test func aCopyIsNotOpenWhenTheMachineCannotSayWhatIsRunning() {
+    @Test
+    func copies_deliversNoCopyAsOpenWhenTheMachineCannotSayWhatIsRunning() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -144,7 +154,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isOpen) == [false])
     }
 
-    @Test func noCopyIsTheOneTheCommandLineToolsPointAtWhenTheyCannotBeAsked() {
+    @Test
+    func copies_deliversNoCopyAsPointedAtWhenTheToolsCannotBeAsked() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let app = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -157,7 +168,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.isPointedAtByTheCommandLineTools) == [false])
     }
 
-    @Test func aSearchAnsweringOverSeveralLinesReportsEveryCopyItNamed() {
+    @Test
+    func copies_deliversEveryCopyASearchNamedOverSeveralLines() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let first = AnXcodeBundle.made(named: "Xcode.app", carrying: "26.4.1", build: "17E201", inside: applications)
@@ -170,7 +182,8 @@ struct SystemXcodeCopiesTests {
         #expect(received.map(\.path) == [first, second])
     }
 
-    @Test func aFileWithMoreThanOnePathIsCountedOnce() {
+    @Test("A file with more than one path is counted once")
+    func copies_countsAFileWithMoreThanOnePathOnce() {
         let applications = AFolderOnTheDisk.made()
         defer { AFolderOnTheDisk.throwAway(applications) }
         let app = AFolderOnTheDisk.putAFolder(named: "Xcode.app", inside: applications)

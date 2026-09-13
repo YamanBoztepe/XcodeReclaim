@@ -4,26 +4,13 @@ import XcodeReclaimCore
 
 @Observable
 public final class LeftoverListViewModel {
-    public struct Confirmation: Equatable {
-        public let name: String
-        public let sentence: String
-
-        public init(name: String, sentence: String) {
-            self.name = name
-            self.sentence = sentence
-        }
-    }
-
-    public private(set) var isMeasuring = true
-    public private(set) var leftoverBeingMeasured: String?
-    public private(set) var sections: [LeftoverSection] = []
-    public private(set) var roomToReclaim: String?
-    public private(set) var confirmation: Confirmation?
-    public private(set) var whatTheDeletionSaid: String?
-
-    public var nothingToDelete: Bool { !isMeasuring && sections.isEmpty }
+    public private(set) var uiModel = LeftoverListUIModel(title: theAppsOwnName, isMeasuring: true)
 
     private var leftovers: [Leftover] = []
+    private var isMeasuring = true
+    private var leftoverBeingMeasured: String?
+    private var whatTheDeletionSaid: String?
+    private var confirmation: LeftoverListUIModel.Confirmation?
     private var beingConfirmed: Leftover?
     private var beingDeleted: Leftover?
     private let measure: () -> Void
@@ -40,6 +27,7 @@ public final class LeftoverListViewModel {
 
     public func announced(_ name: String) {
         leftoverBeingMeasured = name
+        redraw()
     }
 
     public func measuringEnded(with measured: [Leftover]) {
@@ -62,12 +50,14 @@ public final class LeftoverListViewModel {
         guard let leftover = leftovers.first(where: { identity(of: $0.place) == row.id }), leftover.refusal == nil else { return }
 
         beingConfirmed = leftover
-        confirmation = Confirmation(name: leftover.name, sentence: whatConfirmingCosts(leftover))
+        confirmation = LeftoverListUIModel.Confirmation(name: leftover.name, sentence: whatConfirmingCosts(leftover))
+        redraw()
     }
 
     public func backOut() {
         beingConfirmed = nil
         confirmation = nil
+        redraw()
     }
 
     public func confirm() {
@@ -92,6 +82,8 @@ public final class LeftoverListViewModel {
         redraw()
     }
 }
+
+private let theAppsOwnName = "XcodeReclaim"
 
 private enum Kind: CaseIterable {
     case folder
@@ -124,8 +116,7 @@ private extension LeftoverListViewModel {
 
         let marked = whatHoldsTheMostRoom(in: shown.flatMap(\.held))
         let roomOnTheScreen = roomIn(leftovers)
-
-        sections = shown.map { section in
+        let sections = shown.map { section in
             LeftoverSection(
                 id: section.kind.name,
                 name: section.kind.name,
@@ -134,7 +125,21 @@ private extension LeftoverListViewModel {
                 share: Double(roomIn(section.held)) / Double(roomOnTheScreen),
                 rows: section.held.map { row(for: $0, marked: marked) })
         }
-        roomToReclaim = leftovers.isEmpty ? nil : roomWritten(shown.reduce(0) { $0 + roomRounded(roomIn($1.held)) })
+
+        uiModel = LeftoverListUIModel(
+            title: titleOver(shown.reduce(0) { $0 + roomRounded(roomIn($1.held)) }),
+            isMeasuring: isMeasuring,
+            leftoverBeingMeasured: leftoverBeingMeasured,
+            nothingToDelete: !isMeasuring && sections.isEmpty,
+            whatTheDeletionSaid: whatTheDeletionSaid,
+            sections: sections,
+            confirmation: confirmation)
+    }
+
+    func titleOver(_ roomToReclaim: Int) -> String {
+        guard !leftovers.isEmpty else { return theAppsOwnName }
+
+        return "\(roomWritten(roomToReclaim)) to reclaim"
     }
 
     func roomIn(_ held: [Leftover]) -> Int {
@@ -154,7 +159,7 @@ private extension LeftoverListViewModel {
             size: roomWritten(leftover.bytes),
             refusal: leftover.refusal.map(whyItCannotBeDeleted),
             holdsTheMostRoom: leftover == marked,
-            isBeingDeleted: leftover == beingDeleted,
+            deletionUnderWay: leftover == beingDeleted ? "Deleting…" : nil,
             canBeDeleted: leftover.refusal == nil && beingDeleted == nil)
     }
 
