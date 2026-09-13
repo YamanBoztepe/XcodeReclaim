@@ -41,12 +41,12 @@ extension AppDriver {
         leftoverList.onBackOut()
     }
 
-    func waitForMeasuringToEnd() async {
-        await wait { !$0.isMeasuring }
+    func waitForMeasuringToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
+        await wait(for: { !$0.isMeasuring }, sourceLocation: sourceLocation)
     }
 
-    func waitForDeletionToEnd() async {
-        await wait { $0.whatTheDeletionSaid != nil }
+    func waitForDeletionToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
+        await wait(for: { $0.whatTheDeletionSaid != nil }, sourceLocation: sourceLocation)
     }
 }
 
@@ -89,11 +89,15 @@ private extension AppDriver {
         leftoverList.model.sections.flatMap(\.rows)
     }
 
-    func wait(for settled: (LeftoverListUIModel) -> Bool) async {
+    func wait(for settled: (LeftoverListUIModel) -> Bool, sourceLocation: SourceLocation) async {
         let longerThanAnyStubbedMachineTakes = 100_000
 
         for _ in 0..<longerThanAnyStubbedMachineTakes where !settled(leftoverList.model) {
             await Task.yield()
+        }
+
+        if !settled(leftoverList.model) {
+            Issue.record("the screen never got there", sourceLocation: sourceLocation)
         }
     }
 }

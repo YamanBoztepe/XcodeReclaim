@@ -97,6 +97,7 @@ struct LeftoverListUIIntegrationTests {
 
         screen.open()
         await screen.waitForMeasuringToReach("Previews")
+        #expect(screen.leftoverBeingMeasured == "Previews")
         #expect(screen.isMeasuring)
 
         screen.letEveryMeasuringFinish()
