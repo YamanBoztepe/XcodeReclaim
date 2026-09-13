@@ -41,7 +41,7 @@ struct LeftoverListViewSnapshotTests {
             showing: LeftoverListUIModel(
                 title: "119.4 GB to reclaim",
                 isMeasuring: false,
-                whatTheDeletionSaid: "28.4 GB came back.",
+                deletionMessage: "28.4 GB came back.",
                 sections: [caches])
         )
         .verify(named: "LEFTOVER_LIST_AFTER_A_DELETION")

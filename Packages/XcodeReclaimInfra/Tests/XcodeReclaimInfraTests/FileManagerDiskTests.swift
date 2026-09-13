@@ -9,11 +9,11 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
-        AFolderOnTheDisk.putASecondPathTo("block 0", named: "the same block again", inside: folder)
+        FolderOnDisk.putASecondPathTo("block 0", named: "the same block again", inside: folder)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
-        #expect(received == AFolderOnTheDisk.oneBlock)
+        #expect(received == FolderOnDisk.oneBlock)
     }
 
     @Test("A leftover whose folder cannot be fully read is delivered with what could be read")
@@ -21,13 +21,13 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
-        let hidden = AFolderOnTheDisk.putAFolder(named: "unreadable", inside: folder)
-        AFolderOnTheDisk.put(1, named: "block out of reach", inside: hidden)
-        AFolderOnTheDisk.makeUnreadable(hidden)
+        let hidden = FolderOnDisk.putAFolder(named: "unreadable", inside: folder)
+        FolderOnDisk.put(1, named: "block out of reach", inside: hidden)
+        FolderOnDisk.makeUnreadable(hidden)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
-        #expect(received == AFolderOnTheDisk.oneBlock)
+        #expect(received == FolderOnDisk.oneBlock)
     }
 
     @Test
@@ -35,12 +35,12 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
-        let deeper = AFolderOnTheDisk.putAFolder(named: "deeper", inside: folder)
-        AFolderOnTheDisk.put(1, named: "a block further down", inside: deeper)
+        let deeper = FolderOnDisk.putAFolder(named: "deeper", inside: folder)
+        FolderOnDisk.put(1, named: "a block further down", inside: deeper)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
-        #expect(received == AFolderOnTheDisk.oneBlock * 2)
+        #expect(received == FolderOnDisk.oneBlock * 2)
     }
 
     @Test
@@ -48,11 +48,11 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
-        AFolderOnTheDisk.putAFileOf(1, named: "one byte", inside: folder)
+        FolderOnDisk.putAFileOf(1, named: "one byte", inside: folder)
 
         let received = sut.bytesUsedByFolder(at: folder)
 
-        #expect(received == AFolderOnTheDisk.oneBlock)
+        #expect(received == FolderOnDisk.oneBlock)
     }
 
     @Test
@@ -82,8 +82,8 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
-        _ = AFolderOnTheDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: folder)
-        AFolderOnTheDisk.makeUnreadable(folder)
+        _ = FolderOnDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: folder)
+        FolderOnDisk.makeUnreadable(folder)
 
         let received = sut.foldersInside(folder)
 
@@ -95,8 +95,8 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let deviceSupport = makeFolder(holding: 0)
         defer { throwAway(deviceSupport) }
-        _ = AFolderOnTheDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: deviceSupport)
-        AFolderOnTheDisk.put(1, named: "a file sitting beside them", inside: deviceSupport)
+        _ = FolderOnDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: deviceSupport)
+        FolderOnDisk.put(1, named: "a file sitting beside them", inside: deviceSupport)
 
         let received = sut.foldersInside(deviceSupport)
 
@@ -108,7 +108,7 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)
         defer { throwAway(folder) }
-        let held = AFolderOnTheDisk.putAFolder(named: "held", inside: folder)
+        let held = FolderOnDisk.putAFolder(named: "held", inside: folder)
 
         try sut.removeItem(at: held)
 
@@ -129,8 +129,8 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
-        let held = AFolderOnTheDisk.putAFolder(named: "cache", inside: folder)
-        AFolderOnTheDisk.makeUnwritable(folder)
+        let held = FolderOnDisk.putAFolder(named: "cache", inside: folder)
+        FolderOnDisk.makeUnwritable(folder)
 
         let received = #expect(throws: CocoaError.self) { try sut.removeItem(at: held) }
 
@@ -145,14 +145,14 @@ private extension FileManagerDiskTests {
     }
 
     func makeFolder(holding blocks: Int) -> URL {
-        let folder = AFolderOnTheDisk.made()
+        let folder = FolderOnDisk.made()
         for block in 0..<blocks {
-            AFolderOnTheDisk.put(1, named: "block \(block)", inside: folder)
+            FolderOnDisk.put(1, named: "block \(block)", inside: folder)
         }
         return folder
     }
 
     func throwAway(_ folder: URL) {
-        AFolderOnTheDisk.throwAway(folder)
+        FolderOnDisk.throwAway(folder)
     }
 }

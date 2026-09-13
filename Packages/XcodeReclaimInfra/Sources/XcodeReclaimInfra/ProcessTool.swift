@@ -20,14 +20,14 @@ public struct ProcessTool: Tool {
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            throw TheToolExitedWithAFailure(said: try text(of: said).trimmingCharacters(in: .whitespacesAndNewlines))
+            throw ToolFailure(said: try text(of: said).trimmingCharacters(in: .whitespacesAndNewlines))
         }
 
         return try text(of: written)
     }
 }
 
-struct TheToolExitedWithAFailure: LocalizedError {
+struct ToolFailure: LocalizedError {
     let said: String
 
     var errorDescription: String? { said }

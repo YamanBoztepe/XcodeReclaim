@@ -39,7 +39,7 @@ struct MeasureLeftoversAnnouncementTests {
                 version: XcodeCopy.Version(number: "26.2", build: "17C51"),
                 bytes: roomEachTakes,
                 isOpen: false,
-                isPointedAtByTheCommandLineTools: false)
+                isPointedAtByCommandLineTools: false)
         ]
 
         _ = sut.leftovers(announcing: disk.announce)
@@ -69,8 +69,8 @@ struct MeasureLeftoversAnnouncementTests {
 }
 
 private extension MeasureLeftoversAnnouncementTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: DiskSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {
-        let disk = DiskSpy()
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {
+        let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
         let copies = XcodeCopiesStub()
         let sut = MeasureLeftovers(

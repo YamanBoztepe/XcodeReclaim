@@ -36,7 +36,7 @@ final class LeftoverListViewModelTests {
         let roomItTakes = 200
         let (sut, _) = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomItTakes)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
@@ -65,7 +65,7 @@ final class LeftoverListViewModelTests {
     @Test("A refresh measures again")
     func refresh_measuresAgainNamingNothing() {
         let (sut, requests) = makeSUT()
-        sut.measuringEnded(with: [ALeftover.folder(taking: 200)])
+        sut.measuringEnded(with: [folder(taking: 200)])
 
         sut.refresh()
 
@@ -92,7 +92,7 @@ final class LeftoverListViewModelTests {
         let (sut, _) = makeSUT()
         sut.announced("Derived data")
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomItTakes)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
         #expect(sut.uiModel.leftoverBeingMeasured == nil)
@@ -101,20 +101,20 @@ final class LeftoverListViewModelTests {
     @Test("A refresh says nothing about the deletion before it")
     func refresh_saysNothingAboutTheDeletionBeforeIt() throws {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [ALeftover.folder(taking: 200)])
+        sut.measuringEnded(with: [folder(taking: 200)])
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
         sut.confirm()
         sut.deletionEnded(with: .freed(200))
 
         sut.refresh()
 
-        #expect(sut.uiModel.whatTheDeletionSaid == nil)
+        #expect(sut.uiModel.deletionMessage == nil)
     }
 }
 
 private extension LeftoverListViewModelTests {
-    func makeSUT() -> (sut: LeftoverListViewModel, requests: RequestsFromTheScreen) {
-        let requests = RequestsFromTheScreen()
+    func makeSUT() -> (sut: LeftoverListViewModel, requests: ScreenRequestsSpy) {
+        let requests = ScreenRequestsSpy()
         let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
         released.append { [weak sut] in sut == nil }
         return (sut, requests)

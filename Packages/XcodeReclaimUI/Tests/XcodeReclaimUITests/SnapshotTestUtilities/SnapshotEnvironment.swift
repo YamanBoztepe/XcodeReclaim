@@ -2,13 +2,13 @@ import Foundation
 import Testing
 
 enum SnapshotEnvironment {
-    static let theMacOSTheseWereRecordedOn = 26
+    static let recordedOnMacOS = 26
 
-    static func isTheMachineTheseWereRecordedOn(sourceLocation: SourceLocation) -> Bool {
+    static func isTheRecordingMachine(sourceLocation: SourceLocation) -> Bool {
         let running = ProcessInfo.processInfo.operatingSystemVersion
-        guard running.majorVersion == theMacOSTheseWereRecordedOn else {
+        guard running.majorVersion == recordedOnMacOS else {
             Issue.record(
-                "Snapshots were recorded on macOS \(theMacOSTheseWereRecordedOn) and this is macOS \(running.majorVersion).\(running.minorVersion).",
+                "Snapshots were recorded on macOS \(recordedOnMacOS) and this is macOS \(running.majorVersion).\(running.minorVersion).",
                 sourceLocation: sourceLocation)
             return false
         }

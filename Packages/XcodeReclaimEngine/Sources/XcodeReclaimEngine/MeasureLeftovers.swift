@@ -62,14 +62,14 @@ private extension MeasureLeftovers {
 
         var found: [Leftover] = []
         for version in disk.foldersInside(deviceSupport) {
-            let name = "Device support (\(systemVersionHeldBy(version.lastPathComponent)))"
+            let name = "Device support (\(systemVersion(in: version.lastPathComponent)))"
             announce(name)
             found.append(Leftover(name: name, bytes: disk.bytesUsedByFolder(at: version), place: .folder(version), cost: cost))
         }
         return found
     }
 
-    func systemVersionHeldBy(_ folderName: String) -> String {
+    func systemVersion(in folderName: String) -> String {
         let modelVersionAndBuild = /^\S+ (\S+) \(\S+\)$/
         guard let read = try? modelVersionAndBuild.wholeMatch(in: folderName) else { return folderName }
 
@@ -81,7 +81,7 @@ private extension MeasureLeftovers {
 
         var found: [Leftover] = []
         for simulator in reportedSimulators() {
-            let name = "\(simulator.name) (\(simulator.runtime), \(startOf(simulator.identifier)))"
+            let name = "\(simulator.name) (\(simulator.runtime), \(start(of: simulator.identifier)))"
             announce(name)
             found.append(
                 Leftover(
@@ -89,7 +89,7 @@ private extension MeasureLeftovers {
                     bytes: simulator.bytes,
                     place: .simulator(simulator.identifier),
                     cost: cost,
-                    refusal: simulator.isShutDown ? nil : .theSimulatorIsRunning))
+                    refusal: simulator.isShutDown ? nil : .simulatorIsRunning))
         }
         return found
     }
@@ -98,7 +98,7 @@ private extension MeasureLeftovers {
         (try? simulatorService.simulators()) ?? []
     }
 
-    func startOf(_ identifier: String) -> String {
+    func start(of identifier: String) -> String {
         String(identifier.prefix { $0 != "-" })
     }
 
@@ -107,14 +107,14 @@ private extension MeasureLeftovers {
 
         var found: [Leftover] = []
         for copy in xcodeCopies.copies() {
-            let name = nameOf(copy)
+            let name = name(of: copy)
             announce(name)
             found.append(Leftover(name: name, bytes: copy.bytes, place: .xcodeCopy(copy.path), cost: cost, refusal: refusal(for: copy)))
         }
         return found
     }
 
-    func nameOf(_ copy: XcodeCopy) -> String {
+    func name(of copy: XcodeCopy) -> String {
         let whereItSits = copy.path.deletingLastPathComponent().lastPathComponent
         guard let version = copy.version else { return "Xcode — \(whereItSits)" }
 
@@ -122,9 +122,9 @@ private extension MeasureLeftovers {
     }
 
     func refusal(for copy: XcodeCopy) -> Leftover.Refusal? {
-        switch (copy.isOpen, copy.isPointedAtByTheCommandLineTools) {
+        switch (copy.isOpen, copy.isPointedAtByCommandLineTools) {
         case (true, _): .xcodeIsOpen
-        case (false, true): .theCommandLineToolsPointAtIt
+        case (false, true): .commandLineToolsPointAtIt
         case (false, false): nil
         }
     }

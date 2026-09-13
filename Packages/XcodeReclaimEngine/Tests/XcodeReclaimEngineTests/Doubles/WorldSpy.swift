@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimEngine
 
-final class DiskSpy: Disk {
+final class WorldSpy: Disk {
     enum Message: Hashable {
         case announced(String)
         case sizeRead(URL)

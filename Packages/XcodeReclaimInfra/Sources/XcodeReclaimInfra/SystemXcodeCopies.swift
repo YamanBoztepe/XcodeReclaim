@@ -13,18 +13,18 @@ public struct SystemXcodeCopies: XcodeCopies {
     }
 
     public func copies() -> [XcodeCopy] {
-        let reported = whatTheSearchReports()
-        let found = (reported.isEmpty ? whatTheApplicationsFolderHolds() : reported).map(spelledOneWay)
-        let running = whatIsRunning()
-        let pointedAt = whereTheCommandLineToolsPoint()
+        let reported = searchedCopies()
+        let found = (reported.isEmpty ? copiesInTheApplicationsFolder() : reported).map(withoutATrailingSlash)
+        let running = runningProcesses()
+        let pointedAt = commandLineToolsPath()
 
         return found.map { app in
             XcodeCopy(
                 path: app,
                 version: bundleInformation(in: app)?.version,
                 bytes: disk.bytesUsedByFolder(at: app),
-                isOpen: running.contains { $0.hasPrefix(inside(app)) },
-                isPointedAtByTheCommandLineTools: pointedAt.hasPrefix(inside(app)))
+                isOpen: running.contains { $0.hasPrefix(pathInside(app)) },
+                isPointedAtByCommandLineTools: pointedAt.hasPrefix(pathInside(app)))
         }
     }
 }
@@ -37,21 +37,21 @@ private struct BundleInformation {
 private extension SystemXcodeCopies {
     var xcodeBundleIdentifier: String { "com.apple.dt.Xcode" }
 
-    func whatTheSearchReports() -> [URL] {
+    func searchedCopies() -> [URL] {
         let carryingTheIdentifier = "kMDItemCFBundleIdentifier == '\(xcodeBundleIdentifier)'"
         let answered = (try? tool.run(executable: URL(fileURLWithPath: "/usr/bin/mdfind"), arguments: [carryingTheIdentifier])) ?? ""
         return lines(of: answered).map { URL(fileURLWithPath: $0) }
     }
 
-    func whatTheApplicationsFolderHolds() -> [URL] {
+    func copiesInTheApplicationsFolder() -> [URL] {
         disk.foldersInside(applicationsFolder).filter { bundleInformation(in: $0)?.identifier == xcodeBundleIdentifier }
     }
 
-    func whatIsRunning() -> [String] {
+    func runningProcesses() -> [String] {
         lines(of: (try? tool.run(executable: URL(fileURLWithPath: "/bin/ps"), arguments: ["-Ao", "comm="])) ?? "")
     }
 
-    func whereTheCommandLineToolsPoint() -> String {
+    func commandLineToolsPath() -> String {
         let answered = (try? tool.run(executable: URL(fileURLWithPath: "/usr/bin/xcode-select"), arguments: ["-p"])) ?? ""
         return lines(of: answered).first ?? ""
     }
@@ -60,11 +60,11 @@ private extension SystemXcodeCopies {
         answered.split(whereSeparator: \.isNewline).map(String.init)
     }
 
-    func spelledOneWay(_ app: URL) -> URL {
+    func withoutATrailingSlash(_ app: URL) -> URL {
         URL(filePath: app.path(percentEncoded: false), directoryHint: .notDirectory)
     }
 
-    func inside(_ app: URL) -> String {
+    func pathInside(_ app: URL) -> String {
         app.path(percentEncoded: false) + "/"
     }
 

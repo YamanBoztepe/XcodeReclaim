@@ -81,8 +81,8 @@ struct MeasureLeftoversDeviceSupportTests {
 }
 
 private extension MeasureLeftoversDeviceSupportTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: DiskSpy) {
-        let disk = DiskSpy()
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy) {
+        let disk = WorldSpy()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
             disk: disk,

@@ -30,9 +30,9 @@ struct DeleteLeftoverTests {
     func delete_refusesARunningSimulatorAndRemovesNothing() {
         let (sut, disk, _) = makeSUT()
 
-        let received = sut.delete(simulator(refusedFor: .theSimulatorIsRunning))
+        let received = sut.delete(simulator(refusedFor: .simulatorIsRunning))
 
-        #expect(received == .refused(.theSimulatorIsRunning))
+        #expect(received == .refused(.simulatorIsRunning))
         #expect(disk.messages.isEmpty)
     }
 
@@ -40,7 +40,7 @@ struct DeleteLeftoverTests {
     func delete_freesNoRoomWhenTheSimulatorCannotBeDeleted() {
         let roomItTook = 200
         let (sut, _, simulators) = makeSUT()
-        simulators.deletion = .failure(WhatTheWorldSaid(sentence: "the device is in use"))
+        simulators.deletion = .failure(WorldFailure(sentence: "the device is in use"))
 
         let received = sut.delete(simulator(taking: roomItTook))
 
@@ -60,7 +60,7 @@ struct DeleteLeftoverTests {
     func delete_neverAsksTheServiceForASimulatorThatIsNotShutDown() {
         let (sut, _, simulators) = makeSUT()
 
-        _ = sut.delete(simulator(refusedFor: .theSimulatorIsRunning))
+        _ = sut.delete(simulator(refusedFor: .simulatorIsRunning))
 
         #expect(simulators.messages.isEmpty)
     }
@@ -69,7 +69,7 @@ struct DeleteLeftoverTests {
     func delete_freesNoRoomWhenNoneOfTheLeftoverCouldBeDeleted() {
         let roomItTook = 200
         let (sut, disk, _) = makeSUT()
-        disk.removal = .failure(WhatTheWorldSaid(sentence: "you don't have permission to access it"))
+        disk.removal = .failure(WorldFailure(sentence: "you don't have permission to access it"))
 
         let received = sut.delete(derivedData(taking: roomItTook))
 
@@ -81,7 +81,7 @@ struct DeleteLeftoverTests {
     func delete_carriesWhyItFailed() {
         let whatTheServiceSaid = "Invalid device"
         let (sut, _, simulators) = makeSUT()
-        simulators.deletion = .failure(WhatTheWorldSaid(sentence: whatTheServiceSaid))
+        simulators.deletion = .failure(WorldFailure(sentence: whatTheServiceSaid))
 
         let received = sut.delete(simulator(taking: 200))
 
@@ -115,7 +115,7 @@ struct DeleteLeftoverTests {
     func delete_saysWhatTheDiskSaidWhenACopyCouldNotBeRemoved() {
         let whatTheDiskSaid = "“Xcode.app” couldn't be removed because you don't have permission to access it."
         let (sut, disk, _) = makeSUT()
-        disk.removal = .failure(WhatTheWorldSaid(sentence: whatTheDiskSaid))
+        disk.removal = .failure(WorldFailure(sentence: whatTheDiskSaid))
 
         let received = sut.delete(copyOfXcode(taking: 4_000_000_000))
 
@@ -124,12 +124,12 @@ struct DeleteLeftoverTests {
 
     @Test("A leftover refused when it was measured is not deleted")
     func delete_refusesALeftoverForTheReasonTheMeasuringGave() {
-        let refusedWhenItWasMeasured: [Leftover.Refusal] = [.xcodeIsOpen, .theCommandLineToolsPointAtIt]
+        let refusedWhenItWasMeasured: [Leftover.Refusal] = [.xcodeIsOpen, .commandLineToolsPointAtIt]
         let (sut, disk, _) = makeSUT()
 
         let received = refusedWhenItWasMeasured.map { sut.delete(copyOfXcode(taking: 4_000_000_000, refusedFor: $0)) }
 
-        #expect(received == [.refused(.xcodeIsOpen), .refused(.theCommandLineToolsPointAtIt)])
+        #expect(received == [.refused(.xcodeIsOpen), .refused(.commandLineToolsPointAtIt)])
         #expect(disk.messages.isEmpty)
     }
 }
@@ -138,8 +138,8 @@ private extension DeleteLeftoverTests {
     var deviceIdentifier: String { "21B507D3-909E-465B-957C-4B370278399F" }
     var copyPath: URL { URL(fileURLWithPath: "/Applications/Xcode 26.2.app") }
 
-    func makeSUT() -> (sut: DeleteLeftover, disk: DiskSpy, simulators: SimulatorServiceSpy) {
-        let disk = DiskSpy()
+    func makeSUT() -> (sut: DeleteLeftover, disk: WorldSpy, simulators: SimulatorServiceSpy) {
+        let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
         let sut = DeleteLeftover(disk: disk, simulatorService: simulators)
         return (sut, disk, simulators)

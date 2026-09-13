@@ -46,7 +46,7 @@ extension AppDriver {
     }
 
     func waitForDeletionToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
-        await wait(for: { $0.whatTheDeletionSaid != nil }, sourceLocation: sourceLocation)
+        await wait(for: { $0.deletionMessage != nil }, sourceLocation: sourceLocation)
     }
 }
 
@@ -68,7 +68,7 @@ extension AppDriver {
     }
 
     var deletionMessage: String? {
-        leftoverList.model.whatTheDeletionSaid
+        leftoverList.model.deletionMessage
     }
 
     var rowsBeingDeleted: [String] {

@@ -12,7 +12,7 @@ public enum LeftoverListUIComposer {
 
     private static func viewModel(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListViewModel {
         let screen = WeakReference<LeftoverListViewModel>()
-        let onlyTheLatest = LatestMeasuringOnlyDecorator(
+        let onlyTheLatest = LatestMeasuringOnly(
             announcing: { screen.object?.announced($0) },
             delivering: { screen.object?.measuringEnded(with: $0) })
 
@@ -27,8 +27,8 @@ public enum LeftoverListUIComposer {
         return model
     }
 
-    private static func measureAwayFromTheScreen(_ measuring: @escaping Measuring, reaching onlyTheLatest: LatestMeasuringOnlyDecorator) {
-        let thisMeasuring = onlyTheLatest.aMeasuringBegins()
+    private static func measureAwayFromTheScreen(_ measuring: @escaping Measuring, reaching onlyTheLatest: LatestMeasuringOnly) {
+        let thisMeasuring = onlyTheLatest.beginMeasuring()
         let announced = MainThreadDecorator<String> { onlyTheLatest.announce($0, from: thisMeasuring) }
 
         MainThreadDecorator<[Leftover]> { onlyTheLatest.deliver($0, from: thisMeasuring) }

@@ -10,7 +10,7 @@ extension View {
         filePath: StaticString = #filePath,
         sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        guard SnapshotEnvironment.isTheMachineTheseWereRecordedOn(sourceLocation: sourceLocation) else { return }
+        guard SnapshotEnvironment.isTheRecordingMachine(sourceLocation: sourceLocation) else { return }
         guard let drawn = drawn(configuration) else {
             Issue.record("The view drew nothing that could be turned into a PNG.", sourceLocation: sourceLocation)
             return

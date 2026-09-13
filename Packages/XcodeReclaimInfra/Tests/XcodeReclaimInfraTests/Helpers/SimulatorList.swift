@@ -1,6 +1,6 @@
 import Foundation
 
-enum TheSimulatorList {
+enum SimulatorList {
     struct Device {
         let udid: String
         let name: String

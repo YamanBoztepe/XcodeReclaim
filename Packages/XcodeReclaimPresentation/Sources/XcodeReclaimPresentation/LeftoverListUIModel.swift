@@ -13,7 +13,7 @@ public struct LeftoverListUIModel: Equatable {
     public let isMeasuring: Bool
     public let leftoverBeingMeasured: String?
     public let nothingToDelete: Bool
-    public let whatTheDeletionSaid: String?
+    public let deletionMessage: String?
     public let sections: [LeftoverSection]
     public let confirmation: Confirmation?
 
@@ -22,7 +22,7 @@ public struct LeftoverListUIModel: Equatable {
         isMeasuring: Bool,
         leftoverBeingMeasured: String? = nil,
         nothingToDelete: Bool = false,
-        whatTheDeletionSaid: String? = nil,
+        deletionMessage: String? = nil,
         sections: [LeftoverSection] = [],
         confirmation: Confirmation? = nil
     ) {
@@ -30,7 +30,7 @@ public struct LeftoverListUIModel: Equatable {
         self.isMeasuring = isMeasuring
         self.leftoverBeingMeasured = leftoverBeingMeasured
         self.nothingToDelete = nothingToDelete
-        self.whatTheDeletionSaid = whatTheDeletionSaid
+        self.deletionMessage = deletionMessage
         self.sections = sections
         self.confirmation = confirmation
     }

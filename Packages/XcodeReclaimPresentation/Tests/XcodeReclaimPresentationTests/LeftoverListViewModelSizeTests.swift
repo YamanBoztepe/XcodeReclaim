@@ -16,7 +16,7 @@ final class LeftoverListViewModelSizeTests {
     func measuringEnded_showsASizeTheWayAPersonReadsIt() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 28_359_995_392)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 28_359_995_392)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["28.4 GB"])
     }
@@ -25,7 +25,7 @@ final class LeftoverListViewModelSizeTests {
     func measuringEnded_showsASizeInTheUnitItsMagnitudeAsksFor() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 323_137_536)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 323_137_536)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["323.1 MB"])
     }
@@ -35,7 +35,7 @@ final class LeftoverListViewModelSizeTests {
         let sut = makeSUT()
         let magnitudes = [999, 1_000, 999_999, 1_000_000, 999_999_999, 1_000_000_000, 1_000_000_000_000]
 
-        sut.measuringEnded(with: magnitudes.map { ALeftover.folder(named: "taking \($0)", taking: $0) })
+        sut.measuringEnded(with: magnitudes.map { folder(named: "taking \($0)", taking: $0) })
 
         #expect(
             sut.uiModel.sections.flatMap(\.rows).map(\.size) == [
@@ -47,7 +47,7 @@ final class LeftoverListViewModelSizeTests {
     func measuringEnded_saysHowMuchRoomThereIsToReclaim() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 1_000_000_000), ALeftover.folder(named: "Previews", taking: 500_000_000)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 1_000_000_000), folder(named: "Previews", taking: 500_000_000)])
 
         #expect(sut.uiModel.title == "1.5 GB to reclaim")
     }
@@ -55,7 +55,7 @@ final class LeftoverListViewModelSizeTests {
     @Test("A screen with nothing to delete has nothing to reclaim")
     func measuringEnded_saysNothingAboutReclaimingWhenThereIsNothingToDelete() {
         let sut = makeSUT()
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 1_000_000_000)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 1_000_000_000)])
 
         sut.measuringEnded(with: [])
 
@@ -67,7 +67,7 @@ final class LeftoverListViewModelSizeTests {
         let roomEachHolds = 1_750_000_000
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: roomEachHolds), ALeftover.simulator(taking: roomEachHolds)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: roomEachHolds), simulator(taking: roomEachHolds)])
 
         #expect(sut.uiModel.sections.map(\.size) == ["1.8 GB", "1.8 GB"])
         #expect(sut.uiModel.title == "3.6 GB to reclaim")
@@ -76,7 +76,7 @@ final class LeftoverListViewModelSizeTests {
 
 private extension LeftoverListViewModelSizeTests {
     func makeSUT() -> LeftoverListViewModel {
-        let requests = RequestsFromTheScreen()
+        let requests = ScreenRequestsSpy()
         let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
         released.append { [weak sut] in sut == nil }
         return sut

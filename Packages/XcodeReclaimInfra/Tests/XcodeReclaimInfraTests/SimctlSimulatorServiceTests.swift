@@ -8,7 +8,7 @@ struct SimctlSimulatorServiceTests {
     func simulators_deliversEveryDeviceTheListReports() throws {
         let (sut, tool, _) = makeSUT()
         tool.answers["xcrun"] = .success(
-            TheSimulatorList.reporting([
+            SimulatorList.reporting([
                 "com.apple.CoreSimulator.SimRuntime.iOS-18-1": [.init(udid: "AAAA-1", name: "iPhone 16 Pro")],
                 "com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "BBBB-2", name: "iPhone 17"), .init(udid: "CCCC-3", name: "iPad Pro")],
             ]))
@@ -22,7 +22,7 @@ struct SimctlSimulatorServiceTests {
     @Test(arguments: [("Shutdown", true), ("Booted", false), ("Booting", false), ("Shutting Down", false), ("Creating", false), ("shutdown", false)])
     func simulators_readsAnyStateOtherThanShutdownAsNotShutDown(state: String, isShutDown: Bool) throws {
         let (sut, tool, _) = makeSUT()
-        tool.answers["xcrun"] = .success(TheSimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
+        tool.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
 
         let received = try sut.simulators()
 
@@ -40,7 +40,7 @@ struct SimctlSimulatorServiceTests {
     ])
     func simulators_deliversADeviceWithTheRuntimeItSitsUnder(runtime: String, named: String) throws {
         let (sut, tool, _) = makeSUT()
-        tool.answers["xcrun"] = .success(TheSimulatorList.reporting([runtime: [.init()]]))
+        tool.answers["xcrun"] = .success(SimulatorList.reporting([runtime: [.init()]]))
 
         let received = try sut.simulators()
 
@@ -51,7 +51,7 @@ struct SimctlSimulatorServiceTests {
     func simulators_deliversADeviceWithTheRoomItsFolderTakes() throws {
         let roomItTakes = 4_557_963_264
         let (sut, tool, disk) = makeSUT()
-        tool.answers["xcrun"] = .success(TheSimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "AAAA-1")]]))
+        tool.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "AAAA-1")]]))
         disk.sizes[devicesFolder.appending(path: "AAAA-1")] = roomItTakes
 
         let received = try sut.simulators()
@@ -72,7 +72,7 @@ struct SimctlSimulatorServiceTests {
     @Test("A deletion the service refuses frees nothing")
     func delete_throwsWhatTheServiceSaidWhenItRefuses() {
         let (sut, tool, _) = makeSUT()
-        tool.answers["xcrun"] = .failure(WhatTheWorldSaid(sentence: "Invalid device"))
+        tool.answers["xcrun"] = .failure(WorldFailure(sentence: "Invalid device"))
 
         let received = #expect(throws: (any Error).self) { try sut.delete(simulatorWithIdentifier: "21B507D3") }
 

@@ -159,8 +159,8 @@ struct MeasureLeftoversTests {
 private struct TheSimulatorsCannotBeListed: Error {}
 
 private extension MeasureLeftoversTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: DiskSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {
-        let disk = DiskSpy()
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {
+        let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
         let copies = XcodeCopiesStub()
         let sut = MeasureLeftovers(

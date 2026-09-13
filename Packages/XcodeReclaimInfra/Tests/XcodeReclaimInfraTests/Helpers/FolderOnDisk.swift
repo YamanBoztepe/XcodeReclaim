@@ -1,6 +1,6 @@
 import Foundation
 
-enum AFolderOnTheDisk {
+enum FolderOnDisk {
     static let oneBlock = 4096
 
     static func made() -> URL {

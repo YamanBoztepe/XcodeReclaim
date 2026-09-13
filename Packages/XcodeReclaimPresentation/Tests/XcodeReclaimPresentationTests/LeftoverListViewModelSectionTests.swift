@@ -16,7 +16,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_showsTheLeftoversInTwoSections() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), simulator(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Simulators"])
         #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["iPhone 17 (iOS 26.4, 21B507D3)"]])
@@ -26,7 +26,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_showsTheSectionHoldingTheMostRoomFirst() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 300)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), simulator(taking: 300)])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
     }
@@ -35,7 +35,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_showsNoSectionTheMeasuringFoundNothingFor() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files"])
     }
@@ -44,7 +44,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_givesEachSectionTheShareOfTheRoomItHolds() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 300), ALeftover.simulator(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), simulator(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.share) == [0.75, 0.25])
     }
@@ -53,7 +53,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_givesEachSectionTheSymbolThatNamesIt() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), simulator(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "iphone"])
     }
@@ -62,7 +62,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_saysHowMuchRoomEachSectionHolds() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 300), ALeftover.simulator(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), simulator(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.size) == ["300 bytes", "100 bytes"])
     }
@@ -72,9 +72,9 @@ final class LeftoverListViewModelSectionTests {
         let sut = makeSUT()
 
         sut.measuringEnded(with: [
-            ALeftover.folder(named: "Derived data", taking: 300),
-            ALeftover.simulator(named: "iPhone 17 (iOS 26.4, 21B507D3)", taking: 200),
-            ALeftover.simulator(named: "iPad Pro (iOS 26.4, 8FB6EB6C)", taking: 200),
+            folder(named: "Derived data", taking: 300),
+            simulator(named: "iPhone 17 (iOS 26.4, 21B507D3)", taking: 200),
+            simulator(named: "iPad Pro (iOS 26.4, 8FB6EB6C)", taking: 200),
         ])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
@@ -85,7 +85,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_marksOnlyTheFirstOfTheLeftoversHoldingTheSameRoom() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.simulator(taking: 200)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), simulator(taking: 200)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [true, false])
     }
@@ -94,7 +94,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_marksNothingWhenThereIsOneLeftover() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
 
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false])
     }
@@ -103,7 +103,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_showsTheCopiesOfXcodeInTheirOwnSection() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.copyOfXcode(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), copyOfXcode(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Xcode versions"])
         #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["Xcode 26.2 (17C51) — Applications"]])
@@ -113,7 +113,7 @@ final class LeftoverListViewModelSectionTests {
     func measuringEnded_givesTheXcodeVersionsSectionTheSymbolThatNamesIt() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [ALeftover.folder(named: "Derived data", taking: 200), ALeftover.copyOfXcode(taking: 100)])
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), copyOfXcode(taking: 100)])
 
         #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "hammer.fill"])
     }
@@ -121,7 +121,7 @@ final class LeftoverListViewModelSectionTests {
 
 private extension LeftoverListViewModelSectionTests {
     func makeSUT() -> LeftoverListViewModel {
-        let requests = RequestsFromTheScreen()
+        let requests = ScreenRequestsSpy()
         let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
         released.append { [weak sut] in sut == nil }
         return sut

@@ -8,9 +8,9 @@ public struct Leftover: Hashable, Sendable {
     }
 
     public enum Refusal: Hashable, Sendable {
-        case theSimulatorIsRunning
+        case simulatorIsRunning
         case xcodeIsOpen
-        case theCommandLineToolsPointAtIt
+        case commandLineToolsPointAtIt
     }
 
     public let name: String

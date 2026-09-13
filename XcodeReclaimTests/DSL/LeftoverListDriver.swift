@@ -78,7 +78,7 @@ extension LeftoverListDriver {
     }
 
     func waitForDeletionToEnd(sourceLocation: SourceLocation = #_sourceLocation) async {
-        await wait(for: { $0.whatTheDeletionSaid != nil }, sourceLocation: sourceLocation)
+        await wait(for: { $0.deletionMessage != nil }, sourceLocation: sourceLocation)
     }
 
     func waitForEverythingQueuedToRun() async {

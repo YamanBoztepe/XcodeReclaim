@@ -42,7 +42,7 @@ struct MeasureLeftoversSimulatorTests {
 
         let received = sut.leftovers(announcing: disk.announce)
 
-        #expect(received.map(\.refusal) == [.theSimulatorIsRunning])
+        #expect(received.map(\.refusal) == [.simulatorIsRunning])
     }
 
     @Test("A shut-down simulator is delivered as not running")
@@ -78,8 +78,8 @@ struct MeasureLeftoversSimulatorTests {
 }
 
 private extension MeasureLeftoversSimulatorTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: DiskSpy, simulators: SimulatorServiceSpy) {
-        let disk = DiskSpy()
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy) {
+        let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,

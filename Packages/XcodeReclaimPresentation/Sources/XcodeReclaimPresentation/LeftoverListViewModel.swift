@@ -4,12 +4,12 @@ import XcodeReclaimCore
 
 @Observable
 public final class LeftoverListViewModel {
-    public private(set) var uiModel = LeftoverListUIModel(title: theAppsOwnName, isMeasuring: true)
+    public private(set) var uiModel = LeftoverListUIModel(title: appName, isMeasuring: true)
 
     private var leftovers: [Leftover] = []
     private var isMeasuring = true
     private var leftoverBeingMeasured: String?
-    private var whatTheDeletionSaid: String?
+    private var deletionMessage: String?
     private var confirmation: LeftoverListUIModel.Confirmation?
     private var beingConfirmed: Leftover?
     private var beingDeleted: Leftover?
@@ -41,7 +41,7 @@ public final class LeftoverListViewModel {
         isMeasuring = true
         leftoverBeingMeasured = nil
         leftovers = []
-        whatTheDeletionSaid = nil
+        deletionMessage = nil
         redraw()
         measure()
     }
@@ -50,7 +50,7 @@ public final class LeftoverListViewModel {
         guard let leftover = leftovers.first(where: { identity(of: $0.place) == row.id }), leftover.refusal == nil else { return }
 
         beingConfirmed = leftover
-        confirmation = LeftoverListUIModel.Confirmation(name: leftover.name, sentence: whatConfirmingCosts(leftover))
+        confirmation = LeftoverListUIModel.Confirmation(name: leftover.name, sentence: confirmationSentence(for: leftover))
         redraw()
     }
 
@@ -74,7 +74,7 @@ public final class LeftoverListViewModel {
         guard let deleted = beingDeleted else { return }
 
         beingDeleted = nil
-        whatTheDeletionSaid = whatItSaid(deletion, about: deleted)
+        deletionMessage = deletionSentence(for: deletion, about: deleted)
 
         if case .freed = deletion {
             leftovers.removeAll { $0 == deleted }
@@ -83,7 +83,7 @@ public final class LeftoverListViewModel {
     }
 }
 
-private let theAppsOwnName = "XcodeReclaim"
+private let appName = "XcodeReclaim"
 
 private enum Kind: CaseIterable {
     case folder
@@ -114,7 +114,7 @@ private extension LeftoverListViewModel {
             .filter { !$0.held.isEmpty }
             .sorted { roomIn($0.held) > roomIn($1.held) }
 
-        let marked = whatHoldsTheMostRoom(in: shown.flatMap(\.held))
+        let marked = largest(in: shown.flatMap(\.held))
         let roomOnTheScreen = roomIn(leftovers)
         let sections = shown.map { section in
             LeftoverSection(
@@ -127,17 +127,17 @@ private extension LeftoverListViewModel {
         }
 
         uiModel = LeftoverListUIModel(
-            title: titleOver(shown.reduce(0) { $0 + roomRounded(roomIn($1.held)) }),
+            title: title(over: shown.reduce(0) { $0 + roomRounded(roomIn($1.held)) }),
             isMeasuring: isMeasuring,
             leftoverBeingMeasured: leftoverBeingMeasured,
             nothingToDelete: !isMeasuring && sections.isEmpty,
-            whatTheDeletionSaid: whatTheDeletionSaid,
+            deletionMessage: deletionMessage,
             sections: sections,
             confirmation: confirmation)
     }
 
-    func titleOver(_ roomToReclaim: Int) -> String {
-        guard !leftovers.isEmpty else { return theAppsOwnName }
+    func title(over roomToReclaim: Int) -> String {
+        guard !leftovers.isEmpty else { return appName }
 
         return "\(roomWritten(roomToReclaim)) to reclaim"
     }
@@ -146,7 +146,7 @@ private extension LeftoverListViewModel {
         held.reduce(0) { $0 + $1.bytes }
     }
 
-    func whatHoldsTheMostRoom(in shown: [Leftover]) -> Leftover? {
+    func largest(in shown: [Leftover]) -> Leftover? {
         guard shown.count > 1, let mostRoom = shown.map(\.bytes).max() else { return nil }
 
         return shown.first { $0.bytes == mostRoom }
@@ -157,7 +157,7 @@ private extension LeftoverListViewModel {
             id: identity(of: leftover.place),
             name: leftover.name,
             size: roomWritten(leftover.bytes),
-            refusal: leftover.refusal.map(whyItCannotBeDeleted),
+            refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
             deletionUnderWay: leftover == beingDeleted ? "Deleting…" : nil,
             canBeDeleted: leftover.refusal == nil && beingDeleted == nil)
@@ -178,30 +178,30 @@ private extension LeftoverListViewModel {
         }
     }
 
-    func whyItCannotBeDeleted(_ refusal: Leftover.Refusal) -> String {
+    func refusalSentence(for refusal: Leftover.Refusal) -> String {
         switch refusal {
-        case .theSimulatorIsRunning: "The simulator is running."
+        case .simulatorIsRunning: "The simulator is running."
         case .xcodeIsOpen: "Xcode is open."
-        case .theCommandLineToolsPointAtIt: "The command line tools point at this one."
+        case .commandLineToolsPointAtIt: "The command line tools point at this one."
         }
     }
 
-    func whatConfirmingCosts(_ leftover: Leftover) -> String {
+    func confirmationSentence(for leftover: Leftover) -> String {
         let frees = "Frees \(roomWritten(leftover.bytes))."
         guard let cost = leftover.cost else { return "\(frees) This cannot be undone." }
 
-        return "\(frees) \(asASentence(cost)) This cannot be undone."
+        return "\(frees) \(sentence(from: cost)) This cannot be undone."
     }
 
-    func whatItSaid(_ deletion: Deletion, about deleted: Leftover) -> String {
+    func deletionSentence(for deletion: Deletion, about deleted: Leftover) -> String {
         switch deletion {
         case .freed(let bytes): "\(roomWritten(bytes)) came back."
-        case .refused(let refusal): whyItCannotBeDeleted(refusal)
+        case .refused(let refusal): refusalSentence(for: refusal)
         case .failed(let why): "\(deleted.name) could not be deleted. \(why)"
         }
     }
 
-    func asASentence(_ cost: String) -> String {
+    func sentence(from cost: String) -> String {
         cost.prefix(1).uppercased() + cost.dropFirst() + "."
     }
 }

@@ -50,7 +50,7 @@ struct MeasureLeftoversXcodeCopyTests {
     @Test("A copy of Xcode that is open is delivered as open")
     func measure_deliversAnOpenCopyAsOpen() {
         let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(isOpen: true, isPointedAtByTheCommandLineTools: false)]
+        copies.reported = [copy(isOpen: true, isPointedAtByCommandLineTools: false)]
 
         let received = sut.leftovers(announcing: disk.announce)
 
@@ -60,17 +60,17 @@ struct MeasureLeftoversXcodeCopyTests {
     @Test("The copy the command line tools point at is delivered as the one they point at")
     func measure_deliversThePointedAtCopyAsTheOneTheToolsPointAt() {
         let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(isOpen: false, isPointedAtByTheCommandLineTools: true)]
+        copies.reported = [copy(isOpen: false, isPointedAtByCommandLineTools: true)]
 
         let received = sut.leftovers(announcing: disk.announce)
 
-        #expect(received.map(\.refusal) == [.theCommandLineToolsPointAtIt])
+        #expect(received.map(\.refusal) == [.commandLineToolsPointAtIt])
     }
 
     @Test("A copy of Xcode that is both open and pointed at is delivered as open")
     func measure_deliversACopyThatIsBothOpenAndPointedAtAsOpen() {
         let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(isOpen: true, isPointedAtByTheCommandLineTools: true)]
+        copies.reported = [copy(isOpen: true, isPointedAtByCommandLineTools: true)]
 
         let received = sut.leftovers(announcing: disk.announce)
 
@@ -80,7 +80,7 @@ struct MeasureLeftoversXcodeCopyTests {
     @Test
     func measure_deliversACopyNeitherOpenNorPointedAtWithNothingRefusingIt() {
         let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(isOpen: false, isPointedAtByTheCommandLineTools: false)]
+        copies.reported = [copy(isOpen: false, isPointedAtByCommandLineTools: false)]
 
         let received = sut.leftovers(announcing: disk.announce)
 
@@ -110,8 +110,8 @@ struct MeasureLeftoversXcodeCopyTests {
 }
 
 private extension MeasureLeftoversXcodeCopyTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: DiskSpy, copies: XcodeCopiesStub) {
-        let disk = DiskSpy()
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, copies: XcodeCopiesStub) {
+        let disk = WorldSpy()
         let copies = XcodeCopiesStub()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
@@ -127,13 +127,13 @@ private extension MeasureLeftoversXcodeCopyTests {
         sittingIn folder: String = "Applications",
         taking bytes: Int = 200,
         isOpen: Bool = false,
-        isPointedAtByTheCommandLineTools: Bool = false
+        isPointedAtByCommandLineTools: Bool = false
     ) -> XcodeCopy {
         XcodeCopy(
             path: URL(fileURLWithPath: "/\(folder)/Xcode.app"),
             version: version,
             bytes: bytes,
             isOpen: isOpen,
-            isPointedAtByTheCommandLineTools: isPointedAtByTheCommandLineTools)
+            isPointedAtByCommandLineTools: isPointedAtByCommandLineTools)
     }
 }

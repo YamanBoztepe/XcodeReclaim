@@ -1,6 +1,6 @@
 import Foundation
 
-struct WhatTheWorldSaid: LocalizedError {
+struct WorldFailure: LocalizedError {
     let sentence: String
 
     var errorDescription: String? { sentence }

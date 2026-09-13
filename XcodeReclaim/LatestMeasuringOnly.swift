@@ -1,7 +1,7 @@
 import XcodeReclaimCore
 
 @MainActor
-final class LatestMeasuringOnlyDecorator {
+final class LatestMeasuringOnly {
     private let announcing: (String) -> Void
     private let delivering: ([Leftover]) -> Void
     private var latestMeasuring = 0
@@ -11,7 +11,7 @@ final class LatestMeasuringOnlyDecorator {
         self.delivering = delivering
     }
 
-    func aMeasuringBegins() -> Int {
+    func beginMeasuring() -> Int {
         latestMeasuring += 1
         return latestMeasuring
     }

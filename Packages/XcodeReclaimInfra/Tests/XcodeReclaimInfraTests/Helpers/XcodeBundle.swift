@@ -1,6 +1,6 @@
 import Foundation
 
-enum AnXcodeBundle {
+enum XcodeBundle {
     static let xcode = "com.apple.dt.Xcode"
 
     static func made(named name: String, carrying version: String, build: String, inside folder: URL) -> URL {

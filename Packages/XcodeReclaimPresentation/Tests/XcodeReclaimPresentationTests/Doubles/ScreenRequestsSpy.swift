@@ -1,6 +1,6 @@
 import XcodeReclaimCore
 
-final class RequestsFromTheScreen {
+final class ScreenRequestsSpy {
     private(set) var measurings = 0
     private(set) var deletions: [Leftover] = []
 
