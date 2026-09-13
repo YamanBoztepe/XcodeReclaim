@@ -60,7 +60,25 @@ struct SimctlSimulatorServiceTests {
     }
 
     @Test
-    func simulators_deliversADeviceTheToolGaveNoRoomForAsTakingNone() throws {
+    func simulators_deliversEachDeviceWithItsOwnRoom() throws {
+        let roomTheFirstTakes = 4_557_963_264
+        let roomTheSecondTakes = 17_500_000
+        let (sut, tool) = makeSUT()
+        tool.answers["xcrun"] = .success(
+            SimulatorList.reporting([
+                "com.apple.CoreSimulator.SimRuntime.iOS-26-4": [
+                    .init(udid: "AAAA-1", dataPathSize: roomTheFirstTakes),
+                    .init(udid: "AAAA-2", dataPathSize: roomTheSecondTakes),
+                ]
+            ]))
+
+        let received = try sut.simulators()
+
+        #expect(received.map(\.bytes) == [roomTheFirstTakes, roomTheSecondTakes])
+    }
+
+    @Test
+    func simulators_deliversADeviceWithNoReportedRoomAsTakingNone() throws {
         let (sut, tool) = makeSUT()
         tool.answers["xcrun"] = .success(
             SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(dataPathSize: nil)]]))

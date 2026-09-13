@@ -15,7 +15,7 @@ public struct MeasureLeftovers {
         worthDeleting: Int
     ) {
         self.init(
-            sources: OfferedFolder.everyOne.map { OfferedFolders(offered: $0, developerFolder: developerFolder, disk: disk) }
+            sources: OfferedFolder.everyOne.map { OfferedFolder(offered: $0, developerFolder: developerFolder, disk: disk) }
                 + [
                     DeviceSupportVersions(developerFolder: developerFolder, disk: disk),
                     Simulators(simulatorService: simulatorService),
