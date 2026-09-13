@@ -1,13 +1,12 @@
 import AppKit
 import Foundation
 import Testing
-import XcodeReclaim
 
 @MainActor
 struct XcodeReclaimAcceptanceTests {
     @Test("The developer opens the app and sees what may be deleted")
     func open_showsEveryLeftoverWithItsSize() async {
-        let app = XcodeLeftovers(machineHolding: .derivedData(taking: 300), .simulator(taking: 200)).leftoverList()
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], simulatorsTaking: [200])
 
         app.open()
         #expect(app.isMeasuring)
@@ -19,7 +18,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer deletes a leftover")
     func confirm_takesTheDeletedLeftoverOffTheScreen() async throws {
-        let app = XcodeLeftovers(machineHolding: .derivedData(taking: 300), .simulator(taking: 200)).leftoverList()
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], simulatorsTaking: [200])
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -38,7 +37,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
     func backOut_leavesTheLeftoverAsItWas() async throws {
-        let app = XcodeLeftovers(machineHolding: .derivedData(taking: 300)).leftoverList()
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300])
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -53,7 +52,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer refreshes the list")
     func refresh_showsEveryLeftoverTheSecondMeasuringFound() async {
-        let app = XcodeLeftovers(machineHolding: .derivedData(taking: 300), .simulator(taking: 200)).leftoverList()
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], simulatorsTaking: [200])
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -67,7 +66,7 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("The developer deletes a copy of Xcode they no longer use")
     func confirm_takesTheDeletedCopyOfXcodeOffTheScreenAndSaysWhatCameBack() async throws {
-        let app = XcodeLeftovers(machineHolding: .copyOfXcode(taking: 4_000_000_000), .derivedData(taking: 300)).leftoverList()
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], copiesOfXcodeTaking: [4_000_000_000])
         app.open()
         await app.waitForMeasuringToEnd()
 
@@ -84,7 +83,7 @@ struct XcodeReclaimAcceptanceTests {
     func open_measuresTheFoldersAtOnce() async {
         let twoOfTheFolders = [derivedDataFolder, previewsFolder]
         let disk = DiskSpy()
-        let app = XcodeLeftovers(theFoldersMeasuredBy: disk).leftoverList()
+        let app = appMeasuring(withDisk: disk)
 
         app.open()
         await app.waitUntil { twoOfTheFolders.allSatisfy(disk.foldersAskedAbout.contains) }
@@ -97,7 +96,7 @@ struct XcodeReclaimAcceptanceTests {
     @Test("Leftovers of equal size are shown in the order the machine offers them")
     func open_showsLeftoversOfEqualSizeInTheOrderTheyAreOffered() async {
         let roomTheyBothTake = 300
-        let app = XcodeLeftovers(machineHolding: .previews(taking: roomTheyBothTake), .derivedData(taking: roomTheyBothTake)).leftoverList()
+        let app = appMeasuring(foldersHolding: [previewsFolder: roomTheyBothTake, derivedDataFolder: roomTheyBothTake])
 
         app.open()
         await app.waitForMeasuringToEnd()
