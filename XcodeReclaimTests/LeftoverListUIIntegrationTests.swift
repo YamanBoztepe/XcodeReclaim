@@ -105,6 +105,8 @@ struct LeftoverListUIIntegrationTests {
 
     @Test("A measuring the screen has replaced does not reach it")
     func refresh_dropsWhatAReplacedMeasuringDelivers() async {
+        let theMeasuringTheRefreshReplaces = 0
+        let theMeasuringTheRefreshStarts = 1
         let screen = LeftoverListDriver(
             eachMeasuringHeldUntilLetGo: [
                 MachineStub(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
@@ -114,11 +116,11 @@ struct LeftoverListUIIntegrationTests {
         await screen.waitForMeasuringToReach("Derived data")
         screen.refresh()
 
-        screen.letMeasuringFinish(1)
+        screen.letMeasuringFinish(theMeasuringTheRefreshStarts)
         await screen.waitForMeasuringToEnd()
         #expect(screen.rowNames == ["Previews"])
 
-        screen.letMeasuringFinish(0)
+        screen.letMeasuringFinish(theMeasuringTheRefreshReplaces)
         await screen.waitForEverythingQueuedToRun()
         #expect(screen.rowNames == ["Previews"])
     }
