@@ -8,34 +8,23 @@ import XcodeReclaimUI
 @MainActor
 final class TheLeftoverListScreen {
     private let container: LeftoverListContainerView
-    private let announcingThenWaiting: AMeasuringThatAnnouncesThenWaits?
-    private let waitingThenAnnouncing: AMeasuringThatWaitsThenAnnounces?
+    private let held: AMachineHeldUntilLetGo?
 
     init(theMachineFinds finds: [Leftover] = [], announcing announces: [String] = []) {
-        let machine = TheMachine(finds: finds, announces: announces)
+        let machine = TheMachine(announcing: announces, finding: finds)
         container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
-        announcingThenWaiting = nil
-        waitingThenAnnouncing = nil
+        held = nil
     }
 
-    init(theMeasuringAnnouncesThenTakesAWhile announces: [String], finding finds: [Leftover] = []) {
-        let machine = AMeasuringThatAnnouncesThenWaits(finds: finds, announces: announces)
-        container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: TheMachine().deleting)
-        announcingThenWaiting = machine
-        waitingThenAnnouncing = nil
-    }
-
-    init(eachMeasuringWaitsThenFinds finds: [[Leftover]], announcing announces: [[String]]) {
-        let machine = AMeasuringThatWaitsThenAnnounces(finds: finds, announces: announces)
-        container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: TheMachine().deleting)
-        announcingThenWaiting = nil
-        waitingThenAnnouncing = machine
+    init(eachMeasuringHeldUntilLetGo measurings: [TheMachine]) {
+        let machine = AMachineHeldUntilLetGo(eachMeasuring: measurings)
+        container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        held = machine
     }
 
     init(theMachineSaysWhereItRan machine: AMachineThatSaysWhereItRan) {
         container = LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
-        announcingThenWaiting = nil
-        waitingThenAnnouncing = nil
+        held = nil
     }
 }
 
@@ -62,16 +51,12 @@ extension TheLeftoverListScreen {
         drawn.onBackOut()
     }
 
-    func theMeasuringFinishes() {
-        announcingThenWaiting?.itFinishes()
-    }
-
     func theMeasuringFinishes(_ measuring: Int) {
-        waitingThenAnnouncing?.theMeasuringFinishes(measuring)
+        held?.theMeasuringFinishes(measuring)
     }
 
     func everyMeasuringFinishes() {
-        waitingThenAnnouncing?.everyMeasuringFinishes()
+        held?.everyMeasuringFinishes()
     }
 }
 

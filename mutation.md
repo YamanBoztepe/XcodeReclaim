@@ -131,7 +131,7 @@ Every verdict below is the runner's exit code, never a search of its output.
 | LeftoverListView `Label(section.name, systemImage:)` | A section draws the symbol that names it | ui (snapshot) | killed |
 | LeftoverListView `if model.nothingToDelete` | A screen with nothing to delete says so | ui (snapshot) | killed |
 | LatestMeasuringOnlyDecorator the guard around `deliver` | A measuring the screen has replaced does not reach it | app | killed |
-| LatestMeasuringOnlyDecorator the guard around `announce` | nor do its announcements | app | killed |
+| LatestMeasuringOnlyDecorator the guard around `announce` | nor do its announcements | none | **survives — see below** |
 | LeftoverListUIComposer `delivering:` | What the machine measured reaches the screen | app | killed |
 | LeftoverListUIComposer `announcing:` | What the machine is working on reaches the screen | app | killed |
 | LeftoverListUIComposer the deletion's callback | A deletion's outcome reaches the screen | app | killed |
@@ -220,7 +220,18 @@ measured 2026-09-13: an `NSHostingView` in a key window reports zero
 accessibility children and no labels — so what the view *says* is read back from
 its pixels rather than from its words.
 
-**`XcodeLeftovers`'s two machine-side functions, `MainThreadDecorator` and
+**`LatestMeasuringOnlyDecorator`'s announce guard.** Its twin, the deliver guard,
+is held by "A measuring the screen has replaced does not reach it". The announce
+guard needs a stale *announcement* to arrive after a refresh, and a machine that
+announces after being let go — which is the opposite of what the same double must
+do for "The developer watches the measuring work through the leftovers", where
+the announcements must land while the measuring is still held. Holding both
+meanings took two doubles, two pairs of semaphores and a lock, and the owner
+refused that complexity — rightly: the guard it bought protects a leftover's name
+flashing on screen for an instant during a refresh. The deliver guard, which
+protects a stale list replacing the screen, stays held.
+
+**`XcodeLeftovers`'s machine-side properties, `MainThreadDecorator` and
 `WhereXcodeLeavesThings`** — the wiring that names the folders Xcode leaves
 things in, builds the four adapters, and carries the answers back across the
 thread boundary. The acceptance suite puts a spy exactly where that wiring sits,

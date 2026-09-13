@@ -11,7 +11,7 @@ final class TheApp {
     private lazy var container = leftovers.leftoverList()
 
     init(theMachineFinds finds: [Leftover] = [], announcing announces: [String] = []) {
-        let machine = TheMachine(finds: finds, announces: announces)
+        let machine = TheMachine(announcing: announces, finding: finds)
         leftovers = XcodeLeftovers(measuring: machine.measuring, deleting: machine.deleting)
     }
 }

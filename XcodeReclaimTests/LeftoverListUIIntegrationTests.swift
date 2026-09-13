@@ -92,13 +92,14 @@ struct LeftoverListUIIntegrationTests {
 
     @Test("The developer watches the measuring work through the leftovers")
     func announced_namesEachLeftoverAsTheMeasuringReachesIt() async {
-        let screen = TheLeftoverListScreen(theMeasuringAnnouncesThenTakesAWhile: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])
+        let screen = TheLeftoverListScreen(
+            eachMeasuringHeldUntilLetGo: [TheMachine(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
 
         screen.isOpened()
         await screen.untilItNames("Previews")
         #expect(screen.itIsMeasuring)
 
-        screen.theMeasuringFinishes()
+        screen.everyMeasuringFinishes()
         await screen.untilItHasMeasured()
         #expect(screen.whatIsBeingMeasured == nil)
     }
@@ -106,30 +107,21 @@ struct LeftoverListUIIntegrationTests {
     @Test("A measuring the screen has replaced does not reach it")
     func refresh_dropsWhatAReplacedMeasuringDelivers() async {
         let screen = TheLeftoverListScreen(
-            eachMeasuringWaitsThenFinds: [[derivedData(taking: 27_700_000_000)], [previews(taking: 300)]],
-            announcing: [[], []])
+            eachMeasuringHeldUntilLetGo: [
+                TheMachine(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
+                TheMachine(finding: [previews(taking: 300)]),
+            ])
         screen.isOpened()
+        await screen.untilItNames("Derived data")
         screen.isRefreshed()
 
-        screen.everyMeasuringFinishes()
+        screen.theMeasuringFinishes(1)
         await screen.untilItHasMeasured()
-
         #expect(screen.whatTheRowsAreCalled == ["Previews"])
-    }
-
-    @Test func refresh_dropsWhatAReplacedMeasuringAnnounces() async {
-        let screen = TheLeftoverListScreen(
-            eachMeasuringWaitsThenFinds: [[derivedData(taking: 300)], [previews(taking: 300)]],
-            announcing: [["Derived data"], ["Previews"]])
-        screen.isOpened()
-        screen.isRefreshed()
 
         screen.theMeasuringFinishes(0)
         await screen.untilEverythingQueuedHasRun()
-
-        #expect(screen.whatIsBeingMeasured == nil)
-        #expect(screen.itIsMeasuring)
-        screen.everyMeasuringFinishes()
+        #expect(screen.whatTheRowsAreCalled == ["Previews"])
     }
 
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {
