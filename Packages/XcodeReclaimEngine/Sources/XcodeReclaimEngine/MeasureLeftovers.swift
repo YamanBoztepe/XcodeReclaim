@@ -37,7 +37,15 @@ public struct MeasureLeftovers {
     }
 
     public func leftovers(of offered: Offered, announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
-        source(for: offered).leftovers(announcing: announce)
+        switch offered {
+        case .derivedData: offeredFolder(.derivedData).leftovers(announcing: announce)
+        case .interfaceBuilderCache: offeredFolder(.interfaceBuilderCache).leftovers(announcing: announce)
+        case .previews: offeredFolder(.previews).leftovers(announcing: announce)
+        case .documentationCache: offeredFolder(.documentationCache).leftovers(announcing: announce)
+        case .deviceSupport: DeviceSupportVersions(developerFolder: developerFolder, disk: disk).leftovers(announcing: announce)
+        case .simulators: Simulators(simulatorService: simulatorService).leftovers(announcing: announce)
+        case .copiesOfXcode: CopiesOfXcode(xcodeCopies: xcodeCopies).leftovers(announcing: announce)
+        }
     }
 
     public func leftovers(from found: [[Leftover]]) -> [Leftover] {
@@ -46,16 +54,8 @@ public struct MeasureLeftovers {
 }
 
 private extension MeasureLeftovers {
-    func source(for offered: Offered) -> any LeftoverSource {
-        switch offered {
-        case .derivedData: OfferedFolder(offered: .derivedData, developerFolder: developerFolder, disk: disk)
-        case .interfaceBuilderCache: OfferedFolder(offered: .interfaceBuilderCache, developerFolder: developerFolder, disk: disk)
-        case .previews: OfferedFolder(offered: .previews, developerFolder: developerFolder, disk: disk)
-        case .documentationCache: OfferedFolder(offered: .documentationCache, developerFolder: developerFolder, disk: disk)
-        case .deviceSupport: DeviceSupportVersions(developerFolder: developerFolder, disk: disk)
-        case .simulators: Simulators(simulatorService: simulatorService)
-        case .copiesOfXcode: CopiesOfXcode(xcodeCopies: xcodeCopies)
-        }
+    func offeredFolder(_ offered: OfferedFolder.Offered) -> OfferedFolder {
+        OfferedFolder(offered: offered, developerFolder: developerFolder, disk: disk)
     }
 
     func biggestFirst(_ found: [Leftover]) -> [Leftover] {

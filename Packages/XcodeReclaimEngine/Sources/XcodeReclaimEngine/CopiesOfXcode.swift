@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimCore
 
-struct CopiesOfXcode: LeftoverSource {
+struct CopiesOfXcode {
     let xcodeCopies: any XcodeCopies
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {

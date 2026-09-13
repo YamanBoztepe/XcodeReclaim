@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimCore
 
-struct DeviceSupportVersions: LeftoverSource {
+struct DeviceSupportVersions {
     let developerFolder: URL
     let disk: any Disk
 

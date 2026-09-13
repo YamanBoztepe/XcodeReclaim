@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimCore
 
-struct OfferedFolder: LeftoverSource {
+struct OfferedFolder {
     struct Offered {
         static let derivedData = Offered(name: "Derived data", relativePath: "Xcode/DerivedData", cost: nil)
         static let interfaceBuilderCache = Offered(name: "Interface builder cache", relativePath: "Xcode/UserData/IB Support", cost: nil)
