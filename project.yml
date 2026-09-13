@@ -1,0 +1,29 @@
+name: XcodeReclaim
+
+options:
+  bundleIdPrefix: com.boztepe
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  XcodeReclaim:
+    type: application
+    platform: macOS
+    sources:
+      - XcodeReclaim
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.boztepe.XcodeReclaim
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+    scheme:
+      testTargets: []

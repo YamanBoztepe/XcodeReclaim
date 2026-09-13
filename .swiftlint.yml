@@ -1,0 +1,107 @@
+excluded:
+  - .build
+  - "**/.build"
+  - DerivedData
+
+opt_in_rules:
+  - async_without_await
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - convenience_type
+  - direct_return
+  - discouraged_assert
+  - discouraged_none_name
+  - discouraged_optional_boolean
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fallthrough
+  - fatal_error_message
+  - first_where
+  - flatmap_over_map_reduce
+  - identical_operands
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - local_doc_comment
+  - optional_enum_case_matching
+  - prefer_condition_list
+  - prefer_key_path
+  - prefer_zero_over_explicit_init
+  - reduce_into
+  - redundant_final
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - return_value_from_void_function
+  - shorthand_optional_binding
+  - sorted_first_last
+  - static_operator
+  - strict_fileprivate
+  - superfluous_else
+  - toggle_bool
+  - unavailable_function
+  - unhandled_throwing_task
+  - unneeded_escaping
+  - untyped_error_in_catch
+  - variable_shadowing
+  - yoda_condition
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - no_magic_numbers
+
+disabled_rules:
+  # An async protocol requirement forces `async` on a double that has nothing
+  # to await. The rule cannot tell a conformance from a free function.
+  - async_without_await
+  - nesting
+  - trailing_comma
+  - large_tuple
+  - unneeded_synthesized_initializer
+  - optional_data_string_conversion
+
+line_length: {warning: 160, error: 160}
+cyclomatic_complexity: {warning: 10, error: 10}
+function_body_length: {warning: 40, error: 40}
+file_length: {warning: 400, error: 400}
+
+custom_rules:
+  package_access:
+    regex: '^\s*package\s+(func|var|let|struct|class|enum|protocol|init)'
+    message: "package access level"
+  testable_import:
+    regex: '@testable'
+    message: "@testable import"
+  debug_print:
+    regex: '(?<!\w)print\('
+    message: "leftover print"
+  production_fatal_error:
+    regex: '(?<!\w)fatalError\('
+    message: "fatalError in production code"
+    excluded: ".*Tests.*"
+  test_prefix:
+    regex: 'func\s+test[A-Z]'
+    message: "'test' prefix on a test name"
+    included: ".*Tests.*"
+  test_name_shape:
+    regex: 'func\s+\w+__\w+'
+    message: "double underscore in a test name"
+    included: ".*Tests.*"
+  parked_failure:
+    regex: 'withKnownIssue'
+    message: "a parked failure"
+    included: ".*Tests.*"
+  empty_catch:
+    regex: 'catch\s*\{\s*\}'
+    message: "empty catch block"
+  epoch_date:
+    # A feed that carries epoch milliseconds has to be read somewhere. What the
+    # rule is for is an opaque epoch constant standing in for a date in a test.
+    included: ".*Tests.*"
+    regex: 'timeIntervalSince1970'
+    message: "epoch constant"
+  nondeterministic_test:
+    regex: 'Date\(\)|(?<!\w)sleep\(|Task\.sleep|asyncAfter|\.random\('
+    message: "a test that depends on the clock or an unseeded draw"
+    included: ".*Tests.*"

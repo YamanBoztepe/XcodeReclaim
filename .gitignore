@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+.gauntlet/
+DerivedData/
+*.xcuserdatad
+xcuserdata/
+.DS_Store
+muter_logs/
+muter-mappings.json
+verdict.json
+default.profraw
+.claude/settings.local.json
+**/taken/
+*.xcodeproj
