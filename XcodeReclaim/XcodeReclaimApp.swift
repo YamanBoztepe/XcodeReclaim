@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct XcodeReclaimApp: App {
-    @State private var leftoverList = XcodeLeftovers().leftoverList()
+    @State private var leftoverList = DIContainer().xcodeLeftovers.leftoverList()
 
     var body: some Scene {
         WindowGroup {

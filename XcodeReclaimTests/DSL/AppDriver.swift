@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import XcodeReclaim
 import XcodeReclaimCore
+import XcodeReclaimEngine
 import XcodeReclaimPresentation
 import XcodeReclaimUI
 
@@ -11,21 +12,23 @@ struct AppDriver {
     private let container: LeftoverListContainerView
 
     init(machineHolding held: LeftoverOnTheMachine...) {
-        self.init(machine: machine(holding: held))
+        self.init(
+            disk: DiskStub(sizes: foldersHeld(in: held)),
+            simulatorService: SimulatorServiceStub(taking: simulatorsHeld(in: held)),
+            xcodeCopies: XcodeCopiesStub(taking: copiesHeld(in: held)))
     }
 
     init(theFoldersMeasuredBy disk: DiskWhoseFoldersWaitForEachOther) {
-        self.init(
-            machine: Machine(
-                developerFolder: developerFolder,
-                worthDeleting: anythingIsWorthDeleting,
-                disk: { disk },
-                simulatorService: { SimulatorServiceStub(taking: []) },
-                xcodeCopies: { XcodeCopiesStub(taking: []) }))
+        self.init(disk: disk, simulatorService: SimulatorServiceStub(taking: []), xcodeCopies: XcodeCopiesStub(taking: []))
     }
 
-    private init(machine: Machine) {
-        leftovers = XcodeLeftovers(measuring: machine)
+    private init(disk: any Disk & Sendable, simulatorService: any SimulatorService & Sendable, xcodeCopies: any XcodeCopies & Sendable) {
+        leftovers = XcodeLeftovers(
+            developerFolder: developerFolder,
+            worthDeleting: anythingIsWorthDeleting,
+            disk: { disk },
+            simulatorService: { simulatorService },
+            xcodeCopies: { xcodeCopies })
         container = leftovers.leftoverList()
     }
 }

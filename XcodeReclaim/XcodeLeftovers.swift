@@ -3,22 +3,36 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 public struct XcodeLeftovers: Sendable {
-    private let machine: Machine
+    public typealias MakingADisk = @Sendable () -> any Disk
+    public typealias MakingASimulatorService = @Sendable () -> any SimulatorService
+    public typealias MakingXcodeCopies = @Sendable () -> any XcodeCopies
 
-    public init(measuring machine: Machine) {
-        self.machine = machine
-    }
+    private let developerFolder: URL
+    private let worthDeleting: Int
+    private let disk: MakingADisk
+    private let simulatorService: MakingASimulatorService
+    private let xcodeCopies: MakingXcodeCopies
 
-    public init(in places: WhereXcodeLeavesThings = .onThisMachine) {
-        self.init(measuring: .onThisMachine(places))
+    public init(
+        developerFolder: URL,
+        worthDeleting: Int,
+        disk: @escaping MakingADisk,
+        simulatorService: @escaping MakingASimulatorService,
+        xcodeCopies: @escaping MakingXcodeCopies
+    ) {
+        self.developerFolder = developerFolder
+        self.worthDeleting = worthDeleting
+        self.disk = disk
+        self.simulatorService = simulatorService
+        self.xcodeCopies = xcodeCopies
     }
 
     @MainActor public func leftoverList() -> LeftoverListContainerView {
-        LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting)
+        LeftoverListUIComposer.screen(measuring: measuring, deleting: deleting)
     }
 }
 
-private extension Machine {
+private extension XcodeLeftovers {
     var measureLeftovers: MeasureLeftovers {
         MeasureLeftovers(
             developerFolder: developerFolder,
@@ -29,11 +43,7 @@ private extension Machine {
     }
 
     var measuring: LeftoverListUIComposer.Measuring {
-        { [self] announce in
-            let found = await everySourceAtOnce(announcing: announce)
-
-            return LeftoversWorthDeleting(atLeast: worthDeleting).biggestFirst(from: found)
-        }
+        { [self] announce in measureLeftovers.leftovers(from: await everySourceAtOnce(announcing: announce)) }
     }
 
     var deleting: LeftoverListUIComposer.Deleting {

@@ -89,17 +89,16 @@ final class DiskWhoseFoldersWaitForEachOther: Disk, Sendable {
 
 let anythingIsWorthDeleting = 1
 
-func machine(holding held: [LeftoverOnTheMachine]) -> Machine {
-    let folders: [URL: Int] = held.reduce(into: [:]) { folders, leftover in
+func foldersHeld(in held: [LeftoverOnTheMachine]) -> [URL: Int] {
+    held.reduce(into: [:]) { folders, leftover in
         if case .folder(let path, let bytes) = leftover { folders[developerFolder.appending(path: path)] = bytes }
     }
-    let simulators = held.compactMap { if case .simulator(let bytes) = $0 { bytes } else { nil } }
-    let copies = held.compactMap { if case .copyOfXcode(let bytes) = $0 { bytes } else { nil } }
+}
 
-    return Machine(
-        developerFolder: developerFolder,
-        worthDeleting: anythingIsWorthDeleting,
-        disk: { DiskStub(sizes: folders) },
-        simulatorService: { SimulatorServiceStub(taking: simulators) },
-        xcodeCopies: { XcodeCopiesStub(taking: copies) })
+func simulatorsHeld(in held: [LeftoverOnTheMachine]) -> [Int] {
+    held.compactMap { if case .simulator(let bytes) = $0 { bytes } else { nil } }
+}
+
+func copiesHeld(in held: [LeftoverOnTheMachine]) -> [Int] {
+    held.compactMap { if case .copyOfXcode(let bytes) = $0 { bytes } else { nil } }
 }
