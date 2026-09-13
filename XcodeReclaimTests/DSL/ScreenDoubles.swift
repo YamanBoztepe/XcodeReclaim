@@ -25,30 +25,33 @@ struct MachineStub: Sendable {
 
 final class SlowMachineStub: Sendable {
     private let measurings: [MachineStub]
-    private let gates: [DispatchSemaphore]
+    private let finished = Mutex<Set<Int>>([])
     private let howManyHaveBegun = Atomic(0)
 
     init(eachMeasuring measurings: [MachineStub]) {
         self.measurings = measurings
-        gates = measurings.map { _ in DispatchSemaphore(value: 0) }
     }
 
     func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
         let thisMeasuring = howManyHaveBegun.wrappingAdd(1, ordering: .relaxed).oldValue
         let found = measurings[thisMeasuring].measuring(announcing: announce)
-        gates[thisMeasuring].wait()
 
+        while !finished.withLock({ $0.contains(thisMeasuring) }) {
+            sched_yield()
+        }
         return found
     }
 
+    func deleting(_ leftover: Leftover) -> Deletion {
+        .freed(leftover.bytes)
+    }
+
     func letMeasuringFinish(_ measuring: Int) {
-        gates[measuring].signal()
+        finished.withLock { _ = $0.insert(measuring) }
     }
 
     func letEveryMeasuringFinish() {
-        for gate in gates {
-            gate.signal()
-        }
+        finished.withLock { $0.formUnion(measurings.indices) }
     }
 }
 

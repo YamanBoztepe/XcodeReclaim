@@ -51,21 +51,23 @@ struct XcodeCopiesStub: XcodeCopies, Sendable {
 }
 
 final class DiskSpy: Disk, Sendable {
-    private let held: DispatchSemaphore
     private let asked = Mutex<[URL]>([])
-
-    init(heldAt held: DispatchSemaphore) {
-        self.held = held
-    }
+    private let answering = Atomic(false)
 
     var foldersAskedAbout: [URL] {
         asked.withLock { $0 }
     }
 
+    func answerNow() {
+        answering.store(true, ordering: .releasing)
+    }
+
     func bytesUsedByFolder(at url: URL) -> Int {
         asked.withLock { $0.append(url) }
-        held.wait()
 
+        while !answering.load(ordering: .acquiring) {
+            sched_yield()
+        }
         return 0
     }
 

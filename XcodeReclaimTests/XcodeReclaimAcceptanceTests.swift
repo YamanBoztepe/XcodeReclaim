@@ -83,18 +83,14 @@ struct XcodeReclaimAcceptanceTests {
 
     @Test("Every part of the machine is measured at once rather than one after another")
     func open_measuresEveryPartOfTheMachineAtOnce() async {
-        let everyFolderHasBeenAskedAbout = DispatchSemaphore(value: 0)
-        let disk = DiskSpy(heldAt: everyFolderHasBeenAskedAbout)
+        let disk = DiskSpy()
         let app = AppDriver(theFoldersMeasuredBy: disk)
 
         app.open()
         await app.waitUntil { disk.foldersAskedAbout.count == theFoldersTheMachineOffers }
+        disk.answerNow()
 
         #expect(disk.foldersAskedAbout.count == theFoldersTheMachineOffers)
-
-        for _ in 0..<theFoldersTheMachineOffers {
-            everyFolderHasBeenAskedAbout.signal()
-        }
         await app.waitForMeasuringToEnd()
     }
 
