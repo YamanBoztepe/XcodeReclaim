@@ -70,13 +70,38 @@ struct DeleteLeftoverTests {
     @Test("A leftover none of which could be deleted says so and stays")
     func delete_freesNoRoomWhenNoneOfTheLeftoverCouldBeDeleted() {
         let roomItTook = 200
+        let whatTheDiskSaid = "you don't have permission to access it"
         let (sut, disk, _) = makeSUT()
-        disk.removal = .failure(WorldFailure(sentence: "you don't have permission to access it"))
+        disk.removal = .failure(WorldFailure(sentence: whatTheDiskSaid))
+        disk.sizes[DeveloperFolder.derivedData] = roomItTook
 
         let received = sut.delete(derivedData(taking: roomItTook))
 
-        #expect(received != .freed(roomItTook))
-        #expect(disk.messages == [.removed(DeveloperFolder.derivedData)])
+        #expect(received == .failed(whatTheDiskSaid))
+        #expect(disk.messages == [.removed(DeveloperFolder.derivedData), .sizeRead(DeveloperFolder.derivedData)])
+    }
+
+    @Test("A leftover only part of which could be deleted says what came back")
+    func delete_saysWhatCameBackWhenOnlyPartOfTheLeftoverCouldBeDeleted() {
+        let whatTheDiskSaid = "“DerivedData” couldn't be removed because you don't have permission to access it."
+        let (sut, disk, _) = makeSUT()
+        disk.removal = .failure(WorldFailure(sentence: whatTheDiskSaid))
+        disk.sizes[DeveloperFolder.derivedData] = 50
+
+        let received = sut.delete(derivedData(taking: 200))
+
+        #expect(received == .partlyFreed(150, stillThere: 50, why: whatTheDiskSaid))
+    }
+
+    @Test("A folder that measures as empty after it refused frees nothing")
+    func delete_freesNothingWhenTheFolderMeasuresAsEmptyAfterItRefused() {
+        let whatTheDiskSaid = "you don't have permission to access it"
+        let (sut, disk, _) = makeSUT()
+        disk.removal = .failure(WorldFailure(sentence: whatTheDiskSaid))
+
+        let received = sut.delete(derivedData(taking: 200))
+
+        #expect(received == .failed(whatTheDiskSaid))
     }
 
     @Test("A failed deletion carries why it failed")

@@ -126,6 +126,34 @@ final class LeftoverListViewModelDeletionTests {
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)"])
     }
 
+    @Test("A deletion that removed part of a leftover keeps its row at what is left")
+    func deletionEnded_keepsTheRowAtWhatIsStillThereAndSaysWhatCameBackAndWhatStayed() throws {
+        let whatTheDiskSaid = "“DerivedData” couldn't be removed because you don't have permission to access it."
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+        sut.confirm()
+
+        sut.deletionEnded(with: .partlyFreed(150, stillThere: 50, why: whatTheDiskSaid))
+
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["50 bytes"])
+        #expect(sut.uiModel.deletionMessage == "150 bytes came back. Derived data was only partly deleted. \(whatTheDiskSaid)")
+    }
+
+    @Test
+    func deletionEnded_putsNoPartlyDeletedRowBackWhileTheScreenIsMeasuringAgain() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+        sut.confirm()
+        sut.refresh()
+
+        sut.deletionEnded(with: .partlyFreed(150, stillThere: 50, why: "it could not be removed"))
+
+        #expect(sut.uiModel.sections.isEmpty)
+        #expect(sut.uiModel.deletionMessage == "150 bytes came back. Derived data was only partly deleted. it could not be removed")
+    }
+
     @Test("A deletion that failed says so")
     func deletionEnded_saysTheLeftoverCouldNotBeDeletedAndWhy() throws {
         let (sut, _) = makeSUT()

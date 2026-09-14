@@ -62,6 +62,17 @@ struct LeftoverList {
         selected.remove(identity(of: leftover.place))
     }
 
+    mutating func resize(_ leftover: Leftover, to bytes: Int) {
+        guard let row = held.firstIndex(of: leftover) else { return }
+
+        held[row] = Leftover(
+            name: leftover.name,
+            bytes: bytes,
+            place: leftover.place,
+            cost: leftover.cost,
+            refusal: leftover.refusal)
+    }
+
     func confirmationOver(_ leftovers: [Leftover], keeping kept: Int) -> LeftoverListUIModel.Confirmation {
         LeftoverListUIModel.Confirmation(
             question: question(over: leftovers),
@@ -78,6 +89,10 @@ struct LeftoverList {
 
     func failureSentence(about deleted: Leftover, why: String) -> String {
         "\(deleted.name) could not be deleted. \(why)"
+    }
+
+    func partialSentence(about deleted: Leftover, why: String) -> String {
+        "\(deleted.name) was only partly deleted. \(why)"
     }
 
     func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {

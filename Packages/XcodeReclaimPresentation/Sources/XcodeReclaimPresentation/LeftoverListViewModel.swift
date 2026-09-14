@@ -108,6 +108,10 @@ private extension LeftoverListViewModel {
         case .freed(let bytes):
             roomThatCameBack += bytes
             list.drop(deleted)
+        case .partlyFreed(let bytes, let stillThere, let why):
+            roomThatCameBack += bytes
+            list.resize(deleted, to: stillThere)
+            whatWentWrong.append(list.partialSentence(about: deleted, why: why))
         case .refused(let refusal):
             whatWentWrong.append(list.refusalSentence(for: refusal))
         case .failed(let why):

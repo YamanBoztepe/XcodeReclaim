@@ -19,12 +19,28 @@ public struct DeleteLeftover {
             let wasThere = try remove(leftover.place)
             return .freed(wasThere ? leftover.bytes : 0)
         } catch {
-            return .failed(error.localizedDescription)
+            return whatIsLeft(of: leftover, refusedSaying: error.localizedDescription)
         }
     }
 }
 
 private extension DeleteLeftover {
+    func whatIsLeft(of leftover: Leftover, refusedSaying why: String) -> Deletion {
+        guard let folder = folder(holding: leftover.place) else { return .failed(why) }
+
+        let stillThere = disk.bytesUsedByFolder(at: folder)
+        guard stillThere > 0, stillThere < leftover.bytes else { return .failed(why) }
+
+        return .partlyFreed(leftover.bytes - stillThere, stillThere: stillThere, why: why)
+    }
+
+    func folder(holding place: Leftover.Place) -> URL? {
+        switch place {
+        case .folder(let url), .xcodeCopy(let url): url
+        case .simulator: nil
+        }
+    }
+
     func remove(_ place: Leftover.Place) throws -> Bool {
         switch place {
         case .folder(let url), .xcodeCopy(let url):
