@@ -45,7 +45,8 @@ snapshot tests compare against pointer files. `swift-format` ships with Xcode;
 both it and `swiftlint` run clean on the tree.
 
 Tests are ⌘U for the app and its journeys, and `swift test` inside each folder
-under `Packages/` for the layers underneath.
+under `Packages/` for the layers underneath. Every test is named for what it
+claims, so the suite reads as a list of sentences about the product.
 
 ## How it is put together
 
@@ -62,10 +63,6 @@ decision about threads is taken in one place.
 | `Packages/XcodeReclaimUI` | the SwiftUI screen, which is handed a model and closures |
 | `XcodeReclaim` | the composition root: where the parts meet, and where threading lives |
 | `XcodeReclaimTests` | the journeys through the whole app |
-| `features/` | the scenarios the tests are named for, word for word |
-| `contracts/architecture.yml` | the layers, the parts, and what each may use |
-| `mutants/` | the mutation sweeps, one file per package |
-| `readings.md` | the latest measurement of the suite: time, coverage, mutation |
 
 ## Licence
 
