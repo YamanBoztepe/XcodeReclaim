@@ -67,6 +67,25 @@ final class LeftoverListViewModelSectionTests {
         #expect(sut.uiModel.sections.map(\.size) == ["300 bytes", "100 bytes"])
     }
 
+    @Test
+    func measuringEnded_readsASectionsShareFromWhatItsRowsSay() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 1_150_000_000), simulator(taking: 1_150_000_000)])
+
+        #expect(sut.uiModel.sections.map(\.share) == [0.5, 0.5])
+    }
+
+    @Test("A section holds what its rows add up to")
+    func measuringEnded_saysASectionHoldsWhatItsRowsAddUpTo() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 1_150_000_000), folder(named: "Previews", taking: 1_150_000_000)])
+
+        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["1.2 GB", "1.2 GB"])
+        #expect(sut.uiModel.sections.map(\.size) == ["2.4 GB"])
+    }
+
     @Test("The leftover holding the most room is marked wherever it sits")
     func measuringEnded_marksTheLeftoverHoldingTheMostRoomWhereverItSits() {
         let sut = makeSUT()

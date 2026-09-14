@@ -37,7 +37,7 @@ struct LeftoverList {
         let sections = sectionsInOrder()
 
         return LeftoverListUIModel(
-            title: title(over: sections.reduce(0) { $0 + Room.rounded(roomIn($1.held)) }),
+            title: title(over: sections.reduce(0) { $0 + roomShown(in: $1.held) }),
             isMeasuring: isMeasuring,
             leftoverBeingMeasured: beingMeasured,
             nothingToDelete: !isMeasuring && sections.isEmpty,
@@ -114,7 +114,7 @@ private extension LeftoverList {
 
     func drawn(_ sections: [Section]) -> [LeftoverSection] {
         let marked = largest(in: sections.flatMap(\.held))
-        let roomOnTheScreen = roomIn(held)
+        let roomOnTheScreen = roomShown(in: held)
         let tints = LeftoverSection.Tint.allCases
 
         return sections.enumerated().map { place, section in
@@ -123,8 +123,8 @@ private extension LeftoverList {
                 name: section.kind.name,
                 symbol: section.kind.symbol,
                 tint: tints[place % tints.count],
-                size: Room.written(roomIn(section.held)),
-                share: Double(roomIn(section.held)) / Double(roomOnTheScreen),
+                size: Room.written(roomShown(in: section.held)),
+                share: Double(roomShown(in: section.held)) / Double(roomOnTheScreen),
                 rows: sorted(section.held).map { row(for: $0, marked: marked) })
         }
     }
@@ -164,6 +164,10 @@ private extension LeftoverList {
 
     func roomIn(_ held: [Leftover]) -> Int {
         held.reduce(0) { $0 + $1.bytes }
+    }
+
+    func roomShown(in held: [Leftover]) -> Int {
+        held.reduce(0) { $0 + Room.rounded($1.bytes) }
     }
 
     func largest(in shown: [Leftover]) -> Leftover? {
