@@ -9,7 +9,6 @@ options:
 
 settings:
   base:
-    DEVELOPMENT_TEAM: X8F92F5YZ5
     SWIFT_VERSION: "6.0"
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature MemberImportVisibility"
