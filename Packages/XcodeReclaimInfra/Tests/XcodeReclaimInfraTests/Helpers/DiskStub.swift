@@ -4,6 +4,7 @@ import XcodeReclaimEngine
 final class DiskStub: Disk {
     var sizes: [URL: Int] = [:]
     var folders: [URL: [URL]] = [:]
+    var whatCanBeRemoved: [URL: Bool] = [:]
 
     private(set) var removed: [URL] = []
 
@@ -13,6 +14,10 @@ final class DiskStub: Disk {
 
     func foldersInside(_ url: URL) -> [URL] {
         folders[url, default: []]
+    }
+
+    func canRemoveItem(at url: URL) -> Bool {
+        whatCanBeRemoved[url, default: true]
     }
 
     func removeItem(at url: URL) throws -> Bool {

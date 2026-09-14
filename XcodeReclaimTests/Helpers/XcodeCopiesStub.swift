@@ -11,7 +11,8 @@ struct XcodeCopiesStub: XcodeCopies, Sendable {
                 version: XcodeCopy.Version(number: "26.2", build: "17C51"),
                 bytes: $0,
                 isOpen: false,
-                isPointedAtByCommandLineTools: false)
+                isPointedAtByCommandLineTools: false,
+                canBeRemoved: true)
         }
     }
 }

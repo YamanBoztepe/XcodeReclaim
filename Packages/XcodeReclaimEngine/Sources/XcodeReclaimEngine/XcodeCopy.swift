@@ -16,12 +16,14 @@ public struct XcodeCopy: Hashable {
     public let bytes: Int
     public let isOpen: Bool
     public let isPointedAtByCommandLineTools: Bool
+    public let canBeRemoved: Bool
 
-    public init(path: URL, version: Version?, bytes: Int, isOpen: Bool, isPointedAtByCommandLineTools: Bool) {
+    public init(path: URL, version: Version?, bytes: Int, isOpen: Bool, isPointedAtByCommandLineTools: Bool, canBeRemoved: Bool) {
         self.path = path
         self.version = version
         self.bytes = bytes
         self.isOpen = isOpen
         self.isPointedAtByCommandLineTools = isPointedAtByCommandLineTools
+        self.canBeRemoved = canBeRemoved
     }
 }

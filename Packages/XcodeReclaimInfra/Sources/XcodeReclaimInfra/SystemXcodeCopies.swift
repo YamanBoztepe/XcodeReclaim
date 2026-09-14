@@ -24,7 +24,8 @@ public struct SystemXcodeCopies: XcodeCopies {
                 version: bundleInformation(in: app)?.version,
                 bytes: disk.bytesUsedByFolder(at: app),
                 isOpen: running.contains { $0.hasPrefix(pathInside(app)) },
-                isPointedAtByCommandLineTools: pointedAt.hasPrefix(pathInside(app)))
+                isPointedAtByCommandLineTools: pointedAt.hasPrefix(pathInside(app)),
+                canBeRemoved: disk.canRemoveItem(at: app))
         }
     }
 }

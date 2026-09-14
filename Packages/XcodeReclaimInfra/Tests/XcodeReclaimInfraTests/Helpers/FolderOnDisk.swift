@@ -31,6 +31,10 @@ enum FolderOnDisk {
         try? FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: folder.path(percentEncoded: false))
     }
 
+    static func makeWritable(_ folder: URL) {
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path(percentEncoded: false))
+    }
+
     static func makeUnwritable(_ folder: URL) {
         try? FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: folder.path(percentEncoded: false))
     }

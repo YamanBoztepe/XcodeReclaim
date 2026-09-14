@@ -93,6 +93,18 @@ struct DeleteLeftoverTests {
         #expect(received == .partlyFreed(150, stillThere: 50, why: whatTheDiskSaid))
     }
 
+    @Test("A copy emptied where the folder cannot be written frees the room it held")
+    func delete_freesTheRoomACopyHeldWhenTheFolderItSitsInCannotBeWritten() {
+        let roomItHeld = 4_000_000_000
+        let (sut, disk, _) = makeSUT()
+        disk.removal = .failure(WorldFailure(sentence: "you don't have permission to access it"))
+        disk.whatCanBeRemoved[copyPath] = false
+
+        let received = sut.delete(copyOfXcode(taking: roomItHeld))
+
+        #expect(received == .freed(roomItHeld))
+    }
+
     @Test("A folder that measures as empty after it refused frees nothing")
     func delete_freesNothingWhenTheFolderMeasuresAsEmptyAfterItRefused() {
         let whatTheDiskSaid = "you don't have permission to access it"

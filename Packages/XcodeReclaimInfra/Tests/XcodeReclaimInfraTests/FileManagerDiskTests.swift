@@ -31,6 +31,23 @@ struct FileManagerDiskTests {
     }
 
     @Test
+    func canRemove_readsWhetherTheFolderTheItemSitsInCanBeWritten() {
+        let sut = makeSUT()
+        let folder = makeFolder(holding: 0)
+        defer {
+            FolderOnDisk.makeWritable(folder)
+            throwAway(folder)
+        }
+        let inside = FolderOnDisk.putAFolder(named: "a bundle", inside: folder)
+
+        #expect(sut.canRemoveItem(at: inside))
+
+        FolderOnDisk.makeUnwritable(folder)
+
+        #expect(!sut.canRemoveItem(at: inside))
+    }
+
+    @Test
     func bytesUsed_countsWhatTheSubfoldersHold() {
         let sut = makeSUT()
         let folder = makeFolder(holding: 1)

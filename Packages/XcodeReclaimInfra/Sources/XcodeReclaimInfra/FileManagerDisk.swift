@@ -27,6 +27,10 @@ public struct FileManagerDisk: Disk {
         return held.filter { (try? $0.resourceValues(forKeys: Set(wanted)))?.isDirectory == true }
     }
 
+    public func canRemoveItem(at url: URL) -> Bool {
+        FileManager.default.isWritableFile(atPath: url.deletingLastPathComponent().path(percentEncoded: false))
+    }
+
     public func removeItem(at url: URL) throws -> Bool {
         do {
             try FileManager.default.removeItem(at: url)

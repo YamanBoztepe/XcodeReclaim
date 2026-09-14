@@ -19,6 +19,20 @@ struct SystemXcodeCopiesTests {
     }
 
     @Test
+    func copies_deliversWhetherTheCopyCanBeRemovedWhereItStands() {
+        let applications = FolderOnDisk.made()
+        defer { FolderOnDisk.throwAway(applications) }
+        let app = XcodeBundle.made(named: "Xcode 26.2.app", carrying: "26.2", build: "17C51", inside: applications)
+        let (sut, tool, disk) = makeSUT(applicationsFolder: applications)
+        tool.answers["mdfind"] = .success(app.path(percentEncoded: false))
+        disk.whatCanBeRemoved[app] = false
+
+        let received = sut.copies()
+
+        #expect(received.map(\.canBeRemoved) == [false])
+    }
+
+    @Test
     func copies_deliversNoVersionWhenTheBundleDeclaresNoBuild() {
         let applications = FolderOnDisk.made()
         defer { FolderOnDisk.throwAway(applications) }

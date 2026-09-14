@@ -7,6 +7,7 @@ final class WorldSpy: Disk {
         case sizeRead(URL)
         case foldersListed(URL)
         case removed(URL)
+        case removalAsked(URL)
     }
 
     private(set) var messages: [Message] = []
@@ -14,6 +15,7 @@ final class WorldSpy: Disk {
     var sizes: [URL: Int] = [:]
     var folders: [URL: [URL]] = [:]
     var removal: Result<Bool, any Error> = .success(true)
+    var whatCanBeRemoved: [URL: Bool] = [:]
 
     var announcements: [String] {
         messages.compactMap { message in
@@ -33,6 +35,11 @@ final class WorldSpy: Disk {
     func foldersInside(_ url: URL) -> [URL] {
         messages.append(.foldersListed(url))
         return folders[url, default: []]
+    }
+
+    func canRemoveItem(at url: URL) -> Bool {
+        messages.append(.removalAsked(url))
+        return whatCanBeRemoved[url, default: true]
     }
 
     func removeItem(at url: URL) throws -> Bool {

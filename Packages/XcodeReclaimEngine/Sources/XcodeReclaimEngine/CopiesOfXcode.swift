@@ -5,14 +5,19 @@ struct CopiesOfXcode {
     let xcodeCopies: any XcodeCopies
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
-        let cost = "that version has to be downloaded again"
-
-        return xcodeCopies.copies().map { copy in
+        xcodeCopies.copies().map { copy in
             let name = name(of: copy)
             announce(name)
 
-            return Leftover(name: name, bytes: copy.bytes, place: .xcodeCopy(copy.path), cost: cost, refusal: refusal(for: copy))
+            return Leftover(name: name, bytes: copy.bytes, place: .xcodeCopy(copy.path), cost: cost(of: copy), refusal: refusal(for: copy))
         }
+    }
+
+    private func cost(of copy: XcodeCopy) -> String {
+        let downloadedAgain = "that version has to be downloaded again"
+        guard !copy.canBeRemoved else { return downloadedAgain }
+
+        return "\(downloadedAgain), and the empty bundle stays where it is because removing it needs an administrator"
     }
 
     private func name(of copy: XcodeCopy) -> String {

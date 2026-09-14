@@ -87,6 +87,18 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.refusal) == [nil])
     }
 
+    @Test("A copy of Xcode sitting where the developer cannot write says so in what it costs")
+    func measure_deliversACopyThatCannotBeRemovedWhereItStandsSayingTheBundleStays() {
+        let (sut, disk, copies) = makeSUT()
+        copies.reported = [copy(canBeRemoved: false)]
+
+        let received = sut.leftovers(announcing: disk.announce)
+
+        #expect(
+            received.map(\.cost)
+                == ["that version has to be downloaded again, and the empty bundle stays where it is because removing it needs an administrator"])
+    }
+
     @Test("A copy of Xcode carries what deleting it costs")
     func measure_deliversACopyWithWhatDeletingItCosts() {
         let (sut, disk, copies) = makeSUT()
@@ -127,13 +139,15 @@ private extension MeasureLeftoversXcodeCopyTests {
         sittingIn folder: String = "Applications",
         taking bytes: Int = 200,
         isOpen: Bool = false,
-        isPointedAtByCommandLineTools: Bool = false
+        isPointedAtByCommandLineTools: Bool = false,
+        canBeRemoved: Bool = true
     ) -> XcodeCopy {
         XcodeCopy(
             path: URL(fileURLWithPath: "/\(folder)/Xcode.app"),
             version: version,
             bytes: bytes,
             isOpen: isOpen,
-            isPointedAtByCommandLineTools: isPointedAtByCommandLineTools)
+            isPointedAtByCommandLineTools: isPointedAtByCommandLineTools,
+            canBeRemoved: canBeRemoved)
     }
 }

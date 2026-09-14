@@ -29,6 +29,10 @@ private extension DeleteLeftover {
         guard let folder = folder(holding: leftover.place) else { return .failed(why) }
 
         let stillThere = disk.bytesUsedByFolder(at: folder)
+
+        if stillThere == 0, !disk.canRemoveItem(at: folder) {
+            return .freed(leftover.bytes)
+        }
         guard stillThere > 0, stillThere < leftover.bytes else { return .failed(why) }
 
         return .partlyFreed(leftover.bytes - stillThere, stillThere: stillThere, why: why)

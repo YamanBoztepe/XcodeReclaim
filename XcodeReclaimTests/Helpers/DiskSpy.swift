@@ -34,5 +34,7 @@ final class DiskSpy: Disk, Sendable {
         []
     }
 
+    func canRemoveItem(at url: URL) -> Bool { true }
+
     func removeItem(at url: URL) throws -> Bool { true }
 }
