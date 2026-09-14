@@ -98,6 +98,16 @@ struct SimctlSimulatorServiceTests {
         #expect(tool.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "delete", deviceIdentifier])])
     }
 
+    @Test
+    func simulators_asksTheToolForTheDeviceListAsJSON() throws {
+        let (sut, tool) = makeSUT()
+        tool.answers["xcrun"] = .success(SimulatorList.reporting([:]))
+
+        _ = try sut.simulators()
+
+        #expect(tool.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "list", "devices", "-j"])])
+    }
+
     @Test("A deletion the service refuses frees nothing")
     func delete_throwsWhatTheServiceSaidWhenItRefuses() {
         let (sut, tool) = makeSUT()

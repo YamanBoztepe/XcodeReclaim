@@ -43,6 +43,7 @@ final class SlowMachineStub: Sendable {
     private let measurings: [MachineStub]
     private let finished = Mutex<Set<Int>>([])
     private let howManyHaveBegun = Atomic(0)
+    private let toldToFinish = NSCondition()
 
     init(eachMeasuring measurings: [MachineStub]) {
         self.measurings = measurings
@@ -52,9 +53,12 @@ final class SlowMachineStub: Sendable {
         let thisMeasuring = howManyHaveBegun.wrappingAdd(1, ordering: .relaxed).oldValue
         let found = measurings[thisMeasuring].measuring(announcing: announce)
 
+        toldToFinish.lock()
         while !finished.withLock({ $0.contains(thisMeasuring) }) {
-            sched_yield()
+            toldToFinish.wait()
         }
+        toldToFinish.unlock()
+
         return found
     }
 
@@ -63,11 +67,17 @@ final class SlowMachineStub: Sendable {
     }
 
     func letMeasuringFinish(_ measuring: Int) {
+        toldToFinish.lock()
         finished.withLock { _ = $0.insert(measuring) }
+        toldToFinish.broadcast()
+        toldToFinish.unlock()
     }
 
     func letEveryMeasuringFinish() {
+        toldToFinish.lock()
         finished.withLock { $0.formUnion(measurings.indices) }
+        toldToFinish.broadcast()
+        toldToFinish.unlock()
     }
 }
 
