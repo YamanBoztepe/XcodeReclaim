@@ -49,7 +49,7 @@ struct LeftoverListUIIntegrationTests {
         #expect(screen.confirmation == nil)
 
         try screen.askToDelete("Derived data")
-        #expect(screen.confirmation == .init(name: "Derived data", sentence: "Frees 300 bytes. This cannot be undone."))
+        #expect(screen.confirmation == .init(question: "Delete Derived data?", sentence: "Frees 300 bytes. This cannot be undone."))
 
         screen.backOut()
         #expect(screen.confirmation == nil)
@@ -92,7 +92,7 @@ struct LeftoverListUIIntegrationTests {
 
         await screen.waitForMeasuringToEnd()
         #expect(screen.saysThereIsNothingToDelete)
-        #expect(screen.title == "XcodeReclaim")
+        #expect(screen.title.isEmpty)
     }
 
     @Test("The developer watches the measuring work through the leftovers")
@@ -130,6 +130,69 @@ struct LeftoverListUIIntegrationTests {
         machine.letMeasuringFinish(theMeasuringTheRefreshReplaces)
         await screen.waitForEverythingQueuedToRun()
         #expect(screen.rowNames == ["Previews"])
+    }
+
+    @Test func choose_marksTheRowsOnTheScreenAndOffersToDeleteThem() async throws {
+        let machine = MachineStub(finding: [derivedData(taking: 300), simulator(taking: 200)])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.offersToDeleteWhatIsChosen == false)
+
+        try screen.choose("Derived data", "iPhone 17 (iOS 26.4, 21B507D3)")
+
+        #expect(screen.chosenRows == ["Derived data", "iPhone 17 (iOS 26.4, 21B507D3)"])
+        #expect(screen.offersToDeleteWhatIsChosen)
+    }
+
+    @Test func sort_putsTheRowsTheScreenDrawsInTheOrderAskedFor() async {
+        let machine = MachineStub(finding: [previews(taking: 300), derivedData(taking: 200)])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.rowNames == ["Previews", "Derived data"])
+
+        screen.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+
+        #expect(screen.rowNames == ["Derived data", "Previews"])
+    }
+
+    @Test func askToDelete_overManyRowsAsksOneQuestionOnTheScreen() async throws {
+        let machine = MachineStub(finding: [derivedData(taking: 300), previews(taking: 200)])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+
+        try screen.askToDelete("Derived data", "Previews")
+
+        #expect(screen.confirmation == .init(question: "Delete 2 items?", sentence: "Frees 500 bytes. This cannot be undone."))
+    }
+
+    @Test func menu_asksAboutDeletingTheRowsChosenOnTheScreen() async throws {
+        let machine = MachineStub(finding: [derivedData(taking: 300)])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.menuOffersDeletion == false)
+
+        try screen.choose("Derived data")
+        #expect(screen.menuOffersDeletion)
+
+        screen.askToDeleteFromTheMenu()
+        #expect(screen.confirmation == .init(question: "Delete Derived data?", sentence: "Frees 300 bytes. This cannot be undone."))
+    }
+
+    @Test func menu_refreshesTheScreenAndOffersNoRefreshWhileItMeasures() async {
+        let machine = MachineStub(finding: [derivedData(taking: 300)])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.menuOffersARefresh)
+
+        screen.refreshFromTheMenu()
+
+        #expect(screen.isMeasuring)
+        #expect(screen.menuOffersARefresh == false)
     }
 
     @Test func screen_doesNotKeepItsViewModelAliveOnceTheScreenIsGone() {

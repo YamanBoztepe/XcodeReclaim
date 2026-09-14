@@ -1,12 +1,29 @@
 public struct LeftoverListUIModel: Equatable {
     public struct Confirmation: Equatable {
-        public let name: String
+        public let question: String
         public let sentence: String
 
-        public init(name: String, sentence: String) {
-            self.name = name
+        public init(question: String, sentence: String) {
+            self.question = question
             self.sentence = sentence
         }
+    }
+
+    public struct Sorting: Equatable {
+        public enum Column: Equatable {
+            case name
+            case size
+        }
+
+        public let column: Column
+        public let ascending: Bool
+
+        public init(column: Column, ascending: Bool) {
+            self.column = column
+            self.ascending = ascending
+        }
+
+        public static var biggestFirst: Sorting { Sorting(column: .size, ascending: false) }
     }
 
     public let title: String
@@ -15,6 +32,9 @@ public struct LeftoverListUIModel: Equatable {
     public let nothingToDelete: Bool
     public let deletionMessage: String?
     public let sections: [LeftoverSection]
+    public let selection: Set<String>
+    public let sorting: Sorting
+    public let canDeleteSelection: Bool
     public let confirmation: Confirmation?
 
     public init(
@@ -24,6 +44,9 @@ public struct LeftoverListUIModel: Equatable {
         nothingToDelete: Bool = false,
         deletionMessage: String? = nil,
         sections: [LeftoverSection] = [],
+        selection: Set<String> = [],
+        sorting: Sorting = .biggestFirst,
+        canDeleteSelection: Bool = false,
         confirmation: Confirmation? = nil
     ) {
         self.title = title
@@ -32,6 +55,9 @@ public struct LeftoverListUIModel: Equatable {
         self.nothingToDelete = nothingToDelete
         self.deletionMessage = deletionMessage
         self.sections = sections
+        self.selection = selection
+        self.sorting = sorting
+        self.canDeleteSelection = canDeleteSelection
         self.confirmation = confirmation
     }
 }

@@ -51,14 +51,17 @@ private extension XcodeReclaim {
     }
 
     func everySourceAtOnce(announcing announce: @escaping @Sendable (String) -> Void) async -> [[Leftover]] {
-        let measured = await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
+        await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
             for source in MeasureLeftovers.Offered.allCases.indices {
                 measurings.addTask { [self] in (source, measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[source], announcing: announce)) }
             }
 
-            return await measurings.reduce(into: [Int: [Leftover]]()) { measured, each in measured[each.0] = each.1 }
-        }
+            var found = Array(repeating: [Leftover](), count: MeasureLeftovers.Offered.allCases.count)
+            for await (source, leftovers) in measurings {
+                found[source] = leftovers
+            }
 
-        return measured.sorted { $0.key < $1.key }.map(\.value)
+            return found
+        }
     }
 }

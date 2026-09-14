@@ -98,6 +98,17 @@ final class LeftoverListViewModelTests {
         #expect(sut.uiModel.leftoverBeingMeasured == nil)
     }
 
+    @Test
+    func open_saysTheWindowIsMeasuringUntilTheMeasuringEnds() {
+        let (sut, _) = makeSUT()
+
+        #expect(sut.uiModel.title == "Measuring…")
+
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+
+        #expect(sut.uiModel.title == "300 bytes to reclaim")
+    }
+
     @Test("A refresh says nothing about the deletion before it")
     func refresh_saysNothingAboutTheDeletionBeforeIt() throws {
         let (sut, _) = makeSUT()

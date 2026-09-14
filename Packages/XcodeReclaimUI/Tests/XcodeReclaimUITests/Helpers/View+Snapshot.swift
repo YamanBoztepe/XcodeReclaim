@@ -27,6 +27,7 @@ extension View {
         let window = NSWindow(contentRect: shown.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentView = shown
         shown.layoutSubtreeIfNeeded()
+        settle(shown)
         window.displayIfNeeded()
 
         let bitsPerSample = 8
@@ -48,6 +49,28 @@ extension View {
 
         shown.cacheDisplay(in: shown.bounds, to: pixels)
         return pixels.representation(using: .png, properties: [:])
+    }
+
+    @MainActor private func settle(_ shown: NSView) {
+        let turnsBeforeTheTableHasItsRows = 50
+
+        for _ in 0..<turnsBeforeTheTableHasItsRows {
+            RunLoop.current.run(mode: .default, before: .distantPast)
+            shown.layoutSubtreeIfNeeded()
+        }
+        hideTheScrollers(in: shown)
+    }
+
+    @MainActor private func hideTheScrollers(in view: NSView) {
+        if let scrolling = view as? NSScrollView {
+            scrolling.hasVerticalScroller = false
+            scrolling.hasHorizontalScroller = false
+            scrolling.verticalScroller?.alphaValue = 0
+            scrolling.horizontalScroller?.alphaValue = 0
+        }
+        for subview in view.subviews {
+            hideTheScrollers(in: subview)
+        }
     }
 
     private func verify(_ drawn: Data, named name: String, record: Bool, filePath: StaticString, sourceLocation: SourceLocation) {

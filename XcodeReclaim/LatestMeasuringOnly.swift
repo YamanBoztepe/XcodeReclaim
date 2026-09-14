@@ -6,7 +6,10 @@ final class LatestMeasuringOnly {
     private let delivering: ([Leftover]) -> Void
     private var latestMeasuring = 0
 
-    init(announcing: @escaping (String) -> Void, delivering: @escaping ([Leftover]) -> Void) {
+    init(
+        announcing: @escaping (String) -> Void,
+        delivering: @escaping ([Leftover]) -> Void
+    ) {
         self.announcing = announcing
         self.delivering = delivering
     }

@@ -7,17 +7,17 @@ import XcodeReclaimUI
 @MainActor
 struct LeftoverListViewDrawingTests {
     @Test("Every measured leftover is drawn with its size")
-    func draws_everyLeftoverItWasGivenHoweverManyThereAre() {
-        let few = 10
+    func draws_everyLeftoverItWasGivenHoweverManyThereAre() throws {
         let manyMoreThanFitInAWindow = 60
+        let oneSectionHeading = 1
 
-        let roomAFewTakeUp = whatTheListTakesUp(holding: few)
-        let roomManyTakeUp = whatTheListTakesUp(holding: manyMoreThanFitInAWindow)
+        let table = try tableOf(makeSUT(holding: manyMoreThanFitInAWindow))
 
-        #expect(roomManyTakeUp >= roomAFewTakeUp * 5)
+        #expect(table.numberOfRows == manyMoreThanFitInAWindow + oneSectionHeading)
     }
 
-    @Test func draws_noMoreHeightThanAWindowCanGive() {
+    @Test
+    func draws_noMoreHeightThanAWindowCanGive() {
         let manyMoreThanFitInAWindow = 60
         let whatEveryScreenCanGive = 600.0
 
@@ -28,7 +28,7 @@ struct LeftoverListViewDrawingTests {
 }
 
 private extension LeftoverListViewDrawingTests {
-    func makeSUT(holding rows: Int) -> NSHostingView<LeftoverListView> {
+    func makeSUT(holding rows: Int) -> LeftoverListView {
         let section = LeftoverSection(
             id: "Caches and support files",
             name: "Caches and support files",
@@ -37,14 +37,16 @@ private extension LeftoverListViewDrawingTests {
             size: "68.0 GB",
             share: 1,
             rows: (1...rows).map(row(numbered:)))
-        let screen = LeftoverListView(
+
+        return LeftoverListView(
             model: LeftoverListUIModel(title: "68.0 GB to reclaim", isMeasuring: false, sections: [section]),
             onAppear: {},
             onRefresh: {},
+            onSelect: { _ in },
+            onSort: { _ in },
             onAskAboutDeleting: { _ in },
             onConfirm: {},
             onBackOut: {})
-        return NSHostingView(rootView: screen)
     }
 
     func row(numbered place: Int) -> LeftoverRow {
@@ -58,30 +60,35 @@ private extension LeftoverListViewDrawingTests {
             canBeDeleted: true)
     }
 
-    func whatTheListTakesUp(holding rows: Int) -> CGFloat {
-        let shown = laidOut(makeSUT(holding: rows), inAWindowTallEnoughFor: rows)
-        return everyScrollView(in: shown).first?.documentView?.frame.height ?? 0
-    }
-
-    func whatTheScreenAsksFor(holding rows: Int) -> CGSize {
-        laidOut(makeSUT(holding: rows), inAWindowTallEnoughFor: rows).fittingSize
-    }
-
-    func laidOut(_ shown: NSHostingView<LeftoverListView>, inAWindowTallEnoughFor rows: Int) -> NSHostingView<LeftoverListView> {
-        let roomARowTakes = 60
+    func hosted(_ screen: LeftoverListView) -> NSHostingView<LeftoverListView> {
         let roomTheNamesNeed = 700.0
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: roomTheNamesNeed, height: CGFloat(rows * roomARowTakes)),
-            styleMask: [.titled],
-            backing: .buffered,
-            defer: false)
+        let asTallAsAScreen = 800.0
+        let shown = NSHostingView(rootView: screen)
+        shown.frame = CGRect(x: 0, y: 0, width: roomTheNamesNeed, height: asTallAsAScreen)
+        let window = NSWindow(contentRect: shown.frame, styleMask: [.titled], backing: .buffered, defer: false)
         window.contentView = shown
         shown.layoutSubtreeIfNeeded()
-        window.displayIfNeeded()
+        settle()
         return shown
     }
 
-    func everyScrollView(in view: NSView) -> [NSScrollView] {
-        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(everyScrollView(in:))
+    func tableOf(_ screen: LeftoverListView) throws -> NSTableView {
+        try #require(everyTable(in: hosted(screen)).first, "the screen drew no table")
+    }
+
+    func whatTheScreenAsksFor(holding rows: Int) -> CGSize {
+        hosted(makeSUT(holding: rows)).fittingSize
+    }
+
+    func everyTable(in view: NSView) -> [NSTableView] {
+        (view as? NSTableView).map { [$0] } ?? view.subviews.flatMap(everyTable(in:))
+    }
+
+    func settle() {
+        let turnsBeforeTheTableHasItsRows = 50
+
+        for _ in 0..<turnsBeforeTheTableHasItsRows {
+            RunLoop.current.run(mode: .default, before: .distantPast)
+        }
     }
 }

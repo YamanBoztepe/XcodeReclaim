@@ -4,6 +4,8 @@ import XcodeReclaimCore
 let developerFolder = URL(filePath: "/developer")
 let derivedDataFolder = developerFolder.appending(path: "Xcode/DerivedData")
 let previewsFolder = developerFolder.appending(path: "Xcode/UserData/Previews")
+let interfaceBuilderCacheFolder = developerFolder.appending(path: "Xcode/UserData/IB Support")
+let documentationCacheFolder = developerFolder.appending(path: "Xcode/DocumentationCache")
 
 func derivedData(taking bytes: Int) -> Leftover {
     Leftover(name: "Derived data", bytes: bytes, place: .folder(derivedDataFolder))

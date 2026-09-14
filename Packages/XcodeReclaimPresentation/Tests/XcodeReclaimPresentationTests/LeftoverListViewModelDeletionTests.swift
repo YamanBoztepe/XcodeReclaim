@@ -24,7 +24,7 @@ final class LeftoverListViewModelDeletionTests {
         #expect(
             sut.uiModel.confirmation
                 == LeftoverListUIModel.Confirmation(
-                    name: "Device support (iOS 26.4)",
+                    question: "Delete Device support (iOS 26.4)?",
                     sentence: "Frees 200 bytes. The symbols are put back the next time that device is plugged in. This cannot be undone."))
     }
 

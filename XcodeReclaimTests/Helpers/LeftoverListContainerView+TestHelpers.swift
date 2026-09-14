@@ -14,10 +14,24 @@ extension LeftoverListContainerView {
         view.onRefresh()
     }
 
-    func askToDelete(_ name: String, sourceLocation: SourceLocation = #_sourceLocation) throws {
-        let row = try #require(rows.first(where: { $0.name == name }), "no row named \(name)", sourceLocation: sourceLocation)
+    func askToDelete(_ names: String..., sourceLocation: SourceLocation = #_sourceLocation) throws {
+        view.onAskAboutDeleting(try identities(of: names, sourceLocation: sourceLocation))
+    }
 
-        view.onAskAboutDeleting(row)
+    func choose(_ names: String..., sourceLocation: SourceLocation = #_sourceLocation) throws {
+        view.onSelect(try identities(of: names, sourceLocation: sourceLocation))
+    }
+
+    func sort(by sorting: LeftoverListUIModel.Sorting) {
+        view.onSort(sorting)
+    }
+
+    func refreshFromTheMenu() {
+        menu.onRefresh()
+    }
+
+    func askToDeleteFromTheMenu() {
+        menu.onAskAboutDeleting()
     }
 
     func confirm() {
@@ -74,7 +88,7 @@ extension LeftoverListContainerView {
     var leftoverBeingMeasured: String? { uiModelHandedToTheView.leftoverBeingMeasured }
     var deletionMessage: String? { uiModelHandedToTheView.deletionMessage }
     var confirmation: LeftoverListUIModel.Confirmation? { uiModelHandedToTheView.confirmation }
-    var leftoverAwaitingConfirmation: String? { confirmation?.name }
+    var confirmationQuestion: String? { confirmation?.question }
     var confirmationMessage: String? { confirmation?.sentence }
     var sectionNames: [String] { uiModelHandedToTheView.sections.map(\.name) }
     var sectionSymbols: [String] { uiModelHandedToTheView.sections.map(\.symbol) }
@@ -83,11 +97,24 @@ extension LeftoverListContainerView {
     var rowsHoldingTheMostRoom: [String] { rows.filter(\.holdsTheMostRoom).map(\.name) }
     var deletableRows: [String] { rows.filter(\.canBeDeleted).map(\.name) }
     var rowsBeingDeleted: [String] { rows.compactMap { $0.deletionUnderWay == nil ? nil : $0.name } }
+    var chosenRows: [String] { rows.filter { uiModelHandedToTheView.selection.contains($0.id) }.map(\.name) }
+    var offersToDeleteWhatIsChosen: Bool { uiModelHandedToTheView.canDeleteSelection }
+    var menuOffersDeletion: Bool { menu.model.canDeleteSelection }
+    var menuOffersARefresh: Bool { !menu.model.isMeasuring }
 }
 
 @MainActor
 private extension LeftoverListContainerView {
     var view: LeftoverListView { screen }
 
+    var menu: LeftoverListCommands { commands }
+
     var rows: [LeftoverRow] { uiModelHandedToTheView.sections.flatMap(\.rows) }
+
+    func identities(of names: [String], sourceLocation: SourceLocation) throws -> Set<String> {
+        try Set(
+            names.map { name in
+                try #require(rows.first(where: { $0.name == name }), "no row named \(name)", sourceLocation: sourceLocation).id
+            })
+    }
 }

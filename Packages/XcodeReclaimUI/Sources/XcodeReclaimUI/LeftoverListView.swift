@@ -5,7 +5,9 @@ public struct LeftoverListView: View {
     public let model: LeftoverListUIModel
     public let onAppear: () -> Void
     public let onRefresh: () -> Void
-    public let onAskAboutDeleting: (LeftoverRow) -> Void
+    public let onSelect: (Set<String>) -> Void
+    public let onSort: (LeftoverListUIModel.Sorting) -> Void
+    public let onAskAboutDeleting: (Set<String>) -> Void
     public let onConfirm: () -> Void
     public let onBackOut: () -> Void
 
@@ -13,13 +15,17 @@ public struct LeftoverListView: View {
         model: LeftoverListUIModel,
         onAppear: @escaping () -> Void,
         onRefresh: @escaping () -> Void,
-        onAskAboutDeleting: @escaping (LeftoverRow) -> Void,
+        onSelect: @escaping (Set<String>) -> Void,
+        onSort: @escaping (LeftoverListUIModel.Sorting) -> Void,
+        onAskAboutDeleting: @escaping (Set<String>) -> Void,
         onConfirm: @escaping () -> Void,
         onBackOut: @escaping () -> Void
     ) {
         self.model = model
         self.onAppear = onAppear
         self.onRefresh = onRefresh
+        self.onSelect = onSelect
+        self.onSort = onSort
         self.onAskAboutDeleting = onAskAboutDeleting
         self.onConfirm = onConfirm
         self.onBackOut = onBackOut
@@ -27,24 +33,22 @@ public struct LeftoverListView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
-            Divider()
-            Group {
-                if model.isMeasuring {
-                    measuring
-                } else {
-                    ScrollView { measuredLeftovers }
-                }
+            if model.saysAnythingAboveTheList {
+                header
+                Divider()
             }
-            .frame(minHeight: Layout.shortestList, idealHeight: Layout.listAsItOpens, maxHeight: .infinity)
+            list
+                .frame(minHeight: Layout.shortestList, idealHeight: Layout.listAsItOpens, maxHeight: .infinity)
         }
         .frame(minWidth: Layout.narrowestWindow)
+        .navigationTitle(model.title)
+        .toolbar { commands }
         .onAppear(perform: onAppear)
         .alert(
-            model.confirmation?.name ?? "",
+            model.confirmation?.question ?? "",
             isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { onBackOut() } })
         ) {
-            Button("Delete", role: .destructive, action: onConfirm)
+            Button("Delete", action: onConfirm)
             Button("Cancel", role: .cancel, action: onBackOut)
         } message: {
             Text(model.confirmation?.sentence ?? "")
@@ -56,23 +60,26 @@ private enum Layout {
     static let narrowestWindow: CGFloat = 460
     static let shortestList: CGFloat = 120
     static let listAsItOpens: CGFloat = 360
+    static let underSpinner: CGFloat = 12
+    static let narrowestSizeColumn: CGFloat = 90
+    static let sizeColumnAsItOpens: CGFloat = 110
     static let aroundEdges: CGFloat = 20
-    static let betweenSections: CGFloat = 24
     static let betweenHeaderLines: CGFloat = 12
     static let betweenKeys: CGFloat = 20
     static let besideSymbol: CGFloat = 6
-    static let besideRow: CGFloat = 12
     static let underRowName: CGFloat = 2
-    static let underSpinner: CGFloat = 12
     static let underMeasuringSentence: CGFloat = 4
-    static let aroundRow: CGFloat = 8
+    static let aroundRow: CGFloat = 4
     static let barHeight: CGFloat = 14
     static let barCorner: CGFloat = 7
     static let betweenBarSegments: CGFloat = 2
     static let keyDot: CGFloat = 8
     static let insideBadge: CGFloat = 6
     static let aroundBadge: CGFloat = 2
-    static let underSectionHeading: CGFloat = 8
+}
+
+private extension LeftoverListUIModel {
+    var saysAnythingAboveTheList: Bool { !sections.isEmpty || deletionMessage != nil }
 }
 
 private extension LeftoverSection.Tint {
@@ -86,15 +93,17 @@ private extension LeftoverSection.Tint {
 }
 
 private extension LeftoverListView {
+    @ToolbarContentBuilder var commands: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button("Delete Immediately", systemImage: "trash") { onAskAboutDeleting(model.selection) }
+                .disabled(!model.canDeleteSelection)
+            Button("Refresh", systemImage: "arrow.clockwise", action: onRefresh)
+                .disabled(model.isMeasuring)
+        }
+    }
+
     var header: some View {
         VStack(alignment: .leading, spacing: Layout.betweenHeaderLines) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(model.title).font(.largeTitle.weight(.semibold))
-                Spacer()
-                Button("Refresh", systemImage: "arrow.clockwise", action: onRefresh)
-                    .disabled(model.isMeasuring)
-            }
-
             if !model.sections.isEmpty {
                 capacityBar
                 legend
@@ -118,6 +127,9 @@ private extension LeftoverListView {
         }
         .frame(height: Layout.barHeight)
         .clipShape(.rect(cornerRadius: Layout.barCorner))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("The room each kind holds")
+        .accessibilityValue(model.sections.map { "\($0.name) \($0.size)" }.joined(separator: ", "))
     }
 
     var legend: some View {
@@ -130,8 +142,19 @@ private extension LeftoverListView {
                     Text(section.name).font(.callout)
                     Text(section.size).font(.callout).foregroundStyle(.secondary)
                 }
+                .accessibilityElement(children: .combine)
             }
             Spacer()
+        }
+    }
+
+    @ViewBuilder var list: some View {
+        if model.isMeasuring {
+            measuring
+        } else if model.nothingToDelete {
+            ContentUnavailableView("Nothing to delete", systemImage: "checkmark.circle")
+        } else {
+            measuredLeftovers
         }
     }
 
@@ -149,52 +172,84 @@ private extension LeftoverListView {
     }
 
     var measuredLeftovers: some View {
-        VStack(alignment: .leading, spacing: Layout.betweenSections) {
-            if model.nothingToDelete {
-                Text("Nothing to delete.").foregroundStyle(.secondary)
+        Table(of: LeftoverRow.self, selection: chosenRows, sortOrder: sortedColumn) {
+            TableColumn("Name", value: \.name) { row in
+                nameOf(row)
             }
-
+            TableColumn("Size", value: \.size) { row in
+                sizeOf(row)
+            }
+            .width(min: Layout.narrowestSizeColumn, ideal: Layout.sizeColumnAsItOpens)
+        } rows: {
             ForEach(model.sections) { section in
-                VStack(alignment: .leading, spacing: 0) {
-                    Label(section.name, systemImage: section.symbol)
-                        .font(.headline)
-                        .padding(.bottom, Layout.underSectionHeading)
-
+                Section {
                     ForEach(section.rows) { row in
-                        rowView(row)
-                        Divider()
+                        TableRow(row)
                     }
+                } header: {
+                    Label(section.name, systemImage: section.symbol)
                 }
             }
         }
-        .padding(Layout.aroundEdges)
+        .alternatingRowBackgrounds()
+        .contextMenu(forSelectionType: LeftoverRow.ID.self) { rows in
+            Button("Delete Immediately…") { onAskAboutDeleting(rows) }
+        }
     }
 
-    func rowView(_ row: LeftoverRow) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: Layout.besideRow) {
-            VStack(alignment: .leading, spacing: Layout.underRowName) {
-                HStack(spacing: Layout.besideSymbol) {
-                    Text(row.name)
-                    if row.holdsTheMostRoom {
-                        Text("Holds the most room")
-                            .font(.caption2)
-                            .padding(.horizontal, Layout.insideBadge)
-                            .padding(.vertical, Layout.aroundBadge)
-                            .background(.tint, in: .capsule)
-                            .foregroundStyle(.white)
-                    }
-                }
-                if let refusal = row.refusal {
-                    Text(refusal).font(.caption).foregroundStyle(.secondary)
+    func nameOf(_ row: LeftoverRow) -> some View {
+        VStack(alignment: .leading, spacing: Layout.underRowName) {
+            HStack(spacing: Layout.besideSymbol) {
+                Text(row.name)
+                if row.holdsTheMostRoom {
+                    Text("Holds the most room")
+                        .font(.caption2)
+                        .padding(.horizontal, Layout.insideBadge)
+                        .padding(.vertical, Layout.aroundBadge)
+                        .background(.tint, in: .capsule)
+                        .foregroundStyle(.white)
                 }
             }
+            if let refusal = row.refusal {
+                Text(refusal).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, Layout.aroundRow)
+    }
+
+    func sizeOf(_ row: LeftoverRow) -> some View {
+        HStack {
             Spacer()
             Text(row.deletionUnderWay ?? row.size)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
-            Button("Delete") { onAskAboutDeleting(row) }
-                .disabled(!row.canBeDeleted)
         }
-        .padding(.vertical, Layout.aroundRow)
+    }
+
+    var chosenRows: Binding<Set<LeftoverRow.ID>> {
+        Binding(get: { model.selection }, set: { chosen in onSelect(chosen) })
+    }
+
+    var sortedColumn: Binding<[KeyPathComparator<LeftoverRow>]> {
+        Binding(
+            get: { [comparator(over: model.sorting)] },
+            set: { clicked in onSort(sorting(from: clicked)) })
+    }
+
+    func comparator(over sorting: LeftoverListUIModel.Sorting) -> KeyPathComparator<LeftoverRow> {
+        let order: SortOrder = sorting.ascending ? .forward : .reverse
+
+        switch sorting.column {
+        case .name: return KeyPathComparator(\LeftoverRow.name, order: order)
+        case .size: return KeyPathComparator(\LeftoverRow.size, order: order)
+        }
+    }
+
+    func sorting(from clicked: [KeyPathComparator<LeftoverRow>]) -> LeftoverListUIModel.Sorting {
+        guard let column = clicked.first else { return .biggestFirst }
+
+        return LeftoverListUIModel.Sorting(
+            column: column.keyPath == \LeftoverRow.name ? .name : .size,
+            ascending: column.order == .forward)
     }
 }

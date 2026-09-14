@@ -7,13 +7,13 @@ import XcodeReclaimUI
 struct LeftoverListViewSnapshotTests {
     @Test("A screen that is measuring says so and names nothing")
     func draws_theScreenWhileItIsMeasuringAndNamesNothing() {
-        makeSUT(showing: LeftoverListUIModel(title: "XcodeReclaim", isMeasuring: true))
+        makeSUT(showing: LeftoverListUIModel(title: "Measuring…", isMeasuring: true))
             .verify(named: "LEFTOVER_LIST_MEASURING")
     }
 
     @Test("A screen that is measuring names the leftover it is working on")
     func draws_theScreenWhileItIsMeasuringALeftover() {
-        makeSUT(showing: LeftoverListUIModel(title: "XcodeReclaim", isMeasuring: true, leftoverBeingMeasured: "Derived data"))
+        makeSUT(showing: LeftoverListUIModel(title: "Measuring…", isMeasuring: true, leftoverBeingMeasured: "Derived data"))
             .verify(named: "LEFTOVER_LIST_MEASURING_A_LEFTOVER")
     }
 
@@ -25,7 +25,7 @@ struct LeftoverListViewSnapshotTests {
 
     @Test("A screen with nothing to delete says so")
     func draws_theScreenWithNothingToDelete() {
-        makeSUT(showing: LeftoverListUIModel(title: "XcodeReclaim", isMeasuring: false, nothingToDelete: true))
+        makeSUT(showing: LeftoverListUIModel(title: "", isMeasuring: false, nothingToDelete: true))
             .verify(named: "LEFTOVER_LIST_WITH_NOTHING_TO_DELETE")
     }
 
@@ -47,6 +47,31 @@ struct LeftoverListViewSnapshotTests {
         .verify(named: "LEFTOVER_LIST_AFTER_A_DELETION")
     }
 
+    @Test
+    func draws_theScreenWithTheRowsTheDeveloperChose() {
+        makeSUT(
+            showing: LeftoverListUIModel(
+                title: "147.8 GB to reclaim",
+                isMeasuring: false,
+                sections: everyKindOfSection,
+                selection: ["Derived data", "Interface builder cache"],
+                canDeleteSelection: true)
+        )
+        .verify(named: "LEFTOVER_LIST_WITH_ROWS_CHOSEN")
+    }
+
+    @Test
+    func draws_theScreenSortedByName() {
+        makeSUT(
+            showing: LeftoverListUIModel(
+                title: "147.8 GB to reclaim",
+                isMeasuring: false,
+                sections: everyKindOfSection,
+                sorting: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        )
+        .verify(named: "LEFTOVER_LIST_SORTED_BY_NAME")
+    }
+
     @Test("A row that cannot be deleted says why under its name")
     func draws_theScreenWithARowThatCannotBeDeleted() {
         makeSUT(showing: LeftoverListUIModel(title: "87.5 GB to reclaim", isMeasuring: false, sections: [simulators]))
@@ -60,6 +85,8 @@ private extension LeftoverListViewSnapshotTests {
             model: model,
             onAppear: {},
             onRefresh: {},
+            onSelect: { _ in },
+            onSort: { _ in },
             onAskAboutDeleting: { _ in },
             onConfirm: {},
             onBackOut: {})

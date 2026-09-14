@@ -6,7 +6,9 @@ public final class LeftoverListViewModel {
     public private(set) var uiModel = LeftoverList().uiModel
 
     private var list = LeftoverList()
-    private var beingConfirmed: Leftover?
+    private var beingConfirmed: [Leftover] = []
+    private var roomThatCameBack = 0
+    private var whatWentWrong: [String] = []
     private let measure: () -> Void
     private let delete: (Leftover) -> Void
 
@@ -28,6 +30,7 @@ public final class LeftoverListViewModel {
         list.held = measured
         list.isMeasuring = false
         list.beingMeasured = nil
+        list.selected = []
         redraw()
     }
 
@@ -35,49 +38,83 @@ public final class LeftoverListViewModel {
         list.isMeasuring = true
         list.beingMeasured = nil
         list.held = []
+        list.selected = []
         list.deletionMessage = nil
         redraw()
         measure()
     }
 
-    public func askAboutDeleting(_ row: LeftoverRow) {
-        guard let leftover = list.leftover(shownAs: row.id), leftover.refusal == nil else { return }
-
-        beingConfirmed = leftover
-        list.confirmation = list.confirmationOver(leftover)
+    public func select(_ shown: Set<String>) {
+        list.selected = shown
         redraw()
     }
 
+    public func sort(by sorting: LeftoverListUIModel.Sorting) {
+        list.sorting = sorting
+        redraw()
+    }
+
+    public func askAboutDeleting(_ shown: Set<String>) {
+        let asked = list.leftovers(shownAs: shown)
+        let offered = list.beingDeleted.isEmpty ? list.offered(shownAs: shown) : []
+
+        list.selected = shown
+        beingConfirmed = offered
+        list.confirmation = offered.isEmpty ? nil : list.confirmationOver(offered, keeping: asked.count - offered.count)
+        redraw()
+    }
+
+    public func askAboutDeletingWhatIsChosen() {
+        askAboutDeleting(list.selected)
+    }
+
     public func backOut() {
-        beingConfirmed = nil
+        beingConfirmed = []
         list.confirmation = nil
         redraw()
     }
 
     public func confirm() {
-        guard let leftover = beingConfirmed else { return }
+        guard let first = beingConfirmed.first else { return }
 
-        beingConfirmed = nil
+        list.beingDeleted = beingConfirmed
+        beingConfirmed = []
         list.confirmation = nil
-        list.beingDeleted = leftover
+        roomThatCameBack = 0
+        whatWentWrong = []
         redraw()
-        delete(leftover)
+        delete(first)
     }
 
     public func deletionEnded(with deletion: Deletion) {
-        guard let deleted = list.beingDeleted else { return }
+        guard !list.beingDeleted.isEmpty else { return }
 
-        list.beingDeleted = nil
-        list.deletionMessage = list.deletionSentence(for: deletion, about: deleted)
+        record(deletion, about: list.beingDeleted.removeFirst())
 
-        if case .freed = deletion {
-            list.held.removeAll { $0 == deleted }
+        guard let next = list.beingDeleted.first else {
+            list.deletionMessage = list.deletionSentence(over: roomThatCameBack, andWhatWentWrong: whatWentWrong)
+            redraw()
+            return
         }
+
         redraw()
+        delete(next)
     }
 }
 
 private extension LeftoverListViewModel {
+    func record(_ deletion: Deletion, about deleted: Leftover) {
+        switch deletion {
+        case .freed(let bytes):
+            roomThatCameBack += bytes
+            list.drop(deleted)
+        case .refused(let refusal):
+            whatWentWrong.append(list.refusalSentence(for: refusal))
+        case .failed(let why):
+            whatWentWrong.append(list.failureSentence(about: deleted, why: why))
+        }
+    }
+
     func redraw() {
         uiModel = list.uiModel
     }

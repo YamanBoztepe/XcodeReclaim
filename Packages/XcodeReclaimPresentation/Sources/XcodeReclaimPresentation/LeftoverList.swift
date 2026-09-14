@@ -1,8 +1,6 @@
 import Foundation
 import XcodeReclaimCore
 
-private let appName = "XcodeReclaim"
-
 private enum Kind: CaseIterable {
     case folder
     case simulator
@@ -31,7 +29,9 @@ struct LeftoverList {
     var beingMeasured: String?
     var deletionMessage: String?
     var confirmation: LeftoverListUIModel.Confirmation?
-    var beingDeleted: Leftover?
+    var beingDeleted: [Leftover] = []
+    var selected: Set<String> = []
+    var sorting = LeftoverListUIModel.Sorting.biggestFirst
 
     var uiModel: LeftoverListUIModel {
         let sections = sectionsInOrder()
@@ -43,23 +43,47 @@ struct LeftoverList {
             nothingToDelete: !isMeasuring && sections.isEmpty,
             deletionMessage: deletionMessage,
             sections: drawn(sections),
+            selection: selected,
+            sorting: sorting,
+            canDeleteSelection: !offered(shownAs: selected).isEmpty && beingDeleted.isEmpty,
             confirmation: confirmation)
     }
 
-    func leftover(shownAs id: String) -> Leftover? {
-        held.first { identity(of: $0.place) == id }
+    func leftovers(shownAs shown: Set<String>) -> [Leftover] {
+        held.filter { shown.contains(identity(of: $0.place)) }
     }
 
-    func confirmationOver(_ leftover: Leftover) -> LeftoverListUIModel.Confirmation {
-        LeftoverListUIModel.Confirmation(name: leftover.name, sentence: confirmationSentence(for: leftover))
+    func offered(shownAs shown: Set<String>) -> [Leftover] {
+        leftovers(shownAs: shown).filter { $0.refusal == nil }
     }
 
-    func deletionSentence(for deletion: Deletion, about deleted: Leftover) -> String {
-        switch deletion {
-        case .freed(let bytes): "\(Room.written(bytes)) came back."
-        case .refused(let refusal): refusalSentence(for: refusal)
-        case .failed(let why): "\(deleted.name) could not be deleted. \(why)"
+    mutating func drop(_ leftover: Leftover) {
+        held.removeAll { $0 == leftover }
+        selected.remove(identity(of: leftover.place))
+    }
+
+    func confirmationOver(_ leftovers: [Leftover], keeping kept: Int) -> LeftoverListUIModel.Confirmation {
+        LeftoverListUIModel.Confirmation(
+            question: question(over: leftovers),
+            sentence: confirmationSentence(for: leftovers, keeping: kept))
+    }
+
+    func refusalSentence(for refusal: Leftover.Refusal) -> String {
+        switch refusal {
+        case .simulatorIsRunning: "The simulator is running."
+        case .xcodeIsOpen: "Xcode is open."
+        case .commandLineToolsPointAtIt: "The command line tools point at this one."
         }
+    }
+
+    func failureSentence(about deleted: Leftover, why: String) -> String {
+        "\(deleted.name) could not be deleted. \(why)"
+    }
+
+    func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {
+        let said = (roomThatCameBack > 0 ? ["\(Room.written(roomThatCameBack)) came back."] : []) + wrong
+
+        return said.isEmpty ? nil : said.joined(separator: " ")
     }
 }
 
@@ -86,12 +110,39 @@ private extension LeftoverList {
                 tint: tints[place % tints.count],
                 size: Room.written(roomIn(section.held)),
                 share: Double(roomIn(section.held)) / Double(roomOnTheScreen),
-                rows: section.held.map { row(for: $0, marked: marked) })
+                rows: sorted(section.held).map { row(for: $0, marked: marked) })
         }
     }
 
+    func sorted(_ shown: [Leftover]) -> [Leftover] {
+        shown
+            .enumerated()
+            .sorted { offered, other in
+                switch reading(of: offered.element, against: other.element) {
+                case .orderedSame: offered.offset < other.offset
+                case .orderedAscending: sorting.ascending
+                case .orderedDescending: !sorting.ascending
+                }
+            }
+            .map(\.element)
+    }
+
+    func reading(of leftover: Leftover, against other: Leftover) -> ComparisonResult {
+        switch sorting.column {
+        case .name: leftover.name.localizedStandardCompare(other.name)
+        case .size: reading(of: leftover.bytes, against: other.bytes)
+        }
+    }
+
+    func reading(of room: Int, against other: Int) -> ComparisonResult {
+        guard room != other else { return .orderedSame }
+
+        return room < other ? .orderedAscending : .orderedDescending
+    }
+
     func title(over roomToReclaim: Int) -> String {
-        guard !held.isEmpty else { return appName }
+        guard !isMeasuring else { return "Measuring…" }
+        guard !held.isEmpty else { return "" }
 
         return "\(Room.written(roomToReclaim)) to reclaim"
     }
@@ -113,8 +164,8 @@ private extension LeftoverList {
             size: Room.written(leftover.bytes),
             refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
-            deletionUnderWay: leftover == beingDeleted ? "Deleting…" : nil,
-            canBeDeleted: leftover.refusal == nil && beingDeleted == nil)
+            deletionUnderWay: beingDeleted.contains(leftover) ? "Deleting…" : nil,
+            canBeDeleted: leftover.refusal == nil && beingDeleted.isEmpty)
     }
 
     func kind(of place: Leftover.Place) -> Kind {
@@ -132,19 +183,26 @@ private extension LeftoverList {
         }
     }
 
-    func refusalSentence(for refusal: Leftover.Refusal) -> String {
-        switch refusal {
-        case .simulatorIsRunning: "The simulator is running."
-        case .xcodeIsOpen: "Xcode is open."
-        case .commandLineToolsPointAtIt: "The command line tools point at this one."
-        }
+    func question(over leftovers: [Leftover]) -> String {
+        guard let only = leftovers.first, leftovers.count == 1 else { return "Delete \(leftovers.count) items?" }
+
+        return "Delete \(only.name)?"
     }
 
-    func confirmationSentence(for leftover: Leftover) -> String {
-        let frees = "Frees \(Room.written(leftover.bytes))."
-        guard let cost = leftover.cost else { return "\(frees) This cannot be undone." }
+    func confirmationSentence(for leftovers: [Leftover], keeping kept: Int) -> String {
+        let frees = "Frees \(Room.written(roomIn(leftovers)))."
+        let keeping = kept > 0 ? ["Leaving \(kept) that cannot be deleted."] : []
 
-        return "\(frees) \(sentence(from: cost)) This cannot be undone."
+        return ([frees] + keeping + costs(of: leftovers) + ["This cannot be undone."]).joined(separator: " ")
+    }
+
+    func costs(of leftovers: [Leftover]) -> [String] {
+        leftovers.compactMap(\.cost).reduce(into: [String]()) { said, cost in
+            let sentence = self.sentence(from: cost)
+            guard !said.contains(sentence) else { return }
+
+            said.append(sentence)
+        }
     }
 
     func sentence(from cost: String) -> String {

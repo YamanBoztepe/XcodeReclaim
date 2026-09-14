@@ -39,7 +39,7 @@ final class LeftoverListViewModelSizeTests {
 
         #expect(
             sut.uiModel.sections.flatMap(\.rows).map(\.size) == [
-                "999 bytes", "1.0 KB", "1000.0 KB", "1.0 MB", "1000.0 MB", "1.0 GB", "1.0 TB",
+                "1.0 TB", "1.0 GB", "1000.0 MB", "1.0 MB", "1000.0 KB", "1.0 KB", "999 bytes",
             ])
     }
 
@@ -59,7 +59,7 @@ final class LeftoverListViewModelSizeTests {
 
         sut.measuringEnded(with: [])
 
-        #expect(sut.uiModel.title == "XcodeReclaim")
+        #expect(sut.uiModel.title.isEmpty)
     }
 
     @Test("The room to reclaim is what the sections say they hold")

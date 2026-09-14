@@ -23,10 +23,10 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForMeasuringToEnd()
 
         try app.askToDelete("Derived data")
-        #expect(app.leftoverAwaitingConfirmation == "Derived data")
+        #expect(app.confirmationQuestion == "Delete Derived data?")
 
         app.confirm()
-        #expect(app.leftoverAwaitingConfirmation == nil)
+        #expect(app.confirmationQuestion == nil)
         #expect(app.rowsBeingDeleted == ["Derived data"])
         #expect(app.deletableRows.isEmpty)
 
@@ -42,10 +42,10 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForMeasuringToEnd()
 
         try app.askToDelete("Derived data")
-        #expect(app.leftoverAwaitingConfirmation == "Derived data")
+        #expect(app.confirmationQuestion == "Delete Derived data?")
 
         app.backOut()
-        #expect(app.leftoverAwaitingConfirmation == nil)
+        #expect(app.confirmationQuestion == nil)
         #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
         #expect(app.deletionMessage == nil)
     }
@@ -79,7 +79,21 @@ struct XcodeReclaimAcceptanceTests {
         #expect(app.deletionMessage == "4.0 GB came back.")
     }
 
-    @Test("The folders the machine offers are measured at once rather than one after another")
+    @Test func confirm_takesEveryChosenLeftoverOffTheScreenAndAddsUpWhatCameBack() async throws {
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300, previewsFolder: 200], simulatorsTaking: [100])
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        try app.askToDelete("Derived data", "Previews")
+        #expect(app.confirmationQuestion == "Delete 2 items?")
+
+        app.confirm()
+        await app.waitForDeletionToEnd()
+        #expect(app.shownLeftovers == ["iPhone 17 (iOS 26.4, 21B507D3) — 100 bytes"])
+        #expect(app.deletionMessage == "500 bytes came back.")
+    }
+
+    @Test
     func open_measuresTheFoldersAtOnce() async {
         let twoOfTheFolders = [derivedDataFolder, previewsFolder]
         let disk = DiskSpy()
@@ -93,15 +107,24 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForMeasuringToEnd()
     }
 
-    @Test("Leftovers of equal size are shown in the order the machine offers them")
+    @Test
     func open_showsLeftoversOfEqualSizeInTheOrderTheyAreOffered() async {
-        let roomTheyBothTake = 300
-        let app = appMeasuring(foldersHolding: [previewsFolder: roomTheyBothTake, derivedDataFolder: roomTheyBothTake])
+        let roomTheyAllTake = 300
+        let app = appMeasuring(foldersHolding: [
+            previewsFolder: roomTheyAllTake,
+            derivedDataFolder: roomTheyAllTake,
+            documentationCacheFolder: roomTheyAllTake,
+            interfaceBuilderCacheFolder: roomTheyAllTake,
+        ])
 
         app.open()
         await app.waitForMeasuringToEnd()
 
-        #expect(app.shownLeftovers == ["Derived data — 300 bytes", "Previews — 300 bytes"])
+        #expect(
+            app.shownLeftovers == [
+                "Derived data — 300 bytes", "Interface builder cache — 300 bytes", "Previews — 300 bytes",
+                "Documentation cache — 300 bytes",
+            ])
     }
 
     @Test("The developer opens the app and it takes its place among the regular applications")
