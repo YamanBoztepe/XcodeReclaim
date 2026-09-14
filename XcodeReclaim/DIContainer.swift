@@ -2,9 +2,9 @@ import Foundation
 import XcodeReclaimInfra
 
 struct DIContainer {
-    let disk: XcodeLeftovers.MakingADisk
-    let simulatorService: XcodeLeftovers.MakingASimulatorService
-    let xcodeCopies: XcodeLeftovers.MakingXcodeCopies
+    let disk: XcodeReclaim.MakingADisk
+    let simulatorService: XcodeReclaim.MakingASimulatorService
+    let xcodeCopies: XcodeReclaim.MakingXcodeCopies
 
     init(applicationsFolder: URL) {
         disk = { FileManagerDisk() }

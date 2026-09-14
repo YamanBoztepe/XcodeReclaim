@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct XcodeReclaimApp: App {
-    @State private var leftoverList = XcodeReclaimApp.xcodeLeftovers.leftoverList()
+    @State private var leftoverList = XcodeReclaimApp.xcodeReclaim.leftoverList()
 
     var body: some Scene {
         WindowGroup {
@@ -15,10 +15,10 @@ struct XcodeReclaimApp: App {
 private extension XcodeReclaimApp {
     static var places: WhereXcodeLeavesThings { .onThisMachine }
 
-    static var xcodeLeftovers: XcodeLeftovers {
+    static var xcodeReclaim: XcodeReclaim {
         let dependencies = DIContainer(applicationsFolder: places.applicationsFolder)
 
-        return XcodeLeftovers(
+        return XcodeReclaim(
             developerFolder: places.developerFolder,
             worthDeleting: places.worthDeleting,
             disk: dependencies.disk,

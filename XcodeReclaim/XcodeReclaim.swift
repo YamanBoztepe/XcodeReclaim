@@ -2,7 +2,7 @@ import Foundation
 import XcodeReclaimCore
 import XcodeReclaimEngine
 
-public struct XcodeLeftovers: Sendable {
+public struct XcodeReclaim: Sendable {
     public typealias MakingADisk = @Sendable () -> any Disk
     public typealias MakingASimulatorService = @Sendable () -> any SimulatorService
     public typealias MakingXcodeCopies = @Sendable () -> any XcodeCopies
@@ -32,7 +32,7 @@ public struct XcodeLeftovers: Sendable {
     }
 }
 
-private extension XcodeLeftovers {
+private extension XcodeReclaim {
     var measureLeftovers: MeasureLeftovers {
         MeasureLeftovers(
             developerFolder: developerFolder,
