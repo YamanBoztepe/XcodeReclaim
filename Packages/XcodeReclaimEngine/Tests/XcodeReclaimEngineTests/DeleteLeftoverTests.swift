@@ -49,9 +49,11 @@ struct DeleteLeftoverTests {
 
     @Test("Deleting a leftover that is already gone frees nothing")
     func delete_freesNothingForALeftoverThatIsAlreadyGone() {
-        let (sut, _, _) = makeSUT()
+        let roomTheMeasuringSaidItTook = 200
+        let (sut, disk, _) = makeSUT()
+        disk.removal = .success(false)
 
-        let received = sut.delete(derivedData(taking: 0))
+        let received = sut.delete(derivedData(taking: roomTheMeasuringSaidItTook))
 
         #expect(received == .freed(0))
     }

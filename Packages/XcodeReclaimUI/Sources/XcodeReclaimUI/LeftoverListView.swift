@@ -66,6 +66,7 @@ private enum Layout {
     static let aroundEdges: CGFloat = 20
     static let betweenHeaderLines: CGFloat = 12
     static let betweenKeys: CGFloat = 20
+    static let underKey: CGFloat = 6
     static let besideSymbol: CGFloat = 6
     static let underRowName: CGFloat = 2
     static let underMeasuringSentence: CGFloat = 4
@@ -133,18 +134,28 @@ private extension LeftoverListView {
     }
 
     var legend: some View {
-        HStack(spacing: Layout.betweenKeys) {
-            ForEach(model.sections) { section in
-                HStack(spacing: Layout.besideSymbol) {
-                    Circle()
-                        .fill(section.tint.colour)
-                        .frame(width: Layout.keyDot, height: Layout.keyDot)
-                    Text(section.name).font(.callout)
-                    Text(section.size).font(.callout).foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Layout.betweenKeys) {
+                keys
+                Spacer()
             }
-            Spacer()
+            VStack(alignment: .leading, spacing: Layout.underKey) {
+                keys
+            }
+        }
+    }
+
+    @ViewBuilder var keys: some View {
+        ForEach(model.sections) { section in
+            HStack(spacing: Layout.besideSymbol) {
+                Circle()
+                    .fill(section.tint.colour)
+                    .frame(width: Layout.keyDot, height: Layout.keyDot)
+                Text(section.name).font(.callout)
+                Text(section.size).font(.callout).foregroundStyle(.secondary)
+            }
+            .fixedSize()
+            .accessibilityElement(children: .combine)
         }
     }
 

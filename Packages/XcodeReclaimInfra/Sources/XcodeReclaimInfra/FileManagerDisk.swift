@@ -27,11 +27,12 @@ public struct FileManagerDisk: Disk {
         return held.filter { (try? $0.resourceValues(forKeys: Set(wanted)))?.isDirectory == true }
     }
 
-    public func removeItem(at url: URL) throws {
+    public func removeItem(at url: URL) throws -> Bool {
         do {
             try FileManager.default.removeItem(at: url)
+            return true
         } catch let refusal as CocoaError where refusal.code == .fileNoSuchFile {
-            return
+            return false
         }
     }
 }

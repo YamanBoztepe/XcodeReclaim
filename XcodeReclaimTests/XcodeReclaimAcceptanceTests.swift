@@ -94,6 +94,19 @@ struct XcodeReclaimAcceptanceTests {
     }
 
     @Test
+    func confirm_saysNothingCameBackForALeftoverThatWentBeforeTheDeletionRan() async throws {
+        let app = appMeasuring(withDisk: DiskStub(holding: [derivedDataFolder: 300], removesAnything: false))
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        try app.askToDelete("Derived data")
+        app.confirm()
+        await app.waitUntil { app.shownLeftovers.isEmpty }
+
+        #expect(app.deletionMessage == nil)
+    }
+
+    @Test
     func open_measuresTheFoldersAtOnce() async {
         let twoOfTheFolders = [derivedDataFolder, previewsFolder]
         let disk = DiskSpy()

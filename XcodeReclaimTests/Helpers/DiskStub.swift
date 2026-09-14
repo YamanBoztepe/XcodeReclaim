@@ -3,6 +3,7 @@ import XcodeReclaimEngine
 
 struct DiskStub: Disk, Sendable {
     let holding: [URL: Int]
+    var removesAnything = true
 
     func bytesUsedByFolder(at url: URL) -> Int {
         holding[url, default: 0]
@@ -12,5 +13,5 @@ struct DiskStub: Disk, Sendable {
         []
     }
 
-    func removeItem(at url: URL) throws {}
+    func removeItem(at url: URL) throws -> Bool { removesAnything }
 }

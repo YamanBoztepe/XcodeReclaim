@@ -61,6 +61,14 @@ struct LeftoverListViewSnapshotTests {
     }
 
     @Test
+    func draws_theScreenSqueezedToItsNarrowestWindow() {
+        let narrowestWindow = CGSize(width: 460, height: 640)
+
+        makeSUT(showing: LeftoverListUIModel(title: "147.8 GB to reclaim", isMeasuring: false, sections: everyKindOfSection))
+            .verify(named: "LEFTOVER_LIST_IN_THE_NARROWEST_WINDOW", configuration: .window(size: narrowestWindow))
+    }
+
+    @Test
     func draws_theScreenSortedByName() {
         makeSUT(
             showing: LeftoverListUIModel(

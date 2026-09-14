@@ -110,18 +110,21 @@ struct FileManagerDiskTests {
         defer { throwAway(folder) }
         let held = FolderOnDisk.putAFolder(named: "held", inside: folder)
 
-        try sut.removeItem(at: held)
+        let received = try sut.removeItem(at: held)
 
+        #expect(received)
         #expect(sut.foldersInside(folder).isEmpty)
     }
 
     @Test
-    func removeItem_doesNotFailForSomethingThatIsNotThere() {
+    func removeItem_saysNothingWasThereWhenThereIsNothingToRemove() throws {
         let sut = makeSUT()
         let folder = makeFolder(holding: 0)
         defer { throwAway(folder) }
 
-        #expect(throws: Never.self) { try sut.removeItem(at: folder.appending(path: "never made")) }
+        let received = try sut.removeItem(at: folder.appending(path: "never made"))
+
+        #expect(received == false)
     }
 
     @Test("A folder that could not be deleted says what the disk said")

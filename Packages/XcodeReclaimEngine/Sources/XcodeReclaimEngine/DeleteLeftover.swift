@@ -16,8 +16,8 @@ public struct DeleteLeftover {
         }
 
         do {
-            try remove(leftover.place)
-            return .freed(leftover.bytes)
+            let wasThere = try remove(leftover.place)
+            return .freed(wasThere ? leftover.bytes : 0)
         } catch {
             return .failed(error.localizedDescription)
         }
@@ -25,12 +25,13 @@ public struct DeleteLeftover {
 }
 
 private extension DeleteLeftover {
-    func remove(_ place: Leftover.Place) throws {
+    func remove(_ place: Leftover.Place) throws -> Bool {
         switch place {
         case .folder(let url), .xcodeCopy(let url):
-            try disk.removeItem(at: url)
+            return try disk.removeItem(at: url)
         case .simulator(let identifier):
             try simulatorService.delete(simulatorWithIdentifier: identifier)
+            return true
         }
     }
 }

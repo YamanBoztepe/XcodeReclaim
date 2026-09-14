@@ -15,7 +15,8 @@ final class DiskStub: Disk {
         folders[url, default: []]
     }
 
-    func removeItem(at url: URL) throws {
+    func removeItem(at url: URL) throws -> Bool {
         removed.append(url)
+        return true
     }
 }
