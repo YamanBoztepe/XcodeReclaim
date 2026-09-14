@@ -12,3 +12,5 @@ default.profraw
 .claude/settings.local.json
 **/taken/
 *.xcodeproj
+CLAUDE.md
+.claude/
