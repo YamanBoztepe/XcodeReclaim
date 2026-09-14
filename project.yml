@@ -9,6 +9,7 @@ options:
 
 settings:
   base:
+    DEVELOPMENT_TEAM: X8F92F5YZ5
     SWIFT_VERSION: "6.0"
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature MemberImportVisibility"
@@ -45,6 +46,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.boztepe.XcodeReclaim
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES
+        INFOPLIST_KEY_NSDesktopFolderUsageDescription: "XcodeReclaim looks here for copies of Xcode, and measures the room each one takes."
+        INFOPLIST_KEY_NSDocumentsFolderUsageDescription: "XcodeReclaim looks here for copies of Xcode, and measures the room each one takes."
+        INFOPLIST_KEY_NSDownloadsFolderUsageDescription: "XcodeReclaim looks here for copies of Xcode, and measures the room each one takes."
     scheme:
       testTargets:
         - XcodeReclaimTests
