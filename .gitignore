@@ -14,3 +14,9 @@ default.profraw
 *.xcodeproj
 CLAUDE.md
 .claude/
+features/
+contracts/
+mutants/
+discipline/
+readings.md
+requirements.md
