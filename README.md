@@ -25,28 +25,31 @@ It refuses what it should not touch, and says why in the row: a simulator that i
 running, a copy of Xcode that is open, and the copy your command line tools point
 at.
 
-## Running it
-
-macOS 15 or later. There is no signed download yet, so build it yourself.
-
 ## Building it
 
-The Xcode project is generated rather than kept in the repository:
+It needs macOS 15 or later to run and Xcode 26 to build. There is no signed
+download yet, so build it yourself — the Xcode project is generated rather than
+kept in the repository:
 
 ```bash
 brew install xcodegen swiftlint
-git lfs install
+git lfs install && git lfs pull
 xcodegen generate
 open XcodeReclaim.xcodeproj
 ```
 
-`git lfs` matters: the UI snapshots are stored with it, and without it the
-snapshot tests compare against pointer files. `swift-format` ships with Xcode;
-both it and `swiftlint` run clean on the tree.
+Then ⌘R.
+
+`git lfs` matters: the UI snapshots are stored with it, and without pulling them
+the snapshot tests compare against pointer files. `swift-format` ships with
+Xcode; both it and `swiftlint` run clean on the tree.
 
 Tests are ⌘U for the app and its journeys, and `swift test` inside each folder
 under `Packages/` for the layers underneath. Every test is named for what it
-claims, so the suite reads as a list of sentences about the product.
+claims, so the suite reads as a list of sentences about the product. The
+snapshot tests compare real pixels, so they refuse to judge on a different
+macOS than the one they were recorded on, and say so rather than failing
+quietly.
 
 ## How it is put together
 
