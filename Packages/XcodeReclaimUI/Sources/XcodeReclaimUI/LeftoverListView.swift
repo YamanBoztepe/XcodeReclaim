@@ -29,8 +29,14 @@ public struct LeftoverListView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
-            ScrollView { measuredLeftovers }
-                .frame(minHeight: Layout.shortestList, idealHeight: Layout.listAsItOpens, maxHeight: .infinity)
+            Group {
+                if model.isMeasuring {
+                    measuring
+                } else {
+                    ScrollView { measuredLeftovers }
+                }
+            }
+            .frame(minHeight: Layout.shortestList, idealHeight: Layout.listAsItOpens, maxHeight: .infinity)
         }
         .frame(minWidth: Layout.narrowestWindow)
         .onAppear(perform: onAppear)
@@ -57,6 +63,8 @@ private enum Layout {
     static let besideSymbol: CGFloat = 6
     static let besideRow: CGFloat = 12
     static let underRowName: CGFloat = 2
+    static let underSpinner: CGFloat = 12
+    static let underMeasuringSentence: CGFloat = 4
     static let aroundRow: CGFloat = 8
     static let barHeight: CGFloat = 14
     static let barCorner: CGFloat = 7
@@ -95,10 +103,6 @@ private extension LeftoverListView {
             if let message = model.deletionMessage {
                 Text(message).font(.callout).foregroundStyle(.secondary)
             }
-
-            if model.isMeasuring {
-                measuring
-            }
         }
         .padding(Layout.aroundEdges)
     }
@@ -132,15 +136,16 @@ private extension LeftoverListView {
     }
 
     var measuring: some View {
-        HStack(spacing: Layout.aroundRow) {
-            ProgressView().controlSize(.small)
-            VStack(alignment: .leading, spacing: Layout.underRowName) {
+        VStack(spacing: Layout.underSpinner) {
+            ProgressView()
+            VStack(spacing: Layout.underMeasuringSentence) {
                 Text("Measuring what Xcode left…").font(.callout)
                 if let name = model.leftoverBeingMeasured {
                     Text(name).font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     var measuredLeftovers: some View {
