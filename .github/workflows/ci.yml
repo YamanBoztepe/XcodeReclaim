@@ -64,7 +64,7 @@ jobs:
       - name: Generate the Xcode project
         run: xcodegen generate
 
-      - name: Build under the thread sanitizer
+      - name: Build
         timeout-minutes: 10
         run: |
           xcodebuild build-for-testing \
@@ -73,7 +73,7 @@ jobs:
             -destination 'platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData"
 
-      - name: Test
+      - name: Test under the thread sanitizer
         timeout-minutes: 10
         run: |
           xcodebuild test-without-building \
