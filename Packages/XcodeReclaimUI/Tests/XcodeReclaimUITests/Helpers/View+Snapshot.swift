@@ -24,7 +24,7 @@ extension View {
         shown.frame = CGRect(origin: .zero, size: configuration.size)
         shown.appearance = NSAppearance(named: .aqua)
 
-        let window = NSWindow(contentRect: shown.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        let window = SnapshotWindow(size: configuration.size, scale: configuration.scale)
         window.contentView = shown
         shown.layoutSubtreeIfNeeded()
         settle(shown)
