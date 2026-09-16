@@ -67,36 +67,29 @@ jobs:
       - name: Build under the thread sanitizer
         timeout-minutes: 10
         run: |
-          set -o pipefail
-          mkdir -p "$RUNNER_TEMP/logs"
           xcodebuild build-for-testing \
             -project XcodeReclaim.xcodeproj \
             -scheme XcodeReclaimCI \
             -destination 'platform=macOS' \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            2>&1 | tee "$RUNNER_TEMP/logs/build.log"
+            -derivedDataPath "$RUNNER_TEMP/DerivedData"
 
       - name: Test
         timeout-minutes: 10
         run: |
-          set -o pipefail
           xcodebuild test-without-building \
             -project XcodeReclaim.xcodeproj \
             -scheme XcodeReclaimCI \
             -destination 'platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            -resultBundlePath "$RUNNER_TEMP/XcodeReclaimCI.xcresult" \
-            2>&1 | tee "$RUNNER_TEMP/logs/test.log"
+            -resultBundlePath "$RUNNER_TEMP/XcodeReclaimCI.xcresult"
 
-      - name: Keep the logs and the result bundle
-        if: always()
+      - name: Keep the result bundle
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: build-and-test
+          name: XcodeReclaimCI.xcresult
           if-no-files-found: ignore
-          path: |
-            ${{ runner.temp }}/logs
-            ${{ runner.temp }}/XcodeReclaimCI.xcresult
+          path: ${{ runner.temp }}/XcodeReclaimCI.xcresult
 
       - name: Report the tests and the coverage
         if: always()
