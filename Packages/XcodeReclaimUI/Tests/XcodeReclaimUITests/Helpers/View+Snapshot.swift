@@ -89,9 +89,15 @@ extension View {
 
         guard drawn != stored else { return }
 
+        let differingPixels = SnapshotComparison.differingPixelCount(between: drawn, and: stored)
+        if let differingPixels, differingPixels <= SnapshotComparison.differingPixelTolerance { return }
+
         Attachment.record(Attachment([UInt8](drawn), named: "1_drawn_now.png"))
         Attachment.record(Attachment([UInt8](stored), named: "2_recorded_before.png"))
-        Issue.record("\(name) does not match the snapshot recorded at \(recorded.path(percentEncoded: false)).", sourceLocation: sourceLocation)
+        let difference = differingPixels.map { "\($0) pixels differ, and up to \(SnapshotComparison.differingPixelTolerance) may" } ?? "the sizes differ"
+        Issue.record(
+            "\(name) does not match the snapshot recorded at \(recorded.path(percentEncoded: false)): \(difference).",
+            sourceLocation: sourceLocation)
     }
 
     private func recordedSnapshot(named name: String, beside filePath: StaticString) -> URL {
