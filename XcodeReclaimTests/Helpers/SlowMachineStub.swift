@@ -1,26 +1,22 @@
-import Foundation
 import Synchronization
 import XcodeReclaimCore
 
 final class SlowMachineStub: Sendable {
     private let measurings: [MachineStub]
-    private let finished = Mutex<Set<Int>>([])
     private let howManyHaveBegun = Atomic(0)
-    private let toldToFinish = NSCondition()
+    private let pendingMeasurings = Mutex(PendingMeasurings())
 
     init(eachMeasuring measurings: [MachineStub]) {
         self.measurings = measurings
     }
 
-    func measuring(announcing announce: @Sendable (String) -> Void) -> [Leftover] {
+    func measuring(announcing announce: @Sendable (String) -> Void) async -> [Leftover] {
         let thisMeasuring = howManyHaveBegun.wrappingAdd(1, ordering: .relaxed).oldValue
         let found = measurings[thisMeasuring].measuring(announcing: announce)
 
-        toldToFinish.lock()
-        while !finished.withLock({ $0.contains(thisMeasuring) }) {
-            toldToFinish.wait()
+        await withCheckedContinuation { continuation in
+            pendingMeasurings.withLock { $0.resume(continuation, whenFinished: thisMeasuring) }
         }
-        toldToFinish.unlock()
 
         return found
     }
@@ -30,16 +26,31 @@ final class SlowMachineStub: Sendable {
     }
 
     func letMeasuringFinish(_ measuring: Int) {
-        toldToFinish.lock()
-        finished.withLock { _ = $0.insert(measuring) }
-        toldToFinish.broadcast()
-        toldToFinish.unlock()
+        pendingMeasurings.withLock { $0.finish([measuring]) }
     }
 
     func letEveryMeasuringFinish() {
-        toldToFinish.lock()
-        finished.withLock { $0.formUnion(measurings.indices) }
-        toldToFinish.broadcast()
-        toldToFinish.unlock()
+        pendingMeasurings.withLock { $0.finish(Set(measurings.indices)) }
+    }
+}
+
+private struct PendingMeasurings {
+    private var finishedMeasurings: Set<Int> = []
+    private var continuations: [Int: CheckedContinuation<Void, Never>] = [:]
+
+    mutating func resume(_ continuation: CheckedContinuation<Void, Never>, whenFinished measuring: Int) {
+        guard !finishedMeasurings.contains(measuring) else {
+            continuation.resume()
+            return
+        }
+
+        continuations[measuring] = continuation
+    }
+
+    mutating func finish(_ measurings: Set<Int>) {
+        finishedMeasurings.formUnion(measurings)
+        for measuring in measurings {
+            continuations.removeValue(forKey: measuring)?.resume()
+        }
     }
 }

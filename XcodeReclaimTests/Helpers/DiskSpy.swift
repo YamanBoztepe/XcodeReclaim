@@ -19,7 +19,14 @@ final class DiskSpy: Disk, Sendable {
     }
 
     func bytesUsedByFolder(at url: URL) -> Int {
-        asked.withLock { $0.append(url) }
+        let minimumConcurrentReads = 2
+        let readCount = asked.withLock {
+            $0.append(url)
+            return $0.count
+        }
+        if readCount >= minimumConcurrentReads {
+            answerNow()
+        }
 
         toldToAnswer.lock()
         while !answering.load(ordering: .acquiring) {
