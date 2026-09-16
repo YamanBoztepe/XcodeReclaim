@@ -20,7 +20,6 @@ extension View {
     }
 
     @MainActor private func drawn(_ configuration: SnapshotConfiguration) -> Data? {
-        SnapshotDisplay.pin()
         let shown = NSHostingView(rootView: frame(width: configuration.size.width, height: configuration.size.height))
         shown.frame = CGRect(origin: .zero, size: configuration.size)
         shown.appearance = NSAppearance(named: .aqua)
