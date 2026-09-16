@@ -1,5 +1,9 @@
 # XcodeReclaim
 
+[![CI](https://github.com/YamanBoztepe/XcodeReclaim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/YamanBoztepe/XcodeReclaim/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FYamanBoztepe%2FXcodeReclaim%2Fbadges%2Ftests.json)
+![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FYamanBoztepe%2FXcodeReclaim%2Fbadges%2Fcoverage.json)
+
 A macOS app that shows what Xcode has left on disk — where it sits and how much
 room it takes — and deletes what you choose.
 
