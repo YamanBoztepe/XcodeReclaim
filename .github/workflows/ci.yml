@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  XCODE_PATH: /Applications/Xcode_26.4.1.app
+  SWIFTLINT_VERSION: 0.63.3
+  XCODEGEN_VERSION: 2.46.0
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode
+        run: sudo xcode-select --switch "$XCODE_PATH"
+
+      - name: Install SwiftLint
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/swiftlint.zip" \
+            "https://github.com/realm/SwiftLint/releases/download/$SWIFTLINT_VERSION/portable_swiftlint.zip"
+          unzip -q "$RUNNER_TEMP/swiftlint.zip" -d "$RUNNER_TEMP/swiftlint"
+          echo "$RUNNER_TEMP/swiftlint" >> "$GITHUB_PATH"
+
+      - name: SwiftLint
+        run: swiftlint lint --strict --reporter github-actions-logging
+
+      - name: swift-format
+        run: swift format lint --recursive --strict Packages XcodeReclaim XcodeReclaimTests
+
+  test:
+    name: Build and test
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Select Xcode
+        run: sudo xcode-select --switch "$XCODE_PATH"
+
+      - name: Install XcodeGen
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" \
+            "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN_VERSION/xcodegen.zip"
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: Build and test under the thread sanitizer
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project XcodeReclaim.xcodeproj \
+            -scheme XcodeReclaimCI \
+            -destination 'platform=macOS' \
+            -resultBundlePath "$RUNNER_TEMP/XcodeReclaimCI.xcresult" \
+            | xcbeautify --renderer github-actions
+
+      - name: Keep the result bundle
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: XcodeReclaimCI.xcresult
+          path: ${{ runner.temp }}/XcodeReclaimCI.xcresult
