@@ -62,3 +62,19 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  XcodeReclaimCI:
+    build:
+      targets:
+        XcodeReclaim: all
+    test:
+      config: Debug
+      gatherCoverageData: true
+      enableThreadSanitizer: true
+      targets:
+        - XcodeReclaimTests
+        - package: XcodeReclaimEngine/XcodeReclaimEngineTests
+        - package: XcodeReclaimInfra/XcodeReclaimInfraTests
+        - package: XcodeReclaimPresentation/XcodeReclaimPresentationTests
+        - package: XcodeReclaimUI/XcodeReclaimUITests
