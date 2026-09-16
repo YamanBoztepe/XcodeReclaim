@@ -45,7 +45,7 @@ jobs:
   test:
     name: Build and test
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -64,19 +64,36 @@ jobs:
       - name: Generate the Xcode project
         run: xcodegen generate
 
-      - name: Build and test under the thread sanitizer
+      - name: Build under the thread sanitizer
+        timeout-minutes: 10
         run: |
           set -o pipefail
-          xcodebuild test \
+          mkdir -p "$RUNNER_TEMP/logs"
+          xcodebuild build-for-testing \
             -project XcodeReclaim.xcodeproj \
             -scheme XcodeReclaimCI \
             -destination 'platform=macOS' \
-            -resultBundlePath "$RUNNER_TEMP/XcodeReclaimCI.xcresult" \
-            | xcbeautify --renderer github-actions
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            2>&1 | tee "$RUNNER_TEMP/logs/build.log"
 
-      - name: Keep the result bundle
-        if: failure()
+      - name: Test
+        timeout-minutes: 10
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -project XcodeReclaim.xcodeproj \
+            -scheme XcodeReclaimCI \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/XcodeReclaimCI.xcresult" \
+            2>&1 | tee "$RUNNER_TEMP/logs/test.log"
+
+      - name: Keep the logs and the result bundle
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: XcodeReclaimCI.xcresult
-          path: ${{ runner.temp }}/XcodeReclaimCI.xcresult
+          name: build-and-test
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/logs
+            ${{ runner.temp }}/XcodeReclaimCI.xcresult
