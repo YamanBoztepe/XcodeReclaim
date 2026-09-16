@@ -18,7 +18,7 @@ public struct LeftoverListContainerView: View {
             onSort: model.sort(by:),
             onAskAboutDeleting: model.askAboutDeleting,
             onConfirm: model.confirm,
-            onBackOut: model.backOut)
+            onCancel: model.cancel)
     }
 
     public var commands: LeftoverListCommands {

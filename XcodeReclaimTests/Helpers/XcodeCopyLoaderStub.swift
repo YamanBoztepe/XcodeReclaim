@@ -1,10 +1,10 @@
 import Foundation
 import XcodeReclaimEngine
 
-struct XcodeCopiesStub: XcodeCopies, Sendable {
+struct XcodeCopyLoaderStub: XcodeCopyLoader, Sendable {
     let eachTaking: [Int]
 
-    func copies() -> [XcodeCopy] {
+    func load() -> [XcodeCopy] {
         eachTaking.map {
             XcodeCopy(
                 path: URL(filePath: "/Applications/Xcode 26.2.app"),

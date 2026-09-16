@@ -1,11 +1,11 @@
 import Foundation
 import XcodeReclaimCore
 
-struct CopiesOfXcode {
-    let xcodeCopies: any XcodeCopies
+struct XcodeCopyLeftoverLoader {
+    let xcodeCopyLoader: any XcodeCopyLoader
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
-        xcodeCopies.copies().map { copy in
+        xcodeCopyLoader.load().map { copy in
             let name = name(of: copy)
             announce(name)
 

@@ -85,7 +85,7 @@ private extension MeasureLeftoversSimulatorTests {
             developerFolder: DeveloperFolder.root,
             disk: disk,
             simulatorService: simulators,
-            xcodeCopies: XcodeCopiesStub(),
+            xcodeCopyLoader: XcodeCopyLoaderStub(),
             worthDeleting: worthDeleting)
         return (sut, disk, simulators)
     }

@@ -1,7 +1,7 @@
 import XcodeReclaimCore
 
 @MainActor
-final class LatestMeasuringOnly {
+final class LatestMeasuringDecorator {
     private let announcing: (String) -> Void
     private let delivering: ([Leftover]) -> Void
     private var latestMeasuring = 0

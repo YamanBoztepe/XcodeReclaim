@@ -2,7 +2,7 @@ import Foundation
 import Testing
 import XcodeReclaimInfra
 
-struct ProcessToolTests {
+struct ProcessCommandRunnerTests {
     @Test("A refusal carries what the tool said")
     func run_throwsWhatTheToolSaidWhenItExitsWithAFailure() {
         let sut = makeSUT()
@@ -43,9 +43,9 @@ struct ProcessToolTests {
     }
 }
 
-private extension ProcessToolTests {
-    func makeSUT() -> ProcessTool {
-        ProcessTool()
+private extension ProcessCommandRunnerTests {
+    func makeSUT() -> ProcessCommandRunner {
+        ProcessCommandRunner()
     }
 
     func aToolWriting(_ answer: String) -> (executable: URL, arguments: [String]) {

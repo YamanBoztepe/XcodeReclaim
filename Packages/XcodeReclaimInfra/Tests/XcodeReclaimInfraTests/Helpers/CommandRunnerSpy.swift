@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimInfra
 
-final class ToolSpy: Tool {
+final class CommandRunnerSpy: CommandRunner {
     struct Run: Hashable {
         let executable: URL
         let arguments: [String]

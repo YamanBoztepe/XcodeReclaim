@@ -97,7 +97,7 @@ private extension LeftoverListViewSnapshotTests {
             onSort: { _ in },
             onAskAboutDeleting: { _ in },
             onConfirm: {},
-            onBackOut: {})
+            onCancel: {})
     }
 
     var everyKindOfSection: [LeftoverSection] { [simulators, caches(tinted: .teal), xcodeVersions] }

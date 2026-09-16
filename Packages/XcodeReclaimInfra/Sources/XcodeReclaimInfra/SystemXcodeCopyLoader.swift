@@ -1,18 +1,18 @@
 import Foundation
 import XcodeReclaimEngine
 
-public struct SystemXcodeCopies: XcodeCopies {
-    private let tool: any Tool
+public struct SystemXcodeCopyLoader: XcodeCopyLoader {
+    private let commandRunner: any CommandRunner
     private let disk: any Disk
     private let applicationsFolder: URL
 
-    public init(tool: any Tool, disk: any Disk, applicationsFolder: URL) {
-        self.tool = tool
+    public init(commandRunner: any CommandRunner, disk: any Disk, applicationsFolder: URL) {
+        self.commandRunner = commandRunner
         self.disk = disk
         self.applicationsFolder = applicationsFolder
     }
 
-    public func copies() -> [XcodeCopy] {
+    public func load() -> [XcodeCopy] {
         let reported = searchedCopies()
         let found = (reported.isEmpty ? copiesInTheApplicationsFolder() : reported).map(withoutATrailingSlash)
         let running = runningProcesses()
@@ -35,12 +35,12 @@ private struct BundleInformation {
     let version: XcodeCopy.Version?
 }
 
-private extension SystemXcodeCopies {
+private extension SystemXcodeCopyLoader {
     var xcodeBundleIdentifier: String { "com.apple.dt.Xcode" }
 
     func searchedCopies() -> [URL] {
         let carryingTheIdentifier = "kMDItemCFBundleIdentifier == '\(xcodeBundleIdentifier)'"
-        let answered = (try? tool.run(executable: URL(fileURLWithPath: "/usr/bin/mdfind"), arguments: [carryingTheIdentifier])) ?? ""
+        let answered = (try? commandRunner.run(executable: URL(fileURLWithPath: "/usr/bin/mdfind"), arguments: [carryingTheIdentifier])) ?? ""
         return lines(of: answered).map { URL(fileURLWithPath: $0) }
     }
 
@@ -49,11 +49,11 @@ private extension SystemXcodeCopies {
     }
 
     func runningProcesses() -> [String] {
-        lines(of: (try? tool.run(executable: URL(fileURLWithPath: "/bin/ps"), arguments: ["-Ao", "comm="])) ?? "")
+        lines(of: (try? commandRunner.run(executable: URL(fileURLWithPath: "/bin/ps"), arguments: ["-Ao", "comm="])) ?? "")
     }
 
     func commandLineToolsPath() -> String {
-        let answered = (try? tool.run(executable: URL(fileURLWithPath: "/usr/bin/xcode-select"), arguments: ["-p"])) ?? ""
+        let answered = (try? commandRunner.run(executable: URL(fileURLWithPath: "/usr/bin/xcode-select"), arguments: ["-p"])) ?? ""
         return lines(of: answered).first ?? ""
     }
 

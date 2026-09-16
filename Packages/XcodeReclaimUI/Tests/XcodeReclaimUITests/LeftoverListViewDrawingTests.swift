@@ -46,7 +46,7 @@ private extension LeftoverListViewDrawingTests {
             onSort: { _ in },
             onAskAboutDeleting: { _ in },
             onConfirm: {},
-            onBackOut: {})
+            onCancel: {})
     }
 
     func row(numbered place: Int) -> LeftoverRow {

@@ -9,7 +9,7 @@ public struct LeftoverListView: View {
     public let onSort: (LeftoverListUIModel.Sorting) -> Void
     public let onAskAboutDeleting: (Set<String>) -> Void
     public let onConfirm: () -> Void
-    public let onBackOut: () -> Void
+    public let onCancel: () -> Void
 
     public init(
         model: LeftoverListUIModel,
@@ -19,7 +19,7 @@ public struct LeftoverListView: View {
         onSort: @escaping (LeftoverListUIModel.Sorting) -> Void,
         onAskAboutDeleting: @escaping (Set<String>) -> Void,
         onConfirm: @escaping () -> Void,
-        onBackOut: @escaping () -> Void
+        onCancel: @escaping () -> Void
     ) {
         self.model = model
         self.onAppear = onAppear
@@ -28,7 +28,7 @@ public struct LeftoverListView: View {
         self.onSort = onSort
         self.onAskAboutDeleting = onAskAboutDeleting
         self.onConfirm = onConfirm
-        self.onBackOut = onBackOut
+        self.onCancel = onCancel
     }
 
     public var body: some View {
@@ -46,10 +46,10 @@ public struct LeftoverListView: View {
         .onAppear(perform: onAppear)
         .alert(
             model.confirmation?.question ?? "",
-            isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { onBackOut() } })
+            isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { onCancel() } })
         ) {
             Button("Delete", action: onConfirm)
-            Button("Cancel", role: .cancel, action: onBackOut)
+            Button("Cancel", role: .cancel, action: onCancel)
         } message: {
             Text(model.confirmation?.sentence ?? "")
         }

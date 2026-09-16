@@ -2,14 +2,14 @@ import Foundation
 import XcodeReclaimEngine
 
 public struct SimctlSimulatorService: SimulatorService {
-    private let tool: any Tool
+    private let commandRunner: any CommandRunner
 
-    public init(tool: any Tool) {
-        self.tool = tool
+    public init(commandRunner: any CommandRunner) {
+        self.commandRunner = commandRunner
     }
 
     public func simulators() throws -> [Simulator] {
-        let listed = try tool.run(executable: xcrun, arguments: ["simctl", "list", "devices", "-j"])
+        let listed = try commandRunner.run(executable: xcrun, arguments: ["simctl", "list", "devices", "-j"])
         let reported = try JSONDecoder().decode(ReportedDevices.self, from: Data(listed.utf8))
 
         return reported.devices.sorted { $0.key < $1.key }.flatMap { runtime, devices in
@@ -25,7 +25,7 @@ public struct SimctlSimulatorService: SimulatorService {
     }
 
     public func delete(simulatorWithIdentifier identifier: String) throws {
-        _ = try tool.run(executable: xcrun, arguments: ["simctl", "delete", identifier])
+        _ = try commandRunner.run(executable: xcrun, arguments: ["simctl", "delete", identifier])
     }
 }
 

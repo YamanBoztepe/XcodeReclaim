@@ -24,7 +24,7 @@ func appMeasuring(
         worthDeleting: anythingIsWorthDeleting,
         disk: { disk },
         simulatorService: { SimulatorServiceStub(eachTaking: simulators) },
-        xcodeCopies: { XcodeCopiesStub(eachTaking: copies) }
+        xcodeCopyLoader: { XcodeCopyLoaderStub(eachTaking: copies) }
     )
     .leftoverList()
 }

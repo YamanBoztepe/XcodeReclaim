@@ -1,13 +1,13 @@
 import Foundation
 
-public struct WhereXcodeLeavesThings: Sendable {
+public struct XcodeLocations: Sendable {
     public let developerFolder: URL
     public let applicationsFolder: URL
     public let worthDeleting: Int
 
     public static let whatIsWorthDeleting = 100_000_000
 
-    public static let onThisMachine = WhereXcodeLeavesThings(
+    public static let onThisMachine = XcodeLocations(
         developerFolder: URL(filePath: NSHomeDirectory()).appending(path: "Library/Developer"),
         applicationsFolder: URL(filePath: "/Applications"),
         worthDeleting: whatIsWorthDeleting)

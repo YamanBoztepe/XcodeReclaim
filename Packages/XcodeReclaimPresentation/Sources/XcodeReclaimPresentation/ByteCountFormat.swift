@@ -8,7 +8,7 @@ private let units: [(divisor: Int, unit: String)] = [
     (kilobyte, "KB"),
 ]
 
-enum Room {
+enum ByteCountFormat {
     static func written(_ bytes: Int) -> String {
         guard let read = unitReading(of: bytes) else { return "\(bytes) bytes" }
 

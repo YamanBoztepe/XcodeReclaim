@@ -38,8 +38,8 @@ extension LeftoverListContainerView {
         view.onConfirm()
     }
 
-    func backOut() {
-        view.onBackOut()
+    func cancel() {
+        view.onCancel()
     }
 }
 

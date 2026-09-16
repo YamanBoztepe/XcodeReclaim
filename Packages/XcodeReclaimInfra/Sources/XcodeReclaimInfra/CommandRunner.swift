@@ -1,5 +1,5 @@
 import Foundation
 
-public protocol Tool {
+public protocol CommandRunner {
     func run(executable: URL, arguments: [String]) throws -> String
 }

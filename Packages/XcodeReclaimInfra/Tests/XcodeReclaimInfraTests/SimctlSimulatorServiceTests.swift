@@ -6,8 +6,8 @@ import XcodeReclaimInfra
 struct SimctlSimulatorServiceTests {
     @Test
     func simulators_deliversEveryDeviceTheListReports() throws {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(
             SimulatorList.reporting([
                 "com.apple.CoreSimulator.SimRuntime.iOS-18-1": [.init(udid: "AAAA-1", name: "iPhone 16 Pro")],
                 "com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(udid: "BBBB-2", name: "iPhone 17"), .init(udid: "CCCC-3", name: "iPad Pro")],
@@ -21,8 +21,8 @@ struct SimctlSimulatorServiceTests {
 
     @Test(arguments: [("Shutdown", true), ("Booted", false), ("Booting", false), ("Shutting Down", false), ("Creating", false), ("shutdown", false)])
     func simulators_readsAnyStateOtherThanShutdownAsNotShutDown(state: String, isShutDown: Bool) throws {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(state: state)]]))
 
         let received = try sut.simulators()
 
@@ -39,8 +39,8 @@ struct SimctlSimulatorServiceTests {
         ("com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro", "com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro"),
     ])
     func simulators_deliversADeviceWithTheRuntimeItSitsUnder(runtime: String, named: String) throws {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(SimulatorList.reporting([runtime: [.init()]]))
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(SimulatorList.reporting([runtime: [.init()]]))
 
         let received = try sut.simulators()
 
@@ -50,8 +50,8 @@ struct SimctlSimulatorServiceTests {
     @Test
     func simulators_deliversADeviceWithTheRoomTheToolSaidItTakes() throws {
         let roomItTakes = 4_557_963_264
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(
             SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(dataPathSize: roomItTakes)]]))
 
         let received = try sut.simulators()
@@ -63,8 +63,8 @@ struct SimctlSimulatorServiceTests {
     func simulators_deliversEachDeviceWithItsOwnRoom() throws {
         let roomTheFirstTakes = 4_557_963_264
         let roomTheSecondTakes = 17_500_000
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(
             SimulatorList.reporting([
                 "com.apple.CoreSimulator.SimRuntime.iOS-26-4": [
                     .init(udid: "AAAA-1", dataPathSize: roomTheFirstTakes),
@@ -79,8 +79,8 @@ struct SimctlSimulatorServiceTests {
 
     @Test
     func simulators_deliversADeviceWithNoReportedRoomAsTakingNone() throws {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(
             SimulatorList.reporting(["com.apple.CoreSimulator.SimRuntime.iOS-26-4": [.init(dataPathSize: nil)]]))
 
         let received = try sut.simulators()
@@ -91,27 +91,27 @@ struct SimctlSimulatorServiceTests {
     @Test
     func delete_tellsTheServiceToRemoveTheDevice() throws {
         let deviceIdentifier = "21B507D3-909E-465B-957C-4B370278399F"
-        let (sut, tool) = makeSUT()
+        let (sut, commandRunner) = makeSUT()
 
         try sut.delete(simulatorWithIdentifier: deviceIdentifier)
 
-        #expect(tool.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "delete", deviceIdentifier])])
+        #expect(commandRunner.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "delete", deviceIdentifier])])
     }
 
     @Test
     func simulators_asksTheToolForTheDeviceListAsJSON() throws {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success(SimulatorList.reporting([:]))
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success(SimulatorList.reporting([:]))
 
         _ = try sut.simulators()
 
-        #expect(tool.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "list", "devices", "-j"])])
+        #expect(commandRunner.runs == [.init(executable: URL(fileURLWithPath: "/usr/bin/xcrun"), arguments: ["simctl", "list", "devices", "-j"])])
     }
 
     @Test("A deletion the service refuses frees nothing")
     func delete_throwsWhatTheServiceSaidWhenItRefuses() {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .failure(WorldFailure(sentence: "Invalid device"))
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .failure(WorldFailure(sentence: "Invalid device"))
 
         let received = #expect(throws: (any Error).self) { try sut.delete(simulatorWithIdentifier: "21B507D3") }
 
@@ -120,17 +120,17 @@ struct SimctlSimulatorServiceTests {
 
     @Test
     func simulators_throwsWhenTheListCannotBeRead() {
-        let (sut, tool) = makeSUT()
-        tool.answers["xcrun"] = .success("not the list at all")
+        let (sut, commandRunner) = makeSUT()
+        commandRunner.answers["xcrun"] = .success("not the list at all")
 
         #expect(throws: (any Error).self) { try sut.simulators() }
     }
 }
 
 private extension SimctlSimulatorServiceTests {
-    func makeSUT() -> (sut: SimctlSimulatorService, tool: ToolSpy) {
-        let tool = ToolSpy()
-        let sut = SimctlSimulatorService(tool: tool)
-        return (sut, tool)
+    func makeSUT() -> (sut: SimctlSimulatorService, commandRunner: CommandRunnerSpy) {
+        let commandRunner = CommandRunnerSpy()
+        let sut = SimctlSimulatorService(commandRunner: commandRunner)
+        return (sut, commandRunner)
     }
 }

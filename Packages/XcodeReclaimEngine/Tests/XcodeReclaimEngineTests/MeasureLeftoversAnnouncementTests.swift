@@ -70,15 +70,15 @@ struct MeasureLeftoversAnnouncementTests {
 }
 
 private extension MeasureLeftoversAnnouncementTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopiesStub) {
+    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopyLoaderStub) {
         let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
-        let copies = XcodeCopiesStub()
+        let copies = XcodeCopyLoaderStub()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
             disk: disk,
             simulatorService: simulators,
-            xcodeCopies: copies,
+            xcodeCopyLoader: copies,
             worthDeleting: worthDeleting)
         return (sut, disk, simulators, copies)
     }

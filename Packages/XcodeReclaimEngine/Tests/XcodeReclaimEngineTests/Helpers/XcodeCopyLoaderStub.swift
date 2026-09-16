@@ -1,9 +1,9 @@
 import XcodeReclaimEngine
 
-final class XcodeCopiesStub: XcodeCopies {
+final class XcodeCopyLoaderStub: XcodeCopyLoader {
     var reported: [XcodeCopy] = []
 
-    func copies() -> [XcodeCopy] {
+    func load() -> [XcodeCopy] {
         reported
     }
 }

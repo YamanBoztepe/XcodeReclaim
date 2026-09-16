@@ -15,7 +15,7 @@ struct XcodeReclaimApp: App {
 }
 
 private extension XcodeReclaimApp {
-    static var places: WhereXcodeLeavesThings { .onThisMachine }
+    static var places: XcodeLocations { .onThisMachine }
 
     static var xcodeReclaim: XcodeReclaim {
         let applicationsFolder = places.applicationsFolder
@@ -24,7 +24,7 @@ private extension XcodeReclaimApp {
             developerFolder: places.developerFolder,
             worthDeleting: places.worthDeleting,
             disk: { FileManagerDisk() },
-            simulatorService: { SimctlSimulatorService(tool: ProcessTool()) },
-            xcodeCopies: { SystemXcodeCopies(tool: ProcessTool(), disk: FileManagerDisk(), applicationsFolder: applicationsFolder) })
+            simulatorService: { SimctlSimulatorService(commandRunner: ProcessCommandRunner()) },
+            xcodeCopyLoader: { SystemXcodeCopyLoader(commandRunner: ProcessCommandRunner(), disk: FileManagerDisk(), applicationsFolder: applicationsFolder) })
     }
 }

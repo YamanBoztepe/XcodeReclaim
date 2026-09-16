@@ -1,6 +1,6 @@
 import XcodeReclaimCore
 
-struct Simulators {
+struct SimulatorLeftoverLoader {
     let simulatorService: any SimulatorService
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {

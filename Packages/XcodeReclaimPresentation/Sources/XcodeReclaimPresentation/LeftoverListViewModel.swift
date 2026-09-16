@@ -68,7 +68,7 @@ public final class LeftoverListViewModel {
         askAboutDeleting(list.selected)
     }
 
-    public func backOut() {
+    public func cancel() {
         beingConfirmed = []
         list.confirmation = nil
         redraw()

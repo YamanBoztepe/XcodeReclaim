@@ -36,7 +36,7 @@ struct XcodeReclaimAcceptanceTests {
     }
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
-    func backOut_leavesTheLeftoverAsItWas() async throws {
+    func cancel_leavesTheLeftoverAsItWas() async throws {
         let app = appMeasuring(foldersHolding: [derivedDataFolder: 300])
         app.open()
         await app.waitForMeasuringToEnd()
@@ -44,7 +44,7 @@ struct XcodeReclaimAcceptanceTests {
         try app.askToDelete("Derived data")
         #expect(app.confirmationQuestion == "Delete Derived data?")
 
-        app.backOut()
+        app.cancel()
         #expect(app.confirmationQuestion == nil)
         #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
         #expect(app.deletionMessage == nil)

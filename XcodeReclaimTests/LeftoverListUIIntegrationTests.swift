@@ -51,7 +51,7 @@ struct LeftoverListUIIntegrationTests {
         try screen.askToDelete("Derived data")
         #expect(screen.confirmation == .init(question: "Delete Derived data?", sentence: "Frees 300 bytes. This cannot be undone."))
 
-        screen.backOut()
+        screen.cancel()
         #expect(screen.confirmation == nil)
     }
 

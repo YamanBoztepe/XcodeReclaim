@@ -15,20 +15,20 @@ public struct MeasureLeftovers {
     private let developerFolder: URL
     private let disk: any Disk
     private let simulatorService: any SimulatorService
-    private let xcodeCopies: any XcodeCopies
+    private let xcodeCopyLoader: any XcodeCopyLoader
     private let worthDeleting: Int
 
     public init(
         developerFolder: URL,
         disk: any Disk,
         simulatorService: any SimulatorService,
-        xcodeCopies: any XcodeCopies,
+        xcodeCopyLoader: any XcodeCopyLoader,
         worthDeleting: Int
     ) {
         self.developerFolder = developerFolder
         self.disk = disk
         self.simulatorService = simulatorService
-        self.xcodeCopies = xcodeCopies
+        self.xcodeCopyLoader = xcodeCopyLoader
         self.worthDeleting = worthDeleting
     }
 
@@ -42,13 +42,13 @@ public struct MeasureLeftovers {
 
     public func leftovers(of offered: Offered, announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
         switch offered {
-        case .derivedData: offeredFolder(.derivedData).leftovers(announcing: announce)
-        case .interfaceBuilderCache: offeredFolder(.interfaceBuilderCache).leftovers(announcing: announce)
-        case .previews: offeredFolder(.previews).leftovers(announcing: announce)
-        case .documentationCache: offeredFolder(.documentationCache).leftovers(announcing: announce)
-        case .deviceSupport: DeviceSupportVersions(developerFolder: developerFolder, disk: disk).leftovers(announcing: announce)
-        case .simulators: Simulators(simulatorService: simulatorService).leftovers(announcing: announce)
-        case .copiesOfXcode: CopiesOfXcode(xcodeCopies: xcodeCopies).leftovers(announcing: announce)
+        case .derivedData: folderLeftoverLoader(.derivedData).leftovers(announcing: announce)
+        case .interfaceBuilderCache: folderLeftoverLoader(.interfaceBuilderCache).leftovers(announcing: announce)
+        case .previews: folderLeftoverLoader(.previews).leftovers(announcing: announce)
+        case .documentationCache: folderLeftoverLoader(.documentationCache).leftovers(announcing: announce)
+        case .deviceSupport: DeviceSupportLeftoverLoader(developerFolder: developerFolder, disk: disk).leftovers(announcing: announce)
+        case .simulators: SimulatorLeftoverLoader(simulatorService: simulatorService).leftovers(announcing: announce)
+        case .copiesOfXcode: XcodeCopyLeftoverLoader(xcodeCopyLoader: xcodeCopyLoader).leftovers(announcing: announce)
         }
     }
 
@@ -66,7 +66,7 @@ private extension MeasureLeftovers {
             .map(\.element)
     }
 
-    func offeredFolder(_ offered: OfferedFolder.Offered) -> OfferedFolder {
-        OfferedFolder(offered: offered, developerFolder: developerFolder, disk: disk)
+    func folderLeftoverLoader(_ offered: FolderLeftoverLoader.Offered) -> FolderLeftoverLoader {
+        FolderLeftoverLoader(offered: offered, developerFolder: developerFolder, disk: disk)
     }
 }

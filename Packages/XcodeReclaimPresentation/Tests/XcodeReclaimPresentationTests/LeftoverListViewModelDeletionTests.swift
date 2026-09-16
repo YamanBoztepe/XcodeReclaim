@@ -39,12 +39,12 @@ final class LeftoverListViewModelDeletionTests {
     }
 
     @Test("A deletion the developer backs out of leaves the leftover as it was")
-    func backOut_leavesTheLeftoverAsItWas() throws {
+    func cancel_leavesTheLeftoverAsItWas() throws {
         let (sut, requests) = makeSUT()
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
 
-        sut.backOut()
+        sut.cancel()
 
         #expect(sut.uiModel.confirmation == nil)
         #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ProcessTool: Tool {
+public struct ProcessCommandRunner: CommandRunner {
     public init() {}
 
     public func run(executable: URL, arguments: [String]) throws -> String {
@@ -20,20 +20,20 @@ public struct ProcessTool: Tool {
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            throw ToolFailure(said: try text(of: said).trimmingCharacters(in: .whitespacesAndNewlines))
+            throw CommandFailure(said: try text(of: said).trimmingCharacters(in: .whitespacesAndNewlines))
         }
 
         return try text(of: written)
     }
 }
 
-struct ToolFailure: LocalizedError {
+struct CommandFailure: LocalizedError {
     let said: String
 
     var errorDescription: String? { said }
 }
 
-private extension ProcessTool {
+private extension ProcessCommandRunner {
     func emptyTemporaryFile() throws -> URL {
         let file = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try Data().write(to: file)

@@ -96,7 +96,7 @@ struct LeftoverList {
     }
 
     func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {
-        let said = (roomThatCameBack > 0 ? ["\(Room.written(roomThatCameBack)) came back."] : []) + wrong
+        let said = (roomThatCameBack > 0 ? ["\(ByteCountFormat.written(roomThatCameBack)) came back."] : []) + wrong
 
         return said.isEmpty ? nil : said.joined(separator: " ")
     }
@@ -123,7 +123,7 @@ private extension LeftoverList {
                 name: section.kind.name,
                 symbol: section.kind.symbol,
                 tint: tints[place % tints.count],
-                size: Room.written(roomShown(in: section.held)),
+                size: ByteCountFormat.written(roomShown(in: section.held)),
                 share: Double(roomShown(in: section.held)) / Double(roomOnTheScreen),
                 rows: sorted(section.held).map { row(for: $0, marked: marked) })
         }
@@ -159,7 +159,7 @@ private extension LeftoverList {
         guard !isMeasuring else { return "Measuring…" }
         guard !held.isEmpty else { return "" }
 
-        return "\(Room.written(roomToReclaim)) to reclaim"
+        return "\(ByteCountFormat.written(roomToReclaim)) to reclaim"
     }
 
     func roomIn(_ held: [Leftover]) -> Int {
@@ -167,7 +167,7 @@ private extension LeftoverList {
     }
 
     func roomShown(in held: [Leftover]) -> Int {
-        held.reduce(0) { $0 + Room.rounded($1.bytes) }
+        held.reduce(0) { $0 + ByteCountFormat.rounded($1.bytes) }
     }
 
     func largest(in shown: [Leftover]) -> Leftover? {
@@ -180,7 +180,7 @@ private extension LeftoverList {
         LeftoverRow(
             id: identity(of: leftover.place),
             name: leftover.name,
-            size: Room.written(leftover.bytes),
+            size: ByteCountFormat.written(leftover.bytes),
             refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
             deletionUnderWay: beingDeleted.contains(leftover) ? "Deleting…" : nil,
@@ -209,7 +209,7 @@ private extension LeftoverList {
     }
 
     func confirmationSentence(for leftovers: [Leftover], keeping kept: Int) -> String {
-        let frees = "Frees \(Room.written(roomIn(leftovers)))."
+        let frees = "Frees \(ByteCountFormat.written(roomIn(leftovers)))."
         let keeping = kept > 0 ? ["Leaving \(kept) that cannot be deleted."] : []
 
         return ([frees] + keeping + costs(of: leftovers) + ["This cannot be undone."]).joined(separator: " ")
