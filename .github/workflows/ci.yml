@@ -97,3 +97,43 @@ jobs:
           path: |
             ${{ runner.temp }}/logs
             ${{ runner.temp }}/XcodeReclaimCI.xcresult
+
+      - name: Report the tests and the coverage
+        if: always()
+        run: python3 .github/scripts/test_metrics.py "$RUNNER_TEMP/XcodeReclaimCI.xcresult" "$RUNNER_TEMP/badges" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the badges
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: badges
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/badges
+
+  badges:
+    name: Publish badges
+    needs: test
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Take the badges from the test job
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: badges
+          path: badges
+
+      - name: Push them to the badges branch
+        if: steps.download.outcome == 'success'
+        run: |
+          cd badges
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests.json coverage.json
+          git commit -q -m "Badges for ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" badges
