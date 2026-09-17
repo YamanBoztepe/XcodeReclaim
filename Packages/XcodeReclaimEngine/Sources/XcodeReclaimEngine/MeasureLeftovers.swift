@@ -62,7 +62,7 @@ private extension MeasureLeftovers {
             .map(\.element)
     }
 
-    func folderLeftoverLoader(_ offered: FolderLeftoverLoader.Offered) -> FolderLeftoverLoader {
-        FolderLeftoverLoader(offered: offered, developerFolder: developerFolder, disk: disk)
+    func folderLeftoverLoader(_ folder: FolderLeftoverLoader.Folder) -> FolderLeftoverLoader {
+        FolderLeftoverLoader(folder: folder, developerFolder: developerFolder, disk: disk)
     }
 }
