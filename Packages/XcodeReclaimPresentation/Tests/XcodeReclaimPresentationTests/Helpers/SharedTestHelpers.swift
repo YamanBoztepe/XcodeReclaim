@@ -1,32 +1,54 @@
 import Foundation
 import XcodeReclaimCore
 
-func folder(named name: String = "Derived data", taking bytes: Int, costing cost: String? = nil) -> Leftover {
-    Leftover(name: name, bytes: bytes, place: .folder(URL(fileURLWithPath: "/developer/\(name)")), cost: cost)
+func derivedData(taking bytes: Int) -> Leftover {
+    folder(.derivedData, at: "Xcode/DerivedData", taking: bytes)
+}
+
+func interfaceBuilderCache(taking bytes: Int) -> Leftover {
+    folder(.interfaceBuilderCache, at: "Xcode/UserData/IB Support", taking: bytes)
+}
+
+func previews(taking bytes: Int) -> Leftover {
+    folder(.previews, at: "Xcode/UserData/Previews", taking: bytes)
+}
+
+func documentationCache(taking bytes: Int) -> Leftover {
+    folder(.documentationCache, at: "Xcode/DocumentationCache", taking: bytes)
+}
+
+func deviceSupport(for systemVersion: String, taking bytes: Int) -> Leftover {
+    folder(.deviceSupport(systemVersion: systemVersion), at: "Xcode/iOS DeviceSupport/iPhone15,2 \(systemVersion) (22A1)", taking: bytes)
+}
+
+func deviceSupport(inFolderNamed folderName: String, taking bytes: Int) -> Leftover {
+    folder(.deviceSupport(systemVersion: nil), at: "Xcode/iOS DeviceSupport/\(folderName)", taking: bytes)
 }
 
 func simulator(
-    named name: String = "iPhone 17 (iOS 26.4, 21B507D3)",
+    named name: String = "iPhone 17",
+    on runtime: String = "iOS 26.4",
+    identified identifier: String = "21B507D3-909E-465B-957C-4B370278399F",
     taking bytes: Int,
     refusedFor refusal: Leftover.Refusal? = nil
 ) -> Leftover {
-    Leftover(
-        name: name,
-        bytes: bytes,
-        place: .simulator(name),
-        cost: "the apps inside it and their data are gone",
-        refusal: refusal)
+    Leftover(kind: .simulator(name: name, runtime: runtime), bytes: bytes, place: .simulator(identifier), refusal: refusal)
 }
 
 func copyOfXcode(
-    named name: String = "Xcode 26.2 (17C51) — Applications",
+    carrying version: Leftover.XcodeVersion? = Leftover.XcodeVersion(number: "26.2", build: "17C51"),
+    sittingIn folderName: String = "Applications",
+    canBeRemovedWhereItStands: Bool = true,
     taking bytes: Int,
     refusedFor refusal: Leftover.Refusal? = nil
 ) -> Leftover {
     Leftover(
-        name: name,
+        kind: .xcodeCopy(version: version, canBeRemovedWhereItStands: canBeRemovedWhereItStands),
         bytes: bytes,
-        place: .xcodeCopy(URL(fileURLWithPath: "/Applications/\(name).app")),
-        cost: "that version has to be downloaded again",
+        place: .xcodeCopy(URL(filePath: "/\(folderName)/Xcode.app")),
         refusal: refusal)
+}
+
+private func folder(_ kind: Leftover.Kind, at relativePath: String, taking bytes: Int) -> Leftover {
+    Leftover(kind: kind, bytes: bytes, place: .folder(URL(filePath: "/developer").appending(path: relativePath)))
 }

@@ -1,9 +1,10 @@
 import Foundation
+import XcodeReclaimCore
 import XcodeReclaimEngine
 
-final class WorldSpy: Disk {
+final class WorldSpy: FolderSizer, FolderLister, RemovalChecker, ItemRemover {
     enum Message: Hashable {
-        case announced(String)
+        case announced(Leftover.Kind)
         case sizeRead(URL)
         case foldersListed(URL)
         case removed(URL)
@@ -17,14 +18,14 @@ final class WorldSpy: Disk {
     var removal: Result<Bool, any Error> = .success(true)
     var whatCanBeRemoved: [URL: Bool] = [:]
 
-    var announcements: [String] {
+    var announcements: [Leftover.Kind] {
         messages.compactMap { message in
-            if case .announced(let name) = message { name } else { nil }
+            if case .announced(let kind) = message { kind } else { nil }
         }
     }
 
-    func announce(_ name: String) {
-        messages.append(.announced(name))
+    func announce(_ kind: Leftover.Kind, at place: Leftover.Place) {
+        messages.append(.announced(kind))
     }
 
     func bytesUsedByFolder(at url: URL) -> Int {

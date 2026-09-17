@@ -60,7 +60,9 @@ extension LeftoverListContainerView {
     func waitUntil(_ settled: () -> Bool, sourceLocation: SourceLocation = #_sourceLocation) async {
         let longerThanAnyStubbedMachineTakes = 100_000
 
-        for _ in 0..<longerThanAnyStubbedMachineTakes where !settled() {
+        for _ in 0..<longerThanAnyStubbedMachineTakes {
+            guard !settled() else { return }
+
             await Task.yield()
         }
 

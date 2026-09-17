@@ -1,13 +1,12 @@
 import XcodeReclaimCore
 
-@MainActor
 final class LatestMeasuringDecorator {
-    private let announcing: (String) -> Void
+    private let announcing: (Leftover.Kind, Leftover.Place) -> Void
     private let delivering: ([Leftover]) -> Void
     private var latestMeasuring = 0
 
     init(
-        announcing: @escaping (String) -> Void,
+        announcing: @escaping (Leftover.Kind, Leftover.Place) -> Void,
         delivering: @escaping ([Leftover]) -> Void
     ) {
         self.announcing = announcing
@@ -19,10 +18,10 @@ final class LatestMeasuringDecorator {
         return latestMeasuring
     }
 
-    func announce(_ name: String, from measuring: Int) {
+    func announce(_ kind: Leftover.Kind, at place: Leftover.Place, from measuring: Int) {
         guard measuring == latestMeasuring else { return }
 
-        announcing(name)
+        announcing(kind, place)
     }
 
     func deliver(_ leftovers: [Leftover], from measuring: Int) {

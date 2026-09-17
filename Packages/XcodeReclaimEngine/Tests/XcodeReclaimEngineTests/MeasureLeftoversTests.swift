@@ -10,9 +10,9 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test("A leftover taking no room is not delivered")
@@ -21,16 +21,16 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.previews] = 0
         disk.sizes[DeveloperFolder.derivedData] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["Derived data"])
+        #expect(received.map(\.kind) == [.derivedData])
     }
 
     @Test("A folder holding nothing to delete delivers no leftover")
     func measure_deliversNoLeftoverFromAFolderHoldingNothingToDelete() {
         let (sut, disk, _, _) = makeSUT()
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(received.isEmpty)
     }
@@ -42,9 +42,9 @@ struct MeasureLeftoversTests {
         simulators.report = .failure(SimulatorsCannotBeListed())
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .simulators], announcing: disk.announce)
 
-        #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test("Every offered leftover is delivered when it takes room")
@@ -57,23 +57,27 @@ struct MeasureLeftoversTests {
             disk.sizes[folder] = roomEachTakes
         }
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             received == [
-                Leftover(name: "Derived data", bytes: roomEachTakes, place: .folder(DeveloperFolder.derivedData), cost: nil),
-                Leftover(name: "Interface builder cache", bytes: roomEachTakes, place: .folder(DeveloperFolder.interfaceBuilderCache), cost: nil),
-                Leftover(name: "Previews", bytes: roomEachTakes, place: .folder(DeveloperFolder.previews), cost: "the previews are built again"),
+                Leftover(kind: .derivedData, bytes: roomEachTakes, place: .folder(DeveloperFolder.derivedData)),
                 Leftover(
-                    name: "Documentation cache",
+                    kind: .interfaceBuilderCache,
                     bytes: roomEachTakes,
-                    place: .folder(DeveloperFolder.documentationCache),
-                    cost: "the documentation is downloaded again"),
+                    place: .folder(DeveloperFolder.interfaceBuilderCache)),
                 Leftover(
-                    name: "Device support (iOS 26.4)",
+                    kind: .previews,
                     bytes: roomEachTakes,
-                    place: .folder(symbols),
-                    cost: "the symbols are put back the next time that device is plugged in"),
+                    place: .folder(DeveloperFolder.previews)),
+                Leftover(
+                    kind: .documentationCache,
+                    bytes: roomEachTakes,
+                    place: .folder(DeveloperFolder.documentationCache)),
+                Leftover(
+                    kind: .deviceSupport(systemVersion: "26.4"),
+                    bytes: roomEachTakes,
+                    place: .folder(symbols)),
             ])
     }
 
@@ -84,9 +88,9 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = roomEachTakes
         disk.sizes[DeveloperFolder.previews] = roomEachTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["Derived data", "Previews"])
+        #expect(received.map(\.kind) == [.derivedData, .previews])
     }
 
     @Test("The leftovers are delivered biggest first")
@@ -95,30 +99,9 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = 50
         disk.sizes[DeveloperFolder.previews] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["Previews", "Derived data"])
-    }
-
-    @Test("A leftover that costs something is delivered with its cost")
-    func measure_deliversALeftoverThatCostsSomethingWithItsCost() {
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.previews] = 200
-
-        let received = sut.leftovers(announcing: disk.announce)
-
-        #expect(received.first?.cost != nil)
-    }
-
-    @Test("A leftover that costs nothing is delivered without a cost")
-    func measure_deliversALeftoverThatCostsNothingWithoutACost() {
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.previews] = 200
-        disk.sizes[DeveloperFolder.derivedData] = 120
-
-        let received = sut.leftovers(announcing: disk.announce)
-
-        #expect(received.last?.cost == nil)
+        #expect(received.map(\.kind) == [.previews, .derivedData])
     }
 
     @Test("A leftover too small to be worth deleting is not delivered")
@@ -128,9 +111,9 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
         disk.sizes[DeveloperFolder.previews] = worthDeleting
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["Previews"])
+        #expect(received.map(\.kind) == [.previews])
     }
 
     @Test("A leftover exactly at the threshold is delivered")
@@ -139,9 +122,9 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test
@@ -150,9 +133,9 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting + 1
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test
@@ -161,8 +144,11 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
 
-        #expect(sut.leftovers(of: .derivedData, announcing: disk.announce).map(\.name) == ["Derived data"])
-        #expect(sut.leftovers(announcing: disk.announce).isEmpty)
+        let receivedFromTheSource = sut.leftovers(of: .derivedData, announcing: disk.announce)
+        let receivedFromTheMeasuring = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
+
+        #expect(receivedFromTheSource.map(\.kind) == [.derivedData])
+        #expect(receivedFromTheMeasuring.isEmpty)
     }
 }
 

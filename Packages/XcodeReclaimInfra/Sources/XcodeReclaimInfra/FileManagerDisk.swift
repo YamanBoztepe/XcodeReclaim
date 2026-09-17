@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimEngine
 
-public struct FileManagerDisk: Disk {
+public struct FileManagerDisk: FolderSizer, FolderLister, RemovalChecker, ItemRemover {
     public init() {}
 
     public func bytesUsedByFolder(at url: URL) -> Int {

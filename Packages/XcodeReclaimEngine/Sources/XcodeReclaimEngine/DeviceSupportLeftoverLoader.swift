@@ -3,24 +3,23 @@ import XcodeReclaimCore
 
 struct DeviceSupportLeftoverLoader {
     let developerFolder: URL
-    let disk: any Disk
+    let disk: any MeasureLeftovers.Disk
 
-    func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
-        let cost = "the symbols are put back the next time that device is plugged in"
+    func leftovers(announcing announce: (Leftover.Kind, Leftover.Place) -> Void) -> [Leftover] {
         let deviceSupport = developerFolder.appending(path: "Xcode/iOS DeviceSupport")
 
         return disk.foldersInside(deviceSupport).map { version in
-            let name = "Device support (\(systemVersion(in: version.lastPathComponent)))"
-            announce(name)
+            let kind = Leftover.Kind.deviceSupport(systemVersion: systemVersion(in: version.lastPathComponent))
+            announce(kind, .folder(version))
 
-            return Leftover(name: name, bytes: disk.bytesUsedByFolder(at: version), place: .folder(version), cost: cost)
+            return Leftover(kind: kind, bytes: disk.bytesUsedByFolder(at: version), place: .folder(version))
         }
     }
 
-    private func systemVersion(in folderName: String) -> String {
+    private func systemVersion(in folderName: String) -> String? {
         let modelVersionAndBuild = /^\S+ (\S+) \(\S+\)$/
-        guard let read = try? modelVersionAndBuild.wholeMatch(in: folderName) else { return folderName }
+        guard let read = try? modelVersionAndBuild.wholeMatch(in: folderName) else { return nil }
 
-        return "iOS \(read.1)"
+        return String(read.1)
     }
 }

@@ -13,7 +13,7 @@ func appMeasuring(
 
 @MainActor
 func appMeasuring(
-    withDisk disk: any Disk & Sendable,
+    withDisk disk: any MeasureLeftovers.Disk & DeleteLeftover.Disk & Sendable,
     simulatorsTaking simulators: [Int] = [],
     copiesOfXcodeTaking copies: [Int] = []
 ) -> LeftoverListContainerView {

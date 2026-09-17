@@ -2,6 +2,8 @@ import Foundation
 import XcodeReclaimCore
 
 public struct DeleteLeftover {
+    public typealias Disk = FolderSizer & RemovalChecker & ItemRemover
+
     private let disk: any Disk
     private let simulatorService: any SimulatorService
 

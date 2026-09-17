@@ -97,7 +97,9 @@ struct LeftoverListUIIntegrationTests {
 
     @Test("The developer watches the measuring work through the leftovers")
     func announced_namesEachLeftoverAsTheMeasuringReachesIt() async {
-        let machine = SlowMachineStub(eachMeasuring: [MachineStub(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
+        let machine = SlowMachineStub(eachMeasuring: [
+            MachineStub(announcing: [derivedData(taking: 300), previews(taking: 200)], finding: [derivedData(taking: 300)])
+        ])
         let screen = screenMeasuring(machine)
 
         screen.open()
@@ -115,7 +117,7 @@ struct LeftoverListUIIntegrationTests {
         let theMeasuringTheRefreshReplaces = 0
         let theMeasuringTheRefreshStarts = 1
         let machine = SlowMachineStub(eachMeasuring: [
-            MachineStub(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
+            MachineStub(announcing: [derivedData(taking: 27_700_000_000)], finding: [derivedData(taking: 27_700_000_000)]),
             MachineStub(finding: [previews(taking: 300)]),
         ])
         let screen = screenMeasuring(machine)
@@ -152,7 +154,7 @@ struct LeftoverListUIIntegrationTests {
         await screen.waitForMeasuringToEnd()
         #expect(screen.rowNames == ["Previews", "Derived data"])
 
-        screen.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        screen.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
         #expect(screen.rowNames == ["Derived data", "Previews"])
     }
@@ -165,7 +167,7 @@ struct LeftoverListUIIntegrationTests {
 
         try screen.askToDelete("Derived data", "Previews")
 
-        #expect(screen.confirmation == .init(question: "Delete 2 items?", sentence: "Frees 500 bytes. This cannot be undone."))
+        #expect(screen.confirmation == .init(question: "Delete 2 items?", sentence: "Frees 500 bytes. The previews are built again. This cannot be undone."))
     }
 
     @Test func menu_asksAboutDeletingTheRowsChosenOnTheScreen() async throws {

@@ -1,16 +1,12 @@
 @MainActor
-final class MainThreadDecorator<Message: Sendable> {
-    private let decoratee: (Message) -> Void
+final class MainThreadDecorator<Value: Sendable> {
+    private let decoratee: (Value) -> Void
 
-    init(_ decoratee: @escaping (Message) -> Void) {
+    init(_ decoratee: @escaping (Value) -> Void) {
         self.decoratee = decoratee
     }
 
-    nonisolated func callAsFunction(_ message: Message) {
-        Task { @MainActor [self] in decoratee(message) }
-    }
-
-    nonisolated func answer(from work: @escaping @Sendable () async -> Message) {
-        Task.detached(priority: .userInitiated) { [self] in self(await work()) }
+    nonisolated func handle(_ value: Value) {
+        Task { @MainActor [self] in decoratee(value) }
     }
 }

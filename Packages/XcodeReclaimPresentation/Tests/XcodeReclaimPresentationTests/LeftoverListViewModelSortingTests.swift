@@ -17,7 +17,7 @@ final class LeftoverListViewModelSortingTests {
 
         sut.measuringEnded(with: threeFolders)
 
-        #expect(sut.shownNames == ["Derived data", "Caches", "Previews"])
+        #expect(sut.shownNames == ["Previews", "Derived data", "Interface builder cache"])
     }
 
     @Test
@@ -25,9 +25,9 @@ final class LeftoverListViewModelSortingTests {
         let sut = makeSUT()
         sut.measuringEnded(with: threeFolders)
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
-        #expect(sut.shownNames == ["Caches", "Derived data", "Previews"])
+        #expect(sut.shownNames == ["Derived data", "Interface builder cache", "Previews"])
     }
 
     @Test
@@ -35,9 +35,9 @@ final class LeftoverListViewModelSortingTests {
         let sut = makeSUT()
         sut.measuringEnded(with: threeFolders)
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: false))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: false))
 
-        #expect(sut.shownNames == ["Previews", "Derived data", "Caches"])
+        #expect(sut.shownNames == ["Previews", "Interface builder cache", "Derived data"])
     }
 
     @Test
@@ -45,42 +45,44 @@ final class LeftoverListViewModelSortingTests {
         let sut = makeSUT()
         sut.measuringEnded(with: threeFolders)
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .size, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .size, isAscending: true))
 
-        #expect(sut.shownNames == ["Previews", "Caches", "Derived data"])
+        #expect(sut.shownNames == ["Interface builder cache", "Derived data", "Previews"])
     }
 
     @Test
     func sort_keepsTheOrderTheMeasuringOfferedForRowsHoldingTheSameRoom() {
         let roomTheyBothTake = 200
         let sut = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Previews", taking: roomTheyBothTake), folder(named: "Caches", taking: roomTheyBothTake)])
+        sut.measuringEnded(with: [previews(taking: roomTheyBothTake), documentationCache(taking: roomTheyBothTake)])
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .size, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .size, isAscending: true))
 
-        #expect(sut.shownNames == ["Previews", "Caches"])
+        #expect(sut.shownNames == ["Previews", "Documentation cache"])
     }
 
     @Test
     func sort_sortsInsideEverySectionRatherThanAcrossThem() {
         let sut = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 100), simulator(taking: 300), simulator(named: "iPad Pro", taking: 200)])
+        sut.measuringEnded(with: [
+            derivedData(taking: 100), simulator(taking: 300), simulator(named: "iPad Pro", identified: "8FB6EB6C-8E0B-4AD6-9A55-4E0A1C3B2D11", taking: 200),
+        ])
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
         #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
-        #expect(sut.shownNames == ["iPad Pro", "iPhone 17 (iOS 26.4, 21B507D3)", "Derived data"])
+        #expect(sut.shownNames == ["iPad Pro (iOS 26.4, 8FB6EB6C)", "iPhone 17 (iOS 26.4, 21B507D3)", "Derived data"])
     }
 
     @Test
     func sort_byNameReadsTheNumbersInANameTheWayAPersonReadsThem() {
         let sut = makeSUT()
         sut.measuringEnded(with: [
-            folder(named: "Device support (iOS 26.4)", taking: 300),
-            folder(named: "Device support (iOS 9.0)", taking: 200),
+            deviceSupport(for: "26.4", taking: 300),
+            deviceSupport(for: "9.0", taking: 200),
         ])
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
         #expect(sut.shownNames == ["Device support (iOS 9.0)", "Device support (iOS 26.4)"])
     }
@@ -90,9 +92,9 @@ final class LeftoverListViewModelSortingTests {
         let sut = makeSUT()
         #expect(sut.uiModel.sorting == LeftoverListUIModel.Sorting.biggestFirst)
 
-        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        sut.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
-        #expect(sut.uiModel.sorting == LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        #expect(sut.uiModel.sorting == LeftoverListUIModel.Sorting(column: .name, isAscending: true))
     }
 }
 
@@ -103,9 +105,9 @@ private extension LeftoverListViewModelSortingTests {
         let smallest = 100
 
         return [
-            folder(named: "Derived data", taking: biggest),
-            folder(named: "Caches", taking: middling),
-            folder(named: "Previews", taking: smallest),
+            previews(taking: biggest),
+            derivedData(taking: middling),
+            interfaceBuilderCache(taking: smallest),
         ]
     }
 

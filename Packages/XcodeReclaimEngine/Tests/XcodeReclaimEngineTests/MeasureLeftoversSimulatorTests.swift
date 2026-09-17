@@ -10,29 +10,19 @@ struct MeasureLeftoversSimulatorTests {
         disk.sizes[DeveloperFolder.derivedData] = 50
         simulators.report = .success([simulator(taking: 200)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .simulators], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)", "Derived data"])
+        #expect(received.map(\.kind) == [.simulator(name: "iPhone 17", runtime: "iOS 26.4"), .derivedData])
     }
 
-    @Test("A simulator is named with the runtime it belongs to")
-    func measure_namesASimulatorWithTheRuntimeItBelongsTo() {
+    @Test("A simulator is delivered with the runtime it belongs to")
+    func measure_deliversASimulatorWithTheRuntimeItBelongsTo() {
         let (sut, disk, simulators) = makeSUT()
-        simulators.report = .success([simulator(named: "iPhone 17", on: "iOS 26.4", identified: "21B507D3-909E-465B-957C-4B370278399F")])
+        simulators.report = .success([simulator(named: "iPhone 17", on: "iOS 26.4")])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
-        #expect(received.map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)"])
-    }
-
-    @Test("A simulator is named with the start of its device identifier")
-    func measure_namesASimulatorWithTheStartOfItsDeviceIdentifier() {
-        let (sut, disk, simulators) = makeSUT()
-        simulators.report = .success([simulator(named: "iPhone 16 Pro", on: "iOS 18.1", identified: "21B507D3-909E-465B-957C-4B370278399F")])
-
-        let received = sut.leftovers(announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["iPhone 16 Pro (iOS 18.1, 21B507D3)"])
+        #expect(received.map(\.kind) == [.simulator(name: "iPhone 17", runtime: "iOS 26.4")])
     }
 
     @Test("A running simulator is delivered as running")
@@ -40,7 +30,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(isShutDown: false)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [.simulatorIsRunning])
     }
@@ -50,19 +40,9 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(isShutDown: true)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [nil])
-    }
-
-    @Test("A simulator carries what deleting it costs")
-    func measure_deliversASimulatorWithWhatDeletingItCosts() {
-        let (sut, disk, simulators) = makeSUT()
-        simulators.report = .success([simulator(isShutDown: true)])
-
-        let received = sut.leftovers(announcing: disk.announce)
-
-        #expect(received.map(\.cost) == ["the apps inside it and their data are gone"])
     }
 
     @Test
@@ -71,7 +51,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(identified: deviceIdentifier)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.place) == [.simulator(deviceIdentifier)])
     }

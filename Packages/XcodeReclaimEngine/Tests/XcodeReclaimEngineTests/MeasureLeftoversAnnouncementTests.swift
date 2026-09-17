@@ -9,20 +9,20 @@ struct MeasureLeftoversAnnouncementTests {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = 200
 
-        _ = sut.leftovers(announcing: disk.announce)
+        _ = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             disk.messages == [
-                .announced("Derived data"), .sizeRead(DeveloperFolder.derivedData),
-                .announced("Interface builder cache"), .sizeRead(DeveloperFolder.interfaceBuilderCache),
-                .announced("Previews"), .sizeRead(DeveloperFolder.previews),
-                .announced("Documentation cache"), .sizeRead(DeveloperFolder.documentationCache),
+                .announced(.derivedData), .sizeRead(DeveloperFolder.derivedData),
+                .announced(.interfaceBuilderCache), .sizeRead(DeveloperFolder.interfaceBuilderCache),
+                .announced(.previews), .sizeRead(DeveloperFolder.previews),
+                .announced(.documentationCache), .sizeRead(DeveloperFolder.documentationCache),
                 .foldersListed(DeveloperFolder.deviceSupport),
             ])
     }
 
-    @Test("A measuring announces every offered leftover in the order it works on them")
-    func measure_announcesEveryOfferedLeftoverInTheOrderItWorksOnThem() {
+    @Test("Every offered source announces the leftovers it works on")
+    func measure_announcesTheLeftoversEveryOfferedSourceWorksOn() {
         let roomEachTakes = 100
         let (sut, disk, simulators, copies) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(holding: "26.4")
@@ -43,29 +43,18 @@ struct MeasureLeftoversAnnouncementTests {
                 canBeRemoved: true)
         ]
 
-        _ = sut.leftovers(announcing: disk.announce)
+        _ = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             disk.announcements == [
-                "Derived data",
-                "Interface builder cache",
-                "Previews",
-                "Documentation cache",
-                "Device support (iOS 26.4)",
-                "iPhone 17 (iOS 26.4, 21B507D3)",
-                "Xcode 26.2 (17C51) — Applications",
+                .derivedData,
+                .interfaceBuilderCache,
+                .previews,
+                .documentationCache,
+                .deviceSupport(systemVersion: "26.4"),
+                .simulator(name: "iPhone 17", runtime: "iOS 26.4"),
+                .xcodeCopy(version: Leftover.XcodeVersion(number: "26.2", build: "17C51"), canBeRemovedWhereItStands: true),
             ])
-    }
-
-    @Test("A measuring that is not listened to still delivers its leftovers")
-    func measure_deliversItsLeftoversWhenNothingIsListening() {
-        let roomItTakes = 200
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.derivedData] = roomItTakes
-
-        let received = sut.leftovers()
-
-        #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 }
 

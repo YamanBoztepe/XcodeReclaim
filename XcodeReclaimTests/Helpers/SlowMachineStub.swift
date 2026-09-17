@@ -10,7 +10,7 @@ final class SlowMachineStub: Sendable {
         self.measurings = measurings
     }
 
-    func measuring(announcing announce: @Sendable (String) -> Void) async -> [Leftover] {
+    func measuring(announcing announce: @Sendable (Leftover.Kind, Leftover.Place) -> Void) async -> [Leftover] {
         let thisMeasuring = howManyHaveBegun.wrappingAdd(1, ordering: .relaxed).oldValue
         let found = measurings[thisMeasuring].measuring(announcing: announce)
 
