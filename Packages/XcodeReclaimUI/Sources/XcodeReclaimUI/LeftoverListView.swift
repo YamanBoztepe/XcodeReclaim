@@ -54,29 +54,29 @@ public struct LeftoverListView: View {
             Text(model.confirmation?.sentence ?? "")
         }
     }
-}
 
-private enum Layout {
-    static let narrowestWindow: CGFloat = 460
-    static let shortestList: CGFloat = 120
-    static let listAsItOpens: CGFloat = 360
-    static let underSpinner: CGFloat = 12
-    static let narrowestSizeColumn: CGFloat = 90
-    static let sizeColumnAsItOpens: CGFloat = 110
-    static let aroundEdges: CGFloat = 20
-    static let betweenHeaderLines: CGFloat = 12
-    static let betweenKeys: CGFloat = 20
-    static let underKey: CGFloat = 6
-    static let besideSymbol: CGFloat = 6
-    static let underRowName: CGFloat = 2
-    static let underMeasuringSentence: CGFloat = 4
-    static let aroundRow: CGFloat = 4
-    static let barHeight: CGFloat = 14
-    static let barCorner: CGFloat = 7
-    static let betweenBarSegments: CGFloat = 2
-    static let keyDot: CGFloat = 8
-    static let insideBadge: CGFloat = 6
-    static let aroundBadge: CGFloat = 2
+    private enum Layout {
+        static let narrowestWindow: CGFloat = 460
+        static let shortestList: CGFloat = 120
+        static let listAsItOpens: CGFloat = 360
+        static let underSpinner: CGFloat = 12
+        static let narrowestSizeColumn: CGFloat = 90
+        static let sizeColumnAsItOpens: CGFloat = 110
+        static let aroundEdges: CGFloat = 20
+        static let betweenHeaderLines: CGFloat = 12
+        static let betweenKeys: CGFloat = 20
+        static let underKey: CGFloat = 6
+        static let besideSymbol: CGFloat = 6
+        static let underRowName: CGFloat = 2
+        static let underMeasuringSentence: CGFloat = 4
+        static let aroundRow: CGFloat = 4
+        static let barHeight: CGFloat = 14
+        static let barCorner: CGFloat = 7
+        static let betweenBarSegments: CGFloat = 2
+        static let keyDot: CGFloat = 8
+        static let insideBadge: CGFloat = 6
+        static let aroundBadge: CGFloat = 2
+    }
 }
 
 private extension LeftoverListUIModel {

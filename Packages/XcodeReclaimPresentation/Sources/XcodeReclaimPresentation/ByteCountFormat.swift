@@ -1,14 +1,6 @@
-private let tenthsPerUnit = 10
-private let halvesInAUnit = 2
-private let kilobyte = 1_000
-private let units: [(divisor: Int, unit: String)] = [
-    (kilobyte * kilobyte * kilobyte * kilobyte, "TB"),
-    (kilobyte * kilobyte * kilobyte, "GB"),
-    (kilobyte * kilobyte, "MB"),
-    (kilobyte, "KB"),
-]
-
 enum ByteCountFormat {
+    private static let tenthsPerUnit = 10
+
     static func written(_ bytes: Int) -> String {
         guard let read = unitReading(of: bytes) else { return "\(bytes) bytes" }
 
@@ -22,6 +14,14 @@ enum ByteCountFormat {
     }
 
     private static func unitReading(of bytes: Int) -> (tenths: Int, divisor: Int, unit: String)? {
+        let kilobyte = 1_000
+        let halvesInAUnit = 2
+        let units: [(divisor: Int, unit: String)] = [
+            (kilobyte * kilobyte * kilobyte * kilobyte, "TB"),
+            (kilobyte * kilobyte * kilobyte, "GB"),
+            (kilobyte * kilobyte, "MB"),
+            (kilobyte, "KB"),
+        ]
         guard let read = units.first(where: { bytes >= $0.divisor }) else { return nil }
 
         let roundingUpFromAHalf = read.divisor / halvesInAUnit
