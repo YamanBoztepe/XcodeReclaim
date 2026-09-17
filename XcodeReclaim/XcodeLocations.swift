@@ -7,8 +7,10 @@ public struct XcodeLocations: Sendable {
 
     private static let whatIsWorthDeleting = 100_000_000
 
-    public static let onThisMachine = XcodeLocations(
-        developerFolder: URL(filePath: NSHomeDirectory()).appending(path: "Library/Developer"),
-        applicationsFolder: URL(filePath: "/Applications"),
-        worthDeleting: whatIsWorthDeleting)
+    public static func forUser(at home: URL) -> XcodeLocations {
+        XcodeLocations(
+            developerFolder: home.appending(path: "Library/Developer"),
+            applicationsFolder: URL(filePath: "/Applications"),
+            worthDeleting: whatIsWorthDeleting)
+    }
 }

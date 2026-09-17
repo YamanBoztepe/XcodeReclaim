@@ -15,7 +15,7 @@ struct XcodeReclaimApp: App {
 }
 
 private extension XcodeReclaimApp {
-    static var places: XcodeLocations { .onThisMachine }
+    static var places: XcodeLocations { .forUser(at: URL(filePath: NSHomeDirectory())) }
 
     static var xcodeReclaim: XcodeReclaim {
         let applicationsFolder = places.applicationsFolder
