@@ -109,14 +109,15 @@ struct XcodeReclaimAcceptanceTests {
     @Test
     func open_measuresTheFoldersAtOnce() async {
         let twoOfTheFolders = [derivedDataFolder, previewsFolder]
-        let disk = DiskSpy()
+        let disk = DiskSpy(holding: twoOfTheFolders)
         let app = appMeasuring(withDisk: disk)
 
         app.open()
         await app.waitUntil { twoOfTheFolders.allSatisfy(disk.foldersAskedAbout.contains) }
+        let askedBeforeAnyAnswer = disk.foldersAskedAbout
         disk.answerNow()
 
-        #expect(twoOfTheFolders.allSatisfy(disk.foldersAskedAbout.contains))
+        #expect(twoOfTheFolders.allSatisfy(askedBeforeAnyAnswer.contains))
         await app.waitForMeasuringToEnd()
     }
 
