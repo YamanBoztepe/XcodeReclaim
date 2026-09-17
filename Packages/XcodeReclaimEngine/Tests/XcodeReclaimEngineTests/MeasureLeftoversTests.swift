@@ -161,8 +161,11 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
 
-        #expect(sut.leftovers(of: .derivedData, announcing: disk.announce).map(\.name) == ["Derived data"])
-        #expect(sut.leftovers(measuring: [.derivedData], announcing: disk.announce).isEmpty)
+        let receivedFromTheSource = sut.leftovers(of: .derivedData, announcing: disk.announce)
+        let receivedFromTheMeasuring = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
+
+        #expect(receivedFromTheSource.map(\.name) == ["Derived data"])
+        #expect(receivedFromTheMeasuring.isEmpty)
     }
 }
 
