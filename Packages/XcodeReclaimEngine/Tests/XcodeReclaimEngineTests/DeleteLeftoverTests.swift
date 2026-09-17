@@ -44,7 +44,7 @@ struct DeleteLeftoverTests {
 
         let received = sut.delete(simulator(taking: roomItTook))
 
-        #expect(received != .freed(roomItTook))
+        #expect(received.isFailure)
     }
 
     @Test("Deleting a leftover that is already gone frees nothing")

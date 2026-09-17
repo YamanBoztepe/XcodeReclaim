@@ -118,7 +118,7 @@ struct MeasureLeftoversTests {
 
         let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
-        #expect(received.last?.cost == nil)
+        #expect(received.filter { $0.cost == nil }.map(\.name) == ["Derived data"])
     }
 
     @Test("A leftover too small to be worth deleting is not delivered")
