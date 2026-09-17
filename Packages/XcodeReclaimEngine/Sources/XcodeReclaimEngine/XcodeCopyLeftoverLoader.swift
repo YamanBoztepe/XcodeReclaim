@@ -9,8 +9,20 @@ struct XcodeCopyLeftoverLoader {
             let name = name(of: copy)
             announce(name)
 
-            return Leftover(name: name, bytes: copy.bytes, place: .xcodeCopy(copy.path), cost: cost(of: copy), refusal: refusal(for: copy))
+            return Leftover(
+                kind: kind(of: copy),
+                name: name,
+                bytes: copy.bytes,
+                place: .xcodeCopy(copy.path),
+                cost: cost(of: copy),
+                refusal: refusal(for: copy))
         }
+    }
+
+    private func kind(of copy: XcodeCopy) -> Leftover.Kind {
+        .xcodeCopy(
+            version: copy.version.map { Leftover.XcodeVersion(number: $0.number, build: $0.build) },
+            canBeRemovedWhereItStands: copy.canBeRemoved)
     }
 
     private func cost(of copy: XcodeCopy) -> String {

@@ -2,7 +2,7 @@ import Foundation
 import XcodeReclaimCore
 
 func folder(named name: String = "Derived data", taking bytes: Int, costing cost: String? = nil) -> Leftover {
-    Leftover(name: name, bytes: bytes, place: .folder(URL(fileURLWithPath: "/developer/\(name)")), cost: cost)
+    Leftover(kind: .derivedData, name: name, bytes: bytes, place: .folder(URL(fileURLWithPath: "/developer/\(name)")), cost: cost)
 }
 
 func simulator(
@@ -11,6 +11,7 @@ func simulator(
     refusedFor refusal: Leftover.Refusal? = nil
 ) -> Leftover {
     Leftover(
+        kind: .simulator(name: name, runtime: "iOS 26.4"),
         name: name,
         bytes: bytes,
         place: .simulator(name),
@@ -24,6 +25,7 @@ func copyOfXcode(
     refusedFor refusal: Leftover.Refusal? = nil
 ) -> Leftover {
     Leftover(
+        kind: .xcodeCopy(version: nil, canBeRemovedWhereItStands: true),
         name: name,
         bytes: bytes,
         place: .xcodeCopy(URL(fileURLWithPath: "/Applications/\(name).app")),

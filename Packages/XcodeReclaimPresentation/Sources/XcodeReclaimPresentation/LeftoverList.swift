@@ -135,6 +135,7 @@ private extension LeftoverList {
         guard let row = held.firstIndex(where: { $0.place == leftover.place }) else { return }
 
         held[row] = Leftover(
+            kind: leftover.kind,
             name: leftover.name,
             bytes: bytes,
             place: leftover.place,

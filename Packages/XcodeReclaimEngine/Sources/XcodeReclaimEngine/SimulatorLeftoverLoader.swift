@@ -11,6 +11,7 @@ struct SimulatorLeftoverLoader {
             announce(name)
 
             return Leftover(
+                kind: .simulator(name: simulator.name, runtime: simulator.runtime),
                 name: name,
                 bytes: simulator.bytes,
                 place: .simulator(simulator.identifier),
