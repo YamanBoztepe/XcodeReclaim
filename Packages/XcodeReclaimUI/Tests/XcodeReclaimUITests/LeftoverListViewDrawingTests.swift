@@ -25,10 +25,19 @@ struct LeftoverListViewDrawingTests {
 
         #expect(asked.height <= whatEveryScreenCanGive)
     }
+
+    @Test
+    func draws_theHeadingSortedTheWayTheScreenIsSorted() throws {
+        let biggestFirst = try tableOf(makeSUT(holding: 2, sortedBy: LeftoverListUIModel.Sorting(column: .size, isAscending: false)))
+        let byNameAscending = try tableOf(makeSUT(holding: 2, sortedBy: LeftoverListUIModel.Sorting(column: .name, isAscending: true)))
+
+        #expect(biggestFirst.sortDescriptors.map(\.ascending) == [false])
+        #expect(byNameAscending.sortDescriptors.map(\.ascending) == [true])
+    }
 }
 
 private extension LeftoverListViewDrawingTests {
-    func makeSUT(holding rows: Int) -> LeftoverListView {
+    func makeSUT(holding rows: Int, sortedBy sorting: LeftoverListUIModel.Sorting = .biggestFirst) -> LeftoverListView {
         let section = LeftoverSection(
             id: "Caches and support files",
             name: "Caches and support files",
@@ -39,7 +48,7 @@ private extension LeftoverListViewDrawingTests {
             rows: (1...rows).map(row(numbered:)))
 
         return LeftoverListView(
-            model: LeftoverListUIModel(title: "68.0 GB to reclaim", isMeasuring: false, sections: [section]),
+            model: LeftoverListUIModel(title: "68.0 GB to reclaim", isMeasuring: false, sections: [section], sorting: sorting),
             onAppear: {},
             onRefresh: {},
             onSelect: { _ in },
