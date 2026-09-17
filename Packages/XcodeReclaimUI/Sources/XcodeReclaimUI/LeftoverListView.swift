@@ -248,7 +248,7 @@ private extension LeftoverListView {
     }
 
     func comparator(over sorting: LeftoverListUIModel.Sorting) -> KeyPathComparator<LeftoverRow> {
-        let order: SortOrder = sorting.ascending ? .forward : .reverse
+        let order: SortOrder = sorting.isAscending ? .forward : .reverse
 
         switch sorting.column {
         case .name: return KeyPathComparator(\LeftoverRow.name, order: order)
@@ -261,6 +261,6 @@ private extension LeftoverListView {
 
         return LeftoverListUIModel.Sorting(
             column: column.keyPath == \LeftoverRow.name ? .name : .size,
-            ascending: column.order == .forward)
+            isAscending: column.order == .forward)
     }
 }

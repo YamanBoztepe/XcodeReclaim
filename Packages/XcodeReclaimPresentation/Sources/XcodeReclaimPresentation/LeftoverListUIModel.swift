@@ -16,14 +16,14 @@ public struct LeftoverListUIModel: Equatable {
         }
 
         public let column: Column
-        public let ascending: Bool
+        public let isAscending: Bool
 
-        public init(column: Column, ascending: Bool) {
+        public init(column: Column, isAscending: Bool) {
             self.column = column
-            self.ascending = ascending
+            self.isAscending = isAscending
         }
 
-        public static var biggestFirst: Sorting { Sorting(column: .size, ascending: false) }
+        public static var biggestFirst: Sorting { Sorting(column: .size, isAscending: false) }
     }
 
     public let title: String

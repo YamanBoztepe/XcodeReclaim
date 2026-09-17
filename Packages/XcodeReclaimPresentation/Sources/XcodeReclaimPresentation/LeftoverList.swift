@@ -183,8 +183,8 @@ private extension LeftoverList {
             .sorted { offered, other in
                 switch reading(of: offered.element, against: other.element) {
                 case .orderedSame: offered.offset < other.offset
-                case .orderedAscending: sorting.ascending
-                case .orderedDescending: !sorting.ascending
+                case .orderedAscending: sorting.isAscending
+                case .orderedDescending: !sorting.isAscending
                 }
             }
             .map(\.element)

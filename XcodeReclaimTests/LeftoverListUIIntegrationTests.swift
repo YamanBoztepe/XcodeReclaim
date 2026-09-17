@@ -152,7 +152,7 @@ struct LeftoverListUIIntegrationTests {
         await screen.waitForMeasuringToEnd()
         #expect(screen.rowNames == ["Previews", "Derived data"])
 
-        screen.sort(by: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+        screen.sort(by: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
 
         #expect(screen.rowNames == ["Derived data", "Previews"])
     }

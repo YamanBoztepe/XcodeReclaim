@@ -75,7 +75,7 @@ struct LeftoverListViewSnapshotTests {
                 title: "147.8 GB to reclaim",
                 isMeasuring: false,
                 sections: everyKindOfSection,
-                sorting: LeftoverListUIModel.Sorting(column: .name, ascending: true))
+                sorting: LeftoverListUIModel.Sorting(column: .name, isAscending: true))
         )
         .verify(named: "LEFTOVER_LIST_SORTED_BY_NAME")
     }
