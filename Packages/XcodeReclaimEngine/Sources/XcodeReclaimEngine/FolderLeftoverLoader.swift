@@ -18,7 +18,7 @@ struct FolderLeftoverLoader {
 
     let folder: Folder
     let developerFolder: URL
-    let disk: any Disk
+    let disk: any FolderSizer
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
         announce(folder.name)

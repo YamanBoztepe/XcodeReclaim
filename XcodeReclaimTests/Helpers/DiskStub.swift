@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimEngine
 
-struct DiskStub: Disk, Sendable {
+struct DiskStub: FolderSizer, FolderLister, RemovalChecker, ItemRemover, Sendable {
     let holding: [URL: Int]
     var removesAnything = true
 

@@ -2,6 +2,8 @@ import Foundation
 import XcodeReclaimCore
 
 public struct MeasureLeftovers {
+    public typealias Disk = FolderSizer & FolderLister
+
     public enum Offered: CaseIterable {
         case derivedData
         case interfaceBuilderCache

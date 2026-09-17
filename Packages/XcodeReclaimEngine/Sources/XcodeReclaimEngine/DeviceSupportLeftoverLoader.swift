@@ -3,7 +3,7 @@ import XcodeReclaimCore
 
 struct DeviceSupportLeftoverLoader {
     let developerFolder: URL
-    let disk: any Disk
+    let disk: any MeasureLeftovers.Disk
 
     func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
         let cost = "the symbols are put back the next time that device is plugged in"

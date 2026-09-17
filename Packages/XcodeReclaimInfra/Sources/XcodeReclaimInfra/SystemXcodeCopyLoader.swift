@@ -2,6 +2,8 @@ import Foundation
 import XcodeReclaimEngine
 
 public struct SystemXcodeCopyLoader: XcodeCopyLoader {
+    public typealias Disk = FolderSizer & FolderLister & RemovalChecker
+
     private let commandRunner: any CommandRunner
     private let disk: any Disk
     private let applicationsFolder: URL

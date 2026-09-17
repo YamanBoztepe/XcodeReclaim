@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimEngine
 
-final class WorldSpy: Disk {
+final class WorldSpy: FolderSizer, FolderLister, RemovalChecker, ItemRemover {
     enum Message: Hashable {
         case announced(String)
         case sizeRead(URL)

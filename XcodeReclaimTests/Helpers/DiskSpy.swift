@@ -2,7 +2,7 @@ import Foundation
 import Synchronization
 import XcodeReclaimEngine
 
-final class DiskSpy: Disk, Sendable {
+final class DiskSpy: FolderSizer, FolderLister, RemovalChecker, ItemRemover, Sendable {
     private let asked = Mutex<[URL]>([])
     private let answering = Atomic(false)
     private let toldToAnswer = NSCondition()

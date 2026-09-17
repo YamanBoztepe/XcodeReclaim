@@ -3,7 +3,7 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 public struct XcodeReclaim: Sendable {
-    public typealias DiskFactory = @Sendable () -> any Disk
+    public typealias DiskFactory = @Sendable () -> any MeasureLeftovers.Disk & DeleteLeftover.Disk
     public typealias SimulatorServiceFactory = @Sendable () -> any SimulatorService
     public typealias XcodeCopyLoaderFactory = @Sendable () -> any XcodeCopyLoader
 
