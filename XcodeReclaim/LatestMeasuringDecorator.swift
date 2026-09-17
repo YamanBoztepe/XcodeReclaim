@@ -1,6 +1,5 @@
 import XcodeReclaimCore
 
-@MainActor
 final class LatestMeasuringDecorator {
     private let announcing: (Leftover.Kind, Leftover.Place) -> Void
     private let delivering: ([Leftover]) -> Void
