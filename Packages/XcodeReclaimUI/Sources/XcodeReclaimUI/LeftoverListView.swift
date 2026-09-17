@@ -46,7 +46,7 @@ public struct LeftoverListView: View {
         .onAppear(perform: onAppear)
         .alert(
             model.confirmation?.question ?? "",
-            isPresented: Binding(get: { model.confirmation != nil }, set: { shown in if !shown { onCancel() } })
+            isPresented: Binding(get: { model.confirmation != nil }, set: { _ in onCancel() })
         ) {
             Button("Delete", action: onConfirm)
             Button("Cancel", role: .cancel, action: onCancel)
