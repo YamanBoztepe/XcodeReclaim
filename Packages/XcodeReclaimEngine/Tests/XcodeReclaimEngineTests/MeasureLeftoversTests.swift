@@ -12,7 +12,7 @@ struct MeasureLeftoversTests {
 
         let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(kind: .derivedData, name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test("A leftover taking no room is not delivered")
@@ -44,7 +44,7 @@ struct MeasureLeftoversTests {
 
         let received = sut.leftovers(measuring: [.derivedData, .simulators], announcing: disk.announce)
 
-        #expect(received == [Leftover(kind: .derivedData, name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test("Every offered leftover is delivered when it takes room")
@@ -61,31 +61,23 @@ struct MeasureLeftoversTests {
 
         #expect(
             received == [
-                Leftover(kind: .derivedData, name: "Derived data", bytes: roomEachTakes, place: .folder(DeveloperFolder.derivedData), cost: nil),
+                Leftover(kind: .derivedData, bytes: roomEachTakes, place: .folder(DeveloperFolder.derivedData)),
                 Leftover(
                     kind: .interfaceBuilderCache,
-                    name: "Interface builder cache",
                     bytes: roomEachTakes,
-                    place: .folder(DeveloperFolder.interfaceBuilderCache),
-                    cost: nil),
+                    place: .folder(DeveloperFolder.interfaceBuilderCache)),
                 Leftover(
                     kind: .previews,
-                    name: "Previews",
                     bytes: roomEachTakes,
-                    place: .folder(DeveloperFolder.previews),
-                    cost: "the previews are built again"),
+                    place: .folder(DeveloperFolder.previews)),
                 Leftover(
                     kind: .documentationCache,
-                    name: "Documentation cache",
                     bytes: roomEachTakes,
-                    place: .folder(DeveloperFolder.documentationCache),
-                    cost: "the documentation is downloaded again"),
+                    place: .folder(DeveloperFolder.documentationCache)),
                 Leftover(
                     kind: .deviceSupport(systemVersion: "26.4"),
-                    name: "Device support (iOS 26.4)",
                     bytes: roomEachTakes,
-                    place: .folder(symbols),
-                    cost: "the symbols are put back the next time that device is plugged in"),
+                    place: .folder(symbols)),
             ])
     }
 
@@ -112,27 +104,6 @@ struct MeasureLeftoversTests {
         #expect(received.map(\.kind) == [.previews, .derivedData])
     }
 
-    @Test
-    func measure_deliversALeftoverThatCostsSomethingWithItsCost() {
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.previews] = 200
-
-        let received = sut.leftovers(measuring: [.previews], announcing: disk.announce)
-
-        #expect(received.first?.cost != nil)
-    }
-
-    @Test
-    func measure_deliversALeftoverThatCostsNothingWithoutACost() {
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.previews] = 200
-        disk.sizes[DeveloperFolder.derivedData] = 120
-
-        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
-
-        #expect(received.filter { $0.cost == nil }.map(\.kind) == [.derivedData])
-    }
-
     @Test("A leftover too small to be worth deleting is not delivered")
     func measure_doesNotDeliverALeftoverTooSmallToBeWorthDeleting() {
         let worthDeleting = 100_000_000
@@ -153,7 +124,7 @@ struct MeasureLeftoversTests {
 
         let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(kind: .derivedData, name: "Derived data", bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test
@@ -164,7 +135,7 @@ struct MeasureLeftoversTests {
 
         let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
-        #expect(received == [Leftover(kind: .derivedData, name: "Derived data", bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
+        #expect(received == [Leftover(kind: .derivedData, bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
     }
 
     @Test

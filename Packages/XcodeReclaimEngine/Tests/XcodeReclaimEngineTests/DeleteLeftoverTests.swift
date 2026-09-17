@@ -185,13 +185,12 @@ private extension DeleteLeftoverTests {
     }
 
     func derivedData(taking bytes: Int) -> Leftover {
-        Leftover(kind: .derivedData, name: "Derived data", bytes: bytes, place: .folder(DeveloperFolder.derivedData))
+        Leftover(kind: .derivedData, bytes: bytes, place: .folder(DeveloperFolder.derivedData))
     }
 
     func simulator(taking bytes: Int = 200, refusedFor refusal: Leftover.Refusal? = nil) -> Leftover {
         Leftover(
             kind: .simulator(name: "iPhone 17", runtime: "iOS 26.4"),
-            name: "iPhone 17 (iOS 26.4, 21B507D3)",
             bytes: bytes,
             place: .simulator(deviceIdentifier),
             refusal: refusal)
@@ -200,7 +199,6 @@ private extension DeleteLeftoverTests {
     func copyOfXcode(taking bytes: Int, refusedFor refusal: Leftover.Refusal? = nil) -> Leftover {
         Leftover(
             kind: .xcodeCopy(version: Leftover.XcodeVersion(number: "26.2", build: "17C51"), canBeRemovedWhereItStands: true),
-            name: "Xcode 26.2 (17C51) — Applications",
             bytes: bytes,
             place: .xcodeCopy(copyPath),
             refusal: refusal)

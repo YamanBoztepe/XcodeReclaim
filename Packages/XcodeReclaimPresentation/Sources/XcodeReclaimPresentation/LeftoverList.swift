@@ -24,7 +24,7 @@ private enum SectionKind: CaseIterable {
 }
 
 struct LeftoverList {
-    var beingMeasured: String?
+    var beingMeasured: (kind: Leftover.Kind, place: Leftover.Place)?
     var selected: Set<String> = []
     var sorting = LeftoverListUIModel.Sorting.biggestFirst
     private(set) var held: [Leftover] = []
@@ -42,7 +42,7 @@ struct LeftoverList {
         return LeftoverListUIModel(
             title: title(over: sections.reduce(0) { $0 + roomShown(in: $1.held) }),
             isMeasuring: isMeasuring,
-            leftoverBeingMeasured: beingMeasured,
+            leftoverBeingMeasured: beingMeasured.map { name(of: $0.kind, at: $0.place) },
             nothingToDelete: !isMeasuring && sections.isEmpty,
             deletionMessage: deletionMessage,
             sections: drawn(sections),
@@ -136,10 +136,8 @@ private extension LeftoverList {
 
         held[row] = Leftover(
             kind: leftover.kind,
-            name: leftover.name,
             bytes: bytes,
             place: leftover.place,
-            cost: leftover.cost,
             refusal: leftover.refusal)
     }
 
@@ -292,9 +290,13 @@ private extension LeftoverList {
     }
 
     func name(of leftover: Leftover) -> String {
-        let identity = identity(of: leftover.place)
+        name(of: leftover.kind, at: leftover.place)
+    }
 
-        switch leftover.kind {
+    func name(of kind: Leftover.Kind, at place: Leftover.Place) -> String {
+        let identity = identity(of: place)
+
+        switch kind {
         case .derivedData: return "Derived data"
         case .interfaceBuilderCache: return "Interface builder cache"
         case .previews: return "Previews"

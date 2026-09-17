@@ -3,33 +3,23 @@ import XcodeReclaimCore
 
 struct FolderLeftoverLoader {
     struct Folder {
-        static let derivedData = Folder(kind: .derivedData, name: "Derived data", relativePath: "Xcode/DerivedData", cost: nil)
-        static let interfaceBuilderCache = Folder(
-            kind: .interfaceBuilderCache,
-            name: "Interface builder cache",
-            relativePath: "Xcode/UserData/IB Support",
-            cost: nil)
-        static let previews = Folder(kind: .previews, name: "Previews", relativePath: "Xcode/UserData/Previews", cost: "the previews are built again")
-        static let documentationCache = Folder(
-            kind: .documentationCache,
-            name: "Documentation cache",
-            relativePath: "Xcode/DocumentationCache",
-            cost: "the documentation is downloaded again")
+        static let derivedData = Folder(kind: .derivedData, relativePath: "Xcode/DerivedData")
+        static let interfaceBuilderCache = Folder(kind: .interfaceBuilderCache, relativePath: "Xcode/UserData/IB Support")
+        static let previews = Folder(kind: .previews, relativePath: "Xcode/UserData/Previews")
+        static let documentationCache = Folder(kind: .documentationCache, relativePath: "Xcode/DocumentationCache")
 
         let kind: Leftover.Kind
-        let name: String
         let relativePath: String
-        let cost: String?
     }
 
     let folder: Folder
     let developerFolder: URL
     let disk: any FolderSizer
 
-    func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
-        announce(folder.name)
+    func leftovers(announcing announce: (Leftover.Kind, Leftover.Place) -> Void) -> [Leftover] {
         let url = developerFolder.appending(path: folder.relativePath)
+        announce(folder.kind, .folder(url))
 
-        return [Leftover(kind: folder.kind, name: folder.name, bytes: disk.bytesUsedByFolder(at: url), place: .folder(url), cost: folder.cost)]
+        return [Leftover(kind: folder.kind, bytes: disk.bytesUsedByFolder(at: url), place: .folder(url))]
     }
 }

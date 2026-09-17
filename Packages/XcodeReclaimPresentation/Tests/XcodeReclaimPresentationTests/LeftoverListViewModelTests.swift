@@ -79,10 +79,10 @@ final class LeftoverListViewModelTests {
     func announced_saysWhichLeftoverIsBeingMeasured() {
         let (sut, _) = makeSUT()
 
-        sut.announced("Derived data")
+        sut.announced(derivedData(taking: 200))
         #expect(sut.uiModel.leftoverBeingMeasured == "Derived data")
 
-        sut.announced("Previews")
+        sut.announced(previews(taking: 200))
         #expect(sut.uiModel.leftoverBeingMeasured == "Previews")
     }
 
@@ -90,7 +90,7 @@ final class LeftoverListViewModelTests {
     func measuringEnded_namesNoLeftoverBeingMeasured() {
         let roomItTakes = 200
         let (sut, _) = makeSUT()
-        sut.announced("Derived data")
+        sut.announced(derivedData(taking: 200))
 
         sut.measuringEnded(with: [derivedData(taking: roomItTakes)])
 

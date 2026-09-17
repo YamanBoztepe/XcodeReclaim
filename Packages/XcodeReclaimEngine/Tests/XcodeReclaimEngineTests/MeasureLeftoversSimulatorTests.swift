@@ -25,16 +25,6 @@ struct MeasureLeftoversSimulatorTests {
         #expect(received.map(\.kind) == [.simulator(name: "iPhone 17", runtime: "iOS 26.4")])
     }
 
-    @Test
-    func measure_namesASimulatorWithTheStartOfItsDeviceIdentifier() {
-        let (sut, disk, simulators) = makeSUT()
-        simulators.report = .success([simulator(named: "iPhone 16 Pro", on: "iOS 18.1", identified: "21B507D3-909E-465B-957C-4B370278399F")])
-
-        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["iPhone 16 Pro (iOS 18.1, 21B507D3)"])
-    }
-
     @Test("A running simulator is delivered as running")
     func measure_deliversARunningSimulatorAsRunning() {
         let (sut, disk, simulators) = makeSUT()
@@ -53,16 +43,6 @@ struct MeasureLeftoversSimulatorTests {
         let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [nil])
-    }
-
-    @Test
-    func measure_deliversASimulatorWithWhatDeletingItCosts() {
-        let (sut, disk, simulators) = makeSUT()
-        simulators.report = .success([simulator(isShutDown: true)])
-
-        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
-
-        #expect(received.map(\.cost) == ["the apps inside it and their data are gone"])
     }
 
     @Test

@@ -5,21 +5,14 @@ struct DeviceSupportLeftoverLoader {
     let developerFolder: URL
     let disk: any MeasureLeftovers.Disk
 
-    func leftovers(announcing announce: (String) -> Void) -> [Leftover] {
-        let cost = "the symbols are put back the next time that device is plugged in"
+    func leftovers(announcing announce: (Leftover.Kind, Leftover.Place) -> Void) -> [Leftover] {
         let deviceSupport = developerFolder.appending(path: "Xcode/iOS DeviceSupport")
 
         return disk.foldersInside(deviceSupport).map { version in
-            let systemVersion = systemVersion(in: version.lastPathComponent)
-            let name = "Device support (\(systemVersion.map { "iOS \($0)" } ?? version.lastPathComponent))"
-            announce(name)
+            let kind = Leftover.Kind.deviceSupport(systemVersion: systemVersion(in: version.lastPathComponent))
+            announce(kind, .folder(version))
 
-            return Leftover(
-                kind: .deviceSupport(systemVersion: systemVersion),
-                name: name,
-                bytes: disk.bytesUsedByFolder(at: version),
-                place: .folder(version),
-                cost: cost)
+            return Leftover(kind: kind, bytes: disk.bytesUsedByFolder(at: version), place: .folder(version))
         }
     }
 

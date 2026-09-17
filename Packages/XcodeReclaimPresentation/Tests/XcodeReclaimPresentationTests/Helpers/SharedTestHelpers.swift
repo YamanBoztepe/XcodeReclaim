@@ -32,7 +32,7 @@ func simulator(
     taking bytes: Int,
     refusedFor refusal: Leftover.Refusal? = nil
 ) -> Leftover {
-    Leftover(kind: .simulator(name: name, runtime: runtime), name: "", bytes: bytes, place: .simulator(identifier), refusal: refusal)
+    Leftover(kind: .simulator(name: name, runtime: runtime), bytes: bytes, place: .simulator(identifier), refusal: refusal)
 }
 
 func copyOfXcode(
@@ -44,12 +44,11 @@ func copyOfXcode(
 ) -> Leftover {
     Leftover(
         kind: .xcodeCopy(version: version, canBeRemovedWhereItStands: canBeRemovedWhereItStands),
-        name: "",
         bytes: bytes,
         place: .xcodeCopy(URL(filePath: "/\(folderName)/Xcode.app")),
         refusal: refusal)
 }
 
 private func folder(_ kind: Leftover.Kind, at relativePath: String, taking bytes: Int) -> Leftover {
-    Leftover(kind: kind, name: "", bytes: bytes, place: .folder(URL(filePath: "/developer").appending(path: relativePath)))
+    Leftover(kind: kind, bytes: bytes, place: .folder(URL(filePath: "/developer").appending(path: relativePath)))
 }

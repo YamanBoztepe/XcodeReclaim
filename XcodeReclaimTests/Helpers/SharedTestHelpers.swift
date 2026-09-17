@@ -8,27 +8,23 @@ let interfaceBuilderCacheFolder = developerFolder.appending(path: "Xcode/UserDat
 let documentationCacheFolder = developerFolder.appending(path: "Xcode/DocumentationCache")
 
 func derivedData(taking bytes: Int) -> Leftover {
-    Leftover(kind: .derivedData, name: "Derived data", bytes: bytes, place: .folder(derivedDataFolder))
+    Leftover(kind: .derivedData, bytes: bytes, place: .folder(derivedDataFolder))
 }
 
 func previews(taking bytes: Int) -> Leftover {
-    Leftover(kind: .previews, name: "Previews", bytes: bytes, place: .folder(previewsFolder))
+    Leftover(kind: .previews, bytes: bytes, place: .folder(previewsFolder))
 }
 
 func simulator(taking bytes: Int) -> Leftover {
     Leftover(
         kind: .simulator(name: "iPhone 17", runtime: "iOS 26.4"),
-        name: "iPhone 17 (iOS 26.4, 21B507D3)",
         bytes: bytes,
-        place: .simulator("21B507D3-909E-465B-957C-4B370278399F"),
-        cost: "the apps inside it and their data are gone")
+        place: .simulator("21B507D3-909E-465B-957C-4B370278399F"))
 }
 
 func copyOfXcode(taking bytes: Int) -> Leftover {
     Leftover(
         kind: .xcodeCopy(version: Leftover.XcodeVersion(number: "26.2", build: "17C51"), canBeRemovedWhereItStands: true),
-        name: "Xcode 26.2 (17C51) — Applications",
         bytes: bytes,
-        place: .xcodeCopy(URL(filePath: "/Applications/Xcode 26.2.app")),
-        cost: "that version has to be downloaded again")
+        place: .xcodeCopy(URL(filePath: "/Applications/Xcode 26.2.app")))
 }

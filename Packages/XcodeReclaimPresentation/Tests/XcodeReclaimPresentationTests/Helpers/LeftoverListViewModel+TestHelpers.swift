@@ -1,3 +1,4 @@
+import XcodeReclaimCore
 import XcodeReclaimPresentation
 
 extension LeftoverListViewModel {
@@ -5,6 +6,10 @@ extension LeftoverListViewModel {
     var shownNames: [String] { shownRows.map(\.name) }
     var selectedNames: [String] { shownRows.filter { uiModel.selection.contains($0.id) }.map(\.name) }
     var namesBeingDeleted: [String] { shownRows.compactMap { $0.deletionUnderWay == nil ? nil : $0.name } }
+
+    func announced(_ leftover: Leftover) {
+        announced(leftover.kind, at: leftover.place)
+    }
 
     func askAboutDeleting(_ rows: LeftoverRow...) {
         askAboutDeleting(Set(rows.map(\.id)))

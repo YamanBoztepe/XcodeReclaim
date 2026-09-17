@@ -37,37 +37,6 @@ struct MeasureLeftoversXcodeCopyTests {
         #expect(received.map(\.kind) == [.xcodeCopy(version: nil, canBeRemovedWhereItStands: true)])
     }
 
-    @Test
-    func measure_namesACopyByItsVersionItsBuildAndWhereItSits() {
-        let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(carrying: XcodeCopy.Version(number: "26.2", build: "17C51"), sittingIn: "Applications")]
-
-        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications"])
-    }
-
-    @Test
-    func measure_namesACopyCarryingNoVersionByWhereItSits() {
-        let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(carrying: nil, sittingIn: "Desktop")]
-
-        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["Xcode — Desktop"])
-    }
-
-    @Test
-    func measure_tellsTwoCopiesOfOneVersionApartByWhereTheySit() {
-        let version = XcodeCopy.Version(number: "26.2", build: "17C51")
-        let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(carrying: version, sittingIn: "Applications"), copy(carrying: version, sittingIn: "Desktop")]
-
-        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications", "Xcode 26.2 (17C51) — Desktop"])
-    }
-
     @Test("A copy of Xcode that is open is delivered as open")
     func measure_deliversAnOpenCopyAsOpen() {
         let (sut, disk, copies) = makeSUT()
@@ -117,28 +86,6 @@ struct MeasureLeftoversXcodeCopyTests {
 
         #expect(
             received.map(\.kind) == [.xcodeCopy(version: Leftover.XcodeVersion(number: "26.2", build: "17C51"), canBeRemovedWhereItStands: false)])
-    }
-
-    @Test
-    func measure_deliversACopyThatCannotBeRemovedWhereItStandsSayingTheBundleStays() {
-        let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy(canBeRemoved: false)]
-
-        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
-
-        #expect(
-            received.map(\.cost)
-                == ["that version has to be downloaded again, and the empty bundle stays where it is because removing it needs an administrator"])
-    }
-
-    @Test
-    func measure_deliversACopyWithWhatDeletingItCosts() {
-        let (sut, disk, copies) = makeSUT()
-        copies.reported = [copy()]
-
-        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
-
-        #expect(received.map(\.cost) == ["that version has to be downloaded again"])
     }
 
     @Test

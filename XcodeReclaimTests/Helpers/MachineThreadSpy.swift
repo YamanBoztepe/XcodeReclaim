@@ -9,7 +9,7 @@ final class MachineThreadSpy: Sendable {
         ranOnTheScreensThread.withLock { $0 }.map { $0 ? "the screen's thread" : "away from the screen's thread" }
     }
 
-    func measuring(announcing _: @Sendable (String) -> Void) -> [Leftover] {
+    func measuring(announcing _: @Sendable (Leftover.Kind, Leftover.Place) -> Void) -> [Leftover] {
         ranOnTheScreensThread.withLock { $0.append(Thread.isMainThread) }
 
         return []

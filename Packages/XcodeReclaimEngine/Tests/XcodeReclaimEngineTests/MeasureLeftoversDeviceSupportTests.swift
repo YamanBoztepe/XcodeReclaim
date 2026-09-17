@@ -59,18 +59,6 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.kind) == [.deviceSupport(systemVersion: "26.5.2")])
     }
 
-    @Test
-    func measure_namesADeviceSupportVersionByTheSystemVersionItHolds() {
-        let (sut, disk) = makeSUT()
-        let symbols = DeveloperFolder.deviceSupportFolder(named: "iPhone15,2 26.5.2 (23F84)")
-        disk.folders[DeveloperFolder.deviceSupport] = [symbols]
-        disk.sizes[symbols] = 200
-
-        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["Device support (iOS 26.5.2)"])
-    }
-
     @Test(
         "A device support folder named some other way is delivered with no system version",
         arguments: [
@@ -92,24 +80,6 @@ struct MeasureLeftoversDeviceSupportTests {
         #expect(received.map(\.place) == [.folder(symbols)])
     }
 
-    @Test(
-        arguments: [
-            "a folder nobody can parse",
-            "26.5.2 (23F84)",
-            "iPhone15,2 26.5.2 23F84",
-            "iPhone15,2 26.5.2 (23F84) arm64e",
-            "iPhone15,2 (23F84)",
-        ])
-    func measure_namesADeviceSupportFolderAsItIsNamedWhenItsShapeIsUnknown(folderName: String) {
-        let (sut, disk) = makeSUT()
-        let symbols = DeveloperFolder.deviceSupportFolder(named: folderName)
-        disk.folders[DeveloperFolder.deviceSupport] = [symbols]
-        disk.sizes[symbols] = 200
-
-        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
-
-        #expect(received.map(\.name) == ["Device support (\(folderName))"])
-    }
 }
 
 private extension MeasureLeftoversDeviceSupportTests {

@@ -18,8 +18,8 @@ public final class LeftoverListViewModel {
         measure()
     }
 
-    public func announced(_ name: String) {
-        list.beingMeasured = name
+    public func announced(_ kind: Leftover.Kind, at place: Leftover.Place) {
+        list.beingMeasured = (kind, place)
         redraw()
     }
 

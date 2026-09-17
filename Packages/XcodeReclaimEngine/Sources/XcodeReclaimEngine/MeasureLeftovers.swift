@@ -38,7 +38,7 @@ public struct MeasureLeftovers {
         biggestFirst(found.flatMap(\.self).filter { $0.bytes >= worthDeleting })
     }
 
-    public func leftovers(of offered: Offered, announcing announce: (String) -> Void) -> [Leftover] {
+    public func leftovers(of offered: Offered, announcing announce: (Leftover.Kind, Leftover.Place) -> Void) -> [Leftover] {
         switch offered {
         case .derivedData: folderLeftoverLoader(.derivedData).leftovers(announcing: announce)
         case .interfaceBuilderCache: folderLeftoverLoader(.interfaceBuilderCache).leftovers(announcing: announce)

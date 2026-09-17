@@ -3,7 +3,7 @@ import XcodeReclaimPresentation
 
 @MainActor
 public enum LeftoverListUIComposer {
-    public typealias Measuring = @Sendable (_ announcing: @escaping @Sendable (String) -> Void) async -> [Leftover]
+    public typealias Measuring = @Sendable (_ announcing: @escaping @Sendable (Leftover.Kind, Leftover.Place) -> Void) async -> [Leftover]
     public typealias Deleting = @Sendable (Leftover) -> Deletion
 
     public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListContainerView {
@@ -13,7 +13,7 @@ public enum LeftoverListUIComposer {
     private static func viewModel(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListViewModel {
         let screen = WeakReference<LeftoverListViewModel>()
         let onlyTheLatest = LatestMeasuringDecorator(
-            announcing: { screen.object?.announced($0) },
+            announcing: { screen.object?.announced($0, at: $1) },
             delivering: { screen.object?.measuringEnded(with: $0) })
 
         let model = LeftoverListViewModel(
@@ -29,9 +29,9 @@ public enum LeftoverListUIComposer {
 
     private static func measureAwayFromTheScreen(_ measuring: @escaping Measuring, reaching onlyTheLatest: LatestMeasuringDecorator) {
         let thisMeasuring = onlyTheLatest.beginMeasuring()
-        let announced = MainThreadDecorator<String> { onlyTheLatest.announce($0, from: thisMeasuring) }
+        let announced = MainThreadDecorator<(Leftover.Kind, Leftover.Place)> { onlyTheLatest.announce($0.0, at: $0.1, from: thisMeasuring) }
 
         MainThreadDecorator<[Leftover]> { onlyTheLatest.deliver($0, from: thisMeasuring) }
-            .answer(from: { await measuring({ announced($0) }) })
+            .answer(from: { await measuring({ announced(($0, $1)) }) })
     }
 }

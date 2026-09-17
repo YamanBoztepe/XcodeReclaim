@@ -97,7 +97,9 @@ struct LeftoverListUIIntegrationTests {
 
     @Test("The developer watches the measuring work through the leftovers")
     func announced_namesEachLeftoverAsTheMeasuringReachesIt() async {
-        let machine = SlowMachineStub(eachMeasuring: [MachineStub(announcing: ["Derived data", "Previews"], finding: [derivedData(taking: 300)])])
+        let machine = SlowMachineStub(eachMeasuring: [
+            MachineStub(announcing: [derivedData(taking: 300), previews(taking: 200)], finding: [derivedData(taking: 300)])
+        ])
         let screen = screenMeasuring(machine)
 
         screen.open()
@@ -115,7 +117,7 @@ struct LeftoverListUIIntegrationTests {
         let theMeasuringTheRefreshReplaces = 0
         let theMeasuringTheRefreshStarts = 1
         let machine = SlowMachineStub(eachMeasuring: [
-            MachineStub(announcing: ["Derived data"], finding: [derivedData(taking: 27_700_000_000)]),
+            MachineStub(announcing: [derivedData(taking: 27_700_000_000)], finding: [derivedData(taking: 27_700_000_000)]),
             MachineStub(finding: [previews(taking: 300)]),
         ])
         let screen = screenMeasuring(machine)

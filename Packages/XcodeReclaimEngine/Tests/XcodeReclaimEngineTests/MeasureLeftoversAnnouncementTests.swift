@@ -13,10 +13,10 @@ struct MeasureLeftoversAnnouncementTests {
 
         #expect(
             disk.messages == [
-                .announced("Derived data"), .sizeRead(DeveloperFolder.derivedData),
-                .announced("Interface builder cache"), .sizeRead(DeveloperFolder.interfaceBuilderCache),
-                .announced("Previews"), .sizeRead(DeveloperFolder.previews),
-                .announced("Documentation cache"), .sizeRead(DeveloperFolder.documentationCache),
+                .announced(.derivedData), .sizeRead(DeveloperFolder.derivedData),
+                .announced(.interfaceBuilderCache), .sizeRead(DeveloperFolder.interfaceBuilderCache),
+                .announced(.previews), .sizeRead(DeveloperFolder.previews),
+                .announced(.documentationCache), .sizeRead(DeveloperFolder.documentationCache),
                 .foldersListed(DeveloperFolder.deviceSupport),
             ])
     }
@@ -47,13 +47,13 @@ struct MeasureLeftoversAnnouncementTests {
 
         #expect(
             disk.announcements == [
-                "Derived data",
-                "Interface builder cache",
-                "Previews",
-                "Documentation cache",
-                "Device support (iOS 26.4)",
-                "iPhone 17 (iOS 26.4, 21B507D3)",
-                "Xcode 26.2 (17C51) — Applications",
+                .derivedData,
+                .interfaceBuilderCache,
+                .previews,
+                .documentationCache,
+                .deviceSupport(systemVersion: "26.4"),
+                .simulator(name: "iPhone 17", runtime: "iOS 26.4"),
+                .xcodeCopy(version: Leftover.XcodeVersion(number: "26.2", build: "17C51"), canBeRemovedWhereItStands: true),
             ])
     }
 }

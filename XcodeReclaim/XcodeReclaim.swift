@@ -50,7 +50,7 @@ private extension XcodeReclaim {
         { [self] leftover in DeleteLeftover(disk: disk(), simulatorService: simulatorService()).delete(leftover) }
     }
 
-    func everySourceAtOnce(announcing announce: @escaping @Sendable (String) -> Void) async -> [[Leftover]] {
+    func everySourceAtOnce(announcing announce: @escaping @Sendable (Leftover.Kind, Leftover.Place) -> Void) async -> [[Leftover]] {
         await withTaskGroup(of: (Int, [Leftover]).self) { measurings in
             for source in MeasureLeftovers.Offered.allCases.indices {
                 measurings.addTask { [self] in (source, measureLeftovers.leftovers(of: MeasureLeftovers.Offered.allCases[source], announcing: announce)) }

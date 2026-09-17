@@ -34,18 +34,14 @@ public struct Leftover: Hashable, Sendable {
     }
 
     public let kind: Kind
-    public let name: String
     public let bytes: Int
     public let place: Place
-    public let cost: String?
     public let refusal: Refusal?
 
-    public init(kind: Kind, name: String, bytes: Int, place: Place, cost: String? = nil, refusal: Refusal? = nil) {
+    public init(kind: Kind, bytes: Int, place: Place, refusal: Refusal? = nil) {
         self.kind = kind
-        self.name = name
         self.bytes = bytes
         self.place = place
-        self.cost = cost
         self.refusal = refusal
     }
 }
