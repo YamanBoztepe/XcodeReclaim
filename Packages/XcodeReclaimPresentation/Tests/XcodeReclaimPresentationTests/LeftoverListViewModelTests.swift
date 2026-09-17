@@ -36,7 +36,7 @@ final class LeftoverListViewModelTests {
         let roomItTakes = 200
         let (sut, _) = makeSUT()
 
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
+        sut.measuringEnded(with: [derivedData(taking: roomItTakes)])
 
         #expect(sut.shownNames == ["Derived data"])
         #expect(sut.shownRows.map(\.size) == ["200 bytes"])
@@ -65,7 +65,7 @@ final class LeftoverListViewModelTests {
     @Test("A refresh measures again")
     func refresh_measuresAgainNamingNothing() {
         let (sut, requests) = makeSUT()
-        sut.measuringEnded(with: [folder(taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 200)])
 
         sut.refresh()
 
@@ -92,7 +92,7 @@ final class LeftoverListViewModelTests {
         let (sut, _) = makeSUT()
         sut.announced("Derived data")
 
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
+        sut.measuringEnded(with: [derivedData(taking: roomItTakes)])
 
         #expect(sut.shownRows.map(\.size) == ["200 bytes"])
         #expect(sut.uiModel.leftoverBeingMeasured == nil)
@@ -104,7 +104,7 @@ final class LeftoverListViewModelTests {
 
         #expect(sut.uiModel.title == "Measuring…")
 
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+        sut.measuringEnded(with: [derivedData(taking: 300)])
 
         #expect(sut.uiModel.title == "300 bytes to reclaim")
     }
@@ -112,7 +112,7 @@ final class LeftoverListViewModelTests {
     @Test("A refresh says nothing about the deletion before it")
     func refresh_saysNothingAboutTheDeletionBeforeIt() throws {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 200)])
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
         sut.confirm()
         sut.deletionEnded(with: .freed(200))

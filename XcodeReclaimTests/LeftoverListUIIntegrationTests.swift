@@ -165,7 +165,7 @@ struct LeftoverListUIIntegrationTests {
 
         try screen.askToDelete("Derived data", "Previews")
 
-        #expect(screen.confirmation == .init(question: "Delete 2 items?", sentence: "Frees 500 bytes. This cannot be undone."))
+        #expect(screen.confirmation == .init(question: "Delete 2 items?", sentence: "Frees 500 bytes. The previews are built again. This cannot be undone."))
     }
 
     @Test func menu_asksAboutDeletingTheRowsChosenOnTheScreen() async throws {

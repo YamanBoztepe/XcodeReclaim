@@ -1,7 +1,7 @@
 import Foundation
 import XcodeReclaimCore
 
-private enum Kind: CaseIterable {
+private enum SectionKind: CaseIterable {
     case folder
     case simulator
     case xcodeCopy
@@ -152,11 +152,11 @@ private extension LeftoverList {
 }
 
 private extension LeftoverList {
-    typealias Section = (kind: Kind, held: [Leftover])
+    typealias Section = (kind: SectionKind, held: [Leftover])
 
     func sectionsInOrder() -> [Section] {
-        Kind.allCases
-            .map { kind in (kind: kind, held: held.filter { self.kind(of: $0.place) == kind }) }
+        SectionKind.allCases
+            .map { kind in (kind: kind, held: held.filter { sectionKind(of: $0.kind) == kind }) }
             .filter { !$0.held.isEmpty }
             .sorted { roomIn($0.held) > roomIn($1.held) }
     }
@@ -193,7 +193,7 @@ private extension LeftoverList {
 
     func reading(of leftover: Leftover, against other: Leftover) -> ComparisonResult {
         switch sorting.column {
-        case .name: leftover.name.localizedStandardCompare(other.name)
+        case .name: name(of: leftover).localizedStandardCompare(name(of: other))
         case .size: reading(of: leftover.bytes, against: other.bytes)
         }
     }
@@ -228,7 +228,7 @@ private extension LeftoverList {
     func row(for leftover: Leftover, marked: Leftover?) -> LeftoverRow {
         LeftoverRow(
             id: identity(of: leftover.place),
-            name: leftover.name,
+            name: name(of: leftover),
             size: ByteCountFormat.written(leftover.bytes),
             refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
@@ -236,9 +236,9 @@ private extension LeftoverList {
             canBeDeleted: leftover.refusal == nil && beingDeleted.isEmpty)
     }
 
-    func kind(of place: Leftover.Place) -> Kind {
-        switch place {
-        case .folder: .folder
+    func sectionKind(of kind: Leftover.Kind) -> SectionKind {
+        switch kind {
+        case .derivedData, .interfaceBuilderCache, .previews, .documentationCache, .deviceSupport: .folder
         case .simulator: .simulator
         case .xcodeCopy: .xcodeCopy
         }
@@ -255,7 +255,7 @@ private extension LeftoverList {
     func question(over leftovers: [Leftover]) -> String {
         guard let only = leftovers.first, leftovers.count == 1 else { return "Delete \(leftovers.count) items?" }
 
-        return "Delete \(only.name)?"
+        return "Delete \(name(of: only))?"
     }
 
     func confirmationSentence(for leftovers: [Leftover], keeping kept: Int) -> String {
@@ -266,16 +266,56 @@ private extension LeftoverList {
     }
 
     func costs(of leftovers: [Leftover]) -> [String] {
-        leftovers.compactMap(\.cost).reduce(into: [String]()) { said, cost in
-            let sentence = self.sentence(from: cost)
+        leftovers.compactMap { cost(of: $0.kind) }.reduce(into: [String]()) { said, sentence in
             guard !said.contains(sentence) else { return }
 
             said.append(sentence)
         }
     }
 
-    func sentence(from cost: String) -> String {
-        cost.prefix(1).uppercased() + cost.dropFirst() + "."
+    func cost(of kind: Leftover.Kind) -> String? {
+        switch kind {
+        case .derivedData, .interfaceBuilderCache: nil
+        case .previews: "The previews are built again."
+        case .documentationCache: "The documentation is downloaded again."
+        case .deviceSupport: "The symbols are put back the next time that device is plugged in."
+        case .simulator: "The apps inside it and their data are gone."
+        case .xcodeCopy(_, let canBeRemovedWhereItStands): costOfACopy(thatCanBeRemovedWhereItStands: canBeRemovedWhereItStands)
+        }
+    }
+
+    func costOfACopy(thatCanBeRemovedWhereItStands canBeRemoved: Bool) -> String {
+        let downloadedAgain = "That version has to be downloaded again"
+        guard !canBeRemoved else { return "\(downloadedAgain)." }
+
+        return "\(downloadedAgain), and the empty bundle stays where it is because removing it needs an administrator."
+    }
+
+    func name(of leftover: Leftover) -> String {
+        let identity = identity(of: leftover.place)
+
+        switch leftover.kind {
+        case .derivedData: return "Derived data"
+        case .interfaceBuilderCache: return "Interface builder cache"
+        case .previews: return "Previews"
+        case .documentationCache: return "Documentation cache"
+        case .deviceSupport(let systemVersion): return nameOfDeviceSupport(holding: systemVersion, inFolder: identity)
+        case .simulator(let name, let runtime): return "\(name) (\(runtime), \(identity.prefix { $0 != "-" }))"
+        case .xcodeCopy(let version, _): return nameOfACopy(carrying: version, at: identity)
+        }
+    }
+
+    func nameOfDeviceSupport(holding systemVersion: String?, inFolder path: String) -> String {
+        guard let systemVersion else { return "Device support (\(URL(filePath: path).lastPathComponent))" }
+
+        return "Device support (iOS \(systemVersion))"
+    }
+
+    func nameOfACopy(carrying version: Leftover.XcodeVersion?, at path: String) -> String {
+        let whereItSits = URL(filePath: path).deletingLastPathComponent().lastPathComponent
+        guard let version else { return "Xcode — \(whereItSits)" }
+
+        return "Xcode \(version.number) (\(version.build)) — \(whereItSits)"
     }
 
     func refusalSentence(for refusal: Leftover.Refusal) -> String {
@@ -287,11 +327,11 @@ private extension LeftoverList {
     }
 
     func failureSentence(about deleted: Leftover, why: String) -> String {
-        "\(deleted.name) could not be deleted. \(why)"
+        "\(name(of: deleted)) could not be deleted. \(why)"
     }
 
     func partialSentence(about deleted: Leftover, why: String) -> String {
-        "\(deleted.name) was only partly deleted. \(why)"
+        "\(name(of: deleted)) was only partly deleted. \(why)"
     }
 
     func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {

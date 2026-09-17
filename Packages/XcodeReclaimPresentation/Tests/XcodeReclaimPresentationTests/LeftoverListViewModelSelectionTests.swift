@@ -14,7 +14,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func select_marksTheRowsTheDeveloperChose() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
 
         sut.select(rowsNamed: "Derived data", "Previews")
 
@@ -24,7 +24,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func select_offersNoDeletionUntilARowThatCanBeDeletedIsChosen() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), simulator(taking: 200, refusedFor: .simulatorIsRunning)])
+        sut.measuringEnded(with: [derivedData(taking: 300), simulator(taking: 200, refusedFor: .simulatorIsRunning)])
         #expect(sut.uiModel.canDeleteSelection == false)
 
         sut.select(rowsNamed: "iPhone 17 (iOS 26.4, 21B507D3)")
@@ -37,9 +37,9 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func askAboutDeleting_asksOneQuestionOverEveryRowChosen() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), interfaceBuilderCache(taking: 200)])
 
-        sut.askAboutDeleting(rowsNamed: "Derived data", "Previews")
+        sut.askAboutDeleting(rowsNamed: "Derived data", "Interface builder cache")
 
         #expect(
             sut.uiModel.confirmation
@@ -49,7 +49,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func askAboutDeleting_leavesOutTheRowsThatCannotBeDeletedAndSaysHowMany() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), simulator(taking: 200, refusedFor: .simulatorIsRunning)])
+        sut.measuringEnded(with: [derivedData(taking: 300), simulator(taking: 200, refusedFor: .simulatorIsRunning)])
 
         sut.askAboutDeleting(rowsNamed: "Derived data", "iPhone 17 (iOS 26.4, 21B507D3)")
 
@@ -65,10 +65,10 @@ final class LeftoverListViewModelSelectionTests {
         let (sut, _) = makeSUT()
         sut.measuringEnded(with: [
             simulator(named: "iPhone 17", taking: 300),
-            simulator(named: "iPhone 16", taking: 200),
+            simulator(named: "iPhone 16", identified: "8FB6EB6C-8E0B-4AD6-9A55-4E0A1C3B2D11", taking: 200),
         ])
 
-        sut.askAboutDeleting(rowsNamed: "iPhone 17", "iPhone 16")
+        sut.askAboutDeleting(rowsNamed: "iPhone 17 (iOS 26.4, 21B507D3)", "iPhone 16 (iOS 26.4, 8FB6EB6C)")
 
         #expect(
             sut.uiModel.confirmation?.sentence
@@ -78,22 +78,22 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func confirm_asksForTheDeletionsOneAfterAnother() {
         let (sut, requests) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data", "Previews")
 
         sut.confirm()
-        #expect(requests.deletions.map(\.name) == ["Derived data"])
+        #expect(requests.deletions.map(\.kind) == [.derivedData])
         #expect(sut.namesBeingDeleted == ["Derived data", "Previews"])
 
         sut.deletionEnded(with: .freed(300))
-        #expect(requests.deletions.map(\.name) == ["Derived data", "Previews"])
+        #expect(requests.deletions.map(\.kind) == [.derivedData, .previews])
         #expect(sut.namesBeingDeleted == ["Previews"])
     }
 
     @Test
     func deletionEnded_addsUpTheRoomEveryDeletionInTheBatchFreed() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data", "Previews")
         sut.confirm()
 
@@ -108,7 +108,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func deletionEnded_saysWhatCameBackAndWhatWentWrongInTheSameBatch() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), simulator(taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), simulator(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data", "iPhone 17 (iOS 26.4, 21B507D3)")
         sut.confirm()
 
@@ -122,7 +122,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func deletionEnded_saysNothingWhenTheDeletionFreedNothing() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+        sut.measuringEnded(with: [derivedData(taking: 300)])
         sut.askAboutDeleting(rowsNamed: "Derived data")
         sut.confirm()
 
@@ -135,7 +135,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func deletionEnded_takesTheDeletedRowOutOfWhatIsChosen() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data")
         sut.confirm()
 
@@ -147,10 +147,10 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func measuringEnded_choosesNothingOfWhatTheMeasuringBroughtBack() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+        sut.measuringEnded(with: [derivedData(taking: 300)])
         sut.select(rowsNamed: "Derived data")
 
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+        sut.measuringEnded(with: [derivedData(taking: 300)])
 
         #expect(sut.selectedNames.isEmpty)
     }
@@ -158,7 +158,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func confirm_offersNoDeletionOverWhatIsChosenUntilTheDeletionEnds() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data")
 
         sut.confirm()
@@ -172,7 +172,7 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func askAboutDeletingWhatIsChosen_asksOverTheRowsTheDeveloperChose() {
         let (sut, _) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.select(rowsNamed: "Derived data")
 
         sut.askAboutDeletingWhatIsChosen()
@@ -183,14 +183,14 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func askAboutDeleting_asksNothingWhileADeletionIsUnderWay() {
         let (sut, requests) = makeSUT()
-        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
         sut.askAboutDeleting(rowsNamed: "Derived data")
         sut.confirm()
 
         sut.askAboutDeleting(rowsNamed: "Previews")
 
         #expect(sut.uiModel.confirmation == nil)
-        #expect(requests.deletions.map(\.name) == ["Derived data"])
+        #expect(requests.deletions.map(\.kind) == [.derivedData])
     }
 }
 
