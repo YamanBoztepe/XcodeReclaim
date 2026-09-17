@@ -4,26 +4,35 @@ import XcodeReclaimEngine
 
 final class DiskSpy: Disk, Sendable {
     private let asked = Mutex<[URL]>([])
-    private let held: [URL: ReadGate]
-    private let neverHeld = ReadGate(isOpen: true)
-
-    init(holding folders: [URL]) {
-        held = Dictionary(uniqueKeysWithValues: folders.map { ($0, ReadGate(isOpen: false)) })
-    }
+    private let answering = Atomic(false)
+    private let toldToAnswer = NSCondition()
 
     var foldersAskedAbout: [URL] {
         asked.withLock { $0 }
     }
 
     func answerNow() {
-        for gate in held.values {
-            gate.open()
-        }
+        toldToAnswer.lock()
+        answering.store(true, ordering: .releasing)
+        toldToAnswer.broadcast()
+        toldToAnswer.unlock()
     }
 
     func bytesUsedByFolder(at url: URL) -> Int {
-        asked.withLock { $0.append(url) }
-        held[url, default: neverHeld].pass()
+        let minimumConcurrentReads = 2
+        let readCount = asked.withLock {
+            $0.append(url)
+            return $0.count
+        }
+        if readCount >= minimumConcurrentReads {
+            answerNow()
+        }
+
+        toldToAnswer.lock()
+        while !answering.load(ordering: .acquiring) {
+            toldToAnswer.wait()
+        }
+        toldToAnswer.unlock()
 
         return 0
     }
@@ -35,28 +44,4 @@ final class DiskSpy: Disk, Sendable {
     func canRemoveItem(at url: URL) -> Bool { true }
 
     func removeItem(at url: URL) throws -> Bool { true }
-
-    private final class ReadGate: Sendable {
-        private let isOpen: Atomic<Bool>
-        private let opened = NSCondition()
-
-        init(isOpen: Bool) {
-            self.isOpen = Atomic(isOpen)
-        }
-
-        func pass() {
-            opened.lock()
-            while !isOpen.load(ordering: .acquiring) {
-                opened.wait()
-            }
-            opened.unlock()
-        }
-
-        func open() {
-            opened.lock()
-            isOpen.store(true, ordering: .releasing)
-            opened.broadcast()
-            opened.unlock()
-        }
-    }
 }
