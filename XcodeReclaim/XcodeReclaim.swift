@@ -3,22 +3,22 @@ import XcodeReclaimCore
 import XcodeReclaimEngine
 
 public struct XcodeReclaim: Sendable {
-    public typealias MakingADisk = @Sendable () -> any Disk
-    public typealias MakingASimulatorService = @Sendable () -> any SimulatorService
-    public typealias MakingXcodeCopyLoader = @Sendable () -> any XcodeCopyLoader
+    public typealias DiskFactory = @Sendable () -> any Disk
+    public typealias SimulatorServiceFactory = @Sendable () -> any SimulatorService
+    public typealias XcodeCopyLoaderFactory = @Sendable () -> any XcodeCopyLoader
 
     private let developerFolder: URL
     private let worthDeleting: Int
-    private let disk: MakingADisk
-    private let simulatorService: MakingASimulatorService
-    private let xcodeCopyLoader: MakingXcodeCopyLoader
+    private let disk: DiskFactory
+    private let simulatorService: SimulatorServiceFactory
+    private let xcodeCopyLoader: XcodeCopyLoaderFactory
 
     public init(
         developerFolder: URL,
         worthDeleting: Int,
-        disk: @escaping MakingADisk,
-        simulatorService: @escaping MakingASimulatorService,
-        xcodeCopyLoader: @escaping MakingXcodeCopyLoader
+        disk: @escaping DiskFactory,
+        simulatorService: @escaping SimulatorServiceFactory,
+        xcodeCopyLoader: @escaping XcodeCopyLoaderFactory
     ) {
         self.developerFolder = developerFolder
         self.worthDeleting = worthDeleting
