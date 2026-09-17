@@ -15,7 +15,7 @@ struct MeasureLeftoversDeviceSupportTests {
         disk.sizes[newer] = roomTheNewerTakes
         disk.sizes[older] = roomTheOlderTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Device support (iOS 18.5)", "Device support (iOS 26.4)"])
         #expect(received.map(\.bytes) == [roomTheOlderTakes, roomTheNewerTakes])
@@ -31,7 +31,7 @@ struct MeasureLeftoversDeviceSupportTests {
         disk.sizes[newer] = worthDeleting
         disk.sizes[older] = worthDeleting - 1
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Device support (iOS 26.4)"])
     }
@@ -42,7 +42,7 @@ struct MeasureLeftoversDeviceSupportTests {
         disk.folders[DeveloperFolder.deviceSupport] = []
         disk.sizes[DeveloperFolder.derivedData] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .deviceSupport], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Derived data"])
     }
@@ -54,7 +54,7 @@ struct MeasureLeftoversDeviceSupportTests {
         disk.folders[DeveloperFolder.deviceSupport] = [symbols]
         disk.sizes[symbols] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Device support (iOS 26.5.2)"])
     }
@@ -74,7 +74,7 @@ struct MeasureLeftoversDeviceSupportTests {
         disk.folders[DeveloperFolder.deviceSupport] = [symbols]
         disk.sizes[symbols] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.deviceSupport], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Device support (\(folderName))"])
     }

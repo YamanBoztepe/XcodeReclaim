@@ -10,7 +10,7 @@ struct MeasureLeftoversSimulatorTests {
         disk.sizes[DeveloperFolder.derivedData] = 50
         simulators.report = .success([simulator(taking: 200)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .simulators], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)", "Derived data"])
     }
@@ -20,7 +20,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(named: "iPhone 17", on: "iOS 26.4", identified: "21B507D3-909E-465B-957C-4B370278399F")])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)"])
     }
@@ -30,7 +30,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(named: "iPhone 16 Pro", on: "iOS 18.1", identified: "21B507D3-909E-465B-957C-4B370278399F")])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["iPhone 16 Pro (iOS 18.1, 21B507D3)"])
     }
@@ -40,7 +40,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(isShutDown: false)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [.simulatorIsRunning])
     }
@@ -50,7 +50,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(isShutDown: true)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [nil])
     }
@@ -60,7 +60,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(isShutDown: true)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.cost) == ["the apps inside it and their data are gone"])
     }
@@ -71,7 +71,7 @@ struct MeasureLeftoversSimulatorTests {
         let (sut, disk, simulators) = makeSUT()
         simulators.report = .success([simulator(identified: deviceIdentifier)])
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.simulators], announcing: disk.announce)
 
         #expect(received.map(\.place) == [.simulator(deviceIdentifier)])
     }

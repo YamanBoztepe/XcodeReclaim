@@ -10,7 +10,7 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
         #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
@@ -21,7 +21,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.previews] = 0
         disk.sizes[DeveloperFolder.derivedData] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Derived data"])
     }
@@ -30,7 +30,7 @@ struct MeasureLeftoversTests {
     func measure_deliversNoLeftoverFromAFolderHoldingNothingToDelete() {
         let (sut, disk, _, _) = makeSUT()
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(received.isEmpty)
     }
@@ -42,7 +42,7 @@ struct MeasureLeftoversTests {
         simulators.report = .failure(SimulatorsCannotBeListed())
         disk.sizes[DeveloperFolder.derivedData] = roomItTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .simulators], announcing: disk.announce)
 
         #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
@@ -57,7 +57,7 @@ struct MeasureLeftoversTests {
             disk.sizes[folder] = roomEachTakes
         }
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             received == [
@@ -84,7 +84,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = roomEachTakes
         disk.sizes[DeveloperFolder.previews] = roomEachTakes
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Derived data", "Previews"])
     }
@@ -95,7 +95,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = 50
         disk.sizes[DeveloperFolder.previews] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Previews", "Derived data"])
     }
@@ -105,7 +105,7 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.previews] = 200
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.previews], announcing: disk.announce)
 
         #expect(received.first?.cost != nil)
     }
@@ -116,7 +116,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.previews] = 200
         disk.sizes[DeveloperFolder.derivedData] = 120
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
         #expect(received.last?.cost == nil)
     }
@@ -128,7 +128,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
         disk.sizes[DeveloperFolder.previews] = worthDeleting
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData, .previews], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Previews"])
     }
@@ -139,7 +139,7 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
         #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting, place: .folder(DeveloperFolder.derivedData))])
     }
@@ -150,7 +150,7 @@ struct MeasureLeftoversTests {
         let (sut, disk, _, _) = makeSUT(worthDeleting: worthDeleting)
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting + 1
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.derivedData], announcing: disk.announce)
 
         #expect(received == [Leftover(name: "Derived data", bytes: worthDeleting + 1, place: .folder(DeveloperFolder.derivedData))])
     }
@@ -162,7 +162,7 @@ struct MeasureLeftoversTests {
         disk.sizes[DeveloperFolder.derivedData] = worthDeleting - 1
 
         #expect(sut.leftovers(of: .derivedData, announcing: disk.announce).map(\.name) == ["Derived data"])
-        #expect(sut.leftovers(announcing: disk.announce).isEmpty)
+        #expect(sut.leftovers(measuring: [.derivedData], announcing: disk.announce).isEmpty)
     }
 }
 

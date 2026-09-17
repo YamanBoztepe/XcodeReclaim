@@ -32,15 +32,11 @@ public struct MeasureLeftovers {
         self.worthDeleting = worthDeleting
     }
 
-    public func leftovers(announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
-        leftovers(from: Offered.allCases.map { leftovers(of: $0, announcing: announce) })
-    }
-
     public func leftovers(from found: [[Leftover]]) -> [Leftover] {
         biggestFirst(found.flatMap(\.self).filter { $0.bytes >= worthDeleting })
     }
 
-    public func leftovers(of offered: Offered, announcing announce: (String) -> Void = { _ in }) -> [Leftover] {
+    public func leftovers(of offered: Offered, announcing announce: (String) -> Void) -> [Leftover] {
         switch offered {
         case .derivedData: folderLeftoverLoader(.derivedData).leftovers(announcing: announce)
         case .interfaceBuilderCache: folderLeftoverLoader(.interfaceBuilderCache).leftovers(announcing: announce)

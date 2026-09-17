@@ -9,7 +9,7 @@ struct MeasureLeftoversAnnouncementTests {
         let (sut, disk, _, _) = makeSUT()
         disk.sizes[DeveloperFolder.derivedData] = 200
 
-        _ = sut.leftovers(announcing: disk.announce)
+        _ = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             disk.messages == [
@@ -21,8 +21,8 @@ struct MeasureLeftoversAnnouncementTests {
             ])
     }
 
-    @Test("A measuring announces every offered leftover in the order it works on them")
-    func measure_announcesEveryOfferedLeftoverInTheOrderItWorksOnThem() {
+    @Test("Every offered source announces the leftovers it works on")
+    func measure_announcesTheLeftoversEveryOfferedSourceWorksOn() {
         let roomEachTakes = 100
         let (sut, disk, simulators, copies) = makeSUT()
         let symbols = DeveloperFolder.deviceSupportFolder(holding: "26.4")
@@ -43,7 +43,7 @@ struct MeasureLeftoversAnnouncementTests {
                 canBeRemoved: true)
         ]
 
-        _ = sut.leftovers(announcing: disk.announce)
+        _ = sut.leftovers(measuring: MeasureLeftovers.Offered.allCases, announcing: disk.announce)
 
         #expect(
             disk.announcements == [
@@ -55,17 +55,6 @@ struct MeasureLeftoversAnnouncementTests {
                 "iPhone 17 (iOS 26.4, 21B507D3)",
                 "Xcode 26.2 (17C51) — Applications",
             ])
-    }
-
-    @Test("A measuring that is not listened to still delivers its leftovers")
-    func measure_deliversItsLeftoversWhenNothingIsListening() {
-        let roomItTakes = 200
-        let (sut, disk, _, _) = makeSUT()
-        disk.sizes[DeveloperFolder.derivedData] = roomItTakes
-
-        let received = sut.leftovers()
-
-        #expect(received == [Leftover(name: "Derived data", bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 }
 

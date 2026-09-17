@@ -11,7 +11,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(sittingIn: "Applications", taking: roomTheFirstTakes), copy(sittingIn: "Desktop", taking: roomTheSecondTakes)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.bytes) == [roomTheFirstTakes, roomTheSecondTakes])
     }
@@ -21,7 +21,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: XcodeCopy.Version(number: "26.2", build: "17C51"), sittingIn: "Applications")]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications"])
     }
@@ -31,7 +31,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: nil, sittingIn: "Desktop")]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Xcode — Desktop"])
     }
@@ -42,7 +42,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(carrying: version, sittingIn: "Applications"), copy(carrying: version, sittingIn: "Desktop")]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.name) == ["Xcode 26.2 (17C51) — Applications", "Xcode 26.2 (17C51) — Desktop"])
     }
@@ -52,7 +52,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: true, isPointedAtByCommandLineTools: false)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [.xcodeIsOpen])
     }
@@ -62,7 +62,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: false, isPointedAtByCommandLineTools: true)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [.commandLineToolsPointAtIt])
     }
@@ -72,7 +72,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: true, isPointedAtByCommandLineTools: true)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [.xcodeIsOpen])
     }
@@ -82,7 +82,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(isOpen: false, isPointedAtByCommandLineTools: false)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.refusal) == [nil])
     }
@@ -92,7 +92,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy(canBeRemoved: false)]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(
             received.map(\.cost)
@@ -104,7 +104,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let (sut, disk, copies) = makeSUT()
         copies.reported = [copy()]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.cost) == ["that version has to be downloaded again"])
     }
@@ -115,7 +115,7 @@ struct MeasureLeftoversXcodeCopyTests {
         let found = copy(sittingIn: "Applications")
         copies.reported = [found]
 
-        let received = sut.leftovers(announcing: disk.announce)
+        let received = sut.leftovers(measuring: [.copiesOfXcode], announcing: disk.announce)
 
         #expect(received.map(\.place) == [.xcodeCopy(found.path)])
     }
