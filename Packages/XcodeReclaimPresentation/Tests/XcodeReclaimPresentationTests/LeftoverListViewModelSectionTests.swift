@@ -82,7 +82,7 @@ final class LeftoverListViewModelSectionTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 1_150_000_000), folder(named: "Previews", taking: 1_150_000_000)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["1.2 GB", "1.2 GB"])
+        #expect(sut.shownRows.map(\.size) == ["1.2 GB", "1.2 GB"])
         #expect(sut.uiModel.sections.map(\.size) == ["2.4 GB"])
     }
 
@@ -97,7 +97,7 @@ final class LeftoverListViewModelSectionTests {
         ])
 
         #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Caches and support files"])
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false, false, true])
+        #expect(sut.shownRows.map(\.holdsTheMostRoom) == [false, false, true])
     }
 
     @Test("Leftovers holding the same room mark only the one shown first")
@@ -106,7 +106,7 @@ final class LeftoverListViewModelSectionTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 200), simulator(taking: 200)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [true, false])
+        #expect(sut.shownRows.map(\.holdsTheMostRoom) == [true, false])
     }
 
     @Test("A screen with one leftover marks nothing")
@@ -115,7 +115,7 @@ final class LeftoverListViewModelSectionTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 200)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.holdsTheMostRoom) == [false])
+        #expect(sut.shownRows.map(\.holdsTheMostRoom) == [false])
     }
 
     @Test("Copies of Xcode are shown in their own section")

@@ -18,7 +18,7 @@ final class LeftoverListViewModelSizeTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 28_359_995_392)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["28.4 GB"])
+        #expect(sut.shownRows.map(\.size) == ["28.4 GB"])
     }
 
     @Test("A size is shown in the unit its magnitude asks for")
@@ -27,7 +27,7 @@ final class LeftoverListViewModelSizeTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: 323_137_536)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["323.1 MB"])
+        #expect(sut.shownRows.map(\.size) == ["323.1 MB"])
     }
 
     @Test
@@ -38,7 +38,7 @@ final class LeftoverListViewModelSizeTests {
         sut.measuringEnded(with: magnitudes.map { folder(named: "taking \($0)", taking: $0) })
 
         #expect(
-            sut.uiModel.sections.flatMap(\.rows).map(\.size) == [
+            sut.shownRows.map(\.size) == [
                 "1.0 TB", "1.0 GB", "1000.0 MB", "1.0 MB", "1000.0 KB", "1.0 KB", "999 bytes",
             ])
     }

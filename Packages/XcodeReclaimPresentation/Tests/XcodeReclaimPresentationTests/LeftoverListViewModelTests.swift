@@ -38,8 +38,8 @@ final class LeftoverListViewModelTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
+        #expect(sut.shownNames == ["Derived data"])
+        #expect(sut.shownRows.map(\.size) == ["200 bytes"])
         #expect(sut.uiModel.isMeasuring == false)
     }
 
@@ -94,7 +94,7 @@ final class LeftoverListViewModelTests {
 
         sut.measuringEnded(with: [folder(named: "Derived data", taking: roomItTakes)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
+        #expect(sut.shownRows.map(\.size) == ["200 bytes"])
         #expect(sut.uiModel.leftoverBeingMeasured == nil)
     }
 

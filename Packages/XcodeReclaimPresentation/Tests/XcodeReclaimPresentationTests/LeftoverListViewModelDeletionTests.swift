@@ -47,8 +47,8 @@ final class LeftoverListViewModelDeletionTests {
         sut.cancel()
 
         #expect(sut.uiModel.confirmation == nil)
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["200 bytes"])
+        #expect(sut.shownNames == ["Derived data"])
+        #expect(sut.shownRows.map(\.size) == ["200 bytes"])
         #expect(requests.deletions.isEmpty)
     }
 
@@ -60,7 +60,7 @@ final class LeftoverListViewModelDeletionTests {
 
         sut.confirm()
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.deletionUnderWay) == ["Deleting…", nil])
+        #expect(sut.shownRows.map(\.deletionUnderWay) == ["Deleting…", nil])
         #expect(requests.deletions.map(\.name) == ["Derived data"])
     }
 
@@ -73,7 +73,7 @@ final class LeftoverListViewModelDeletionTests {
 
         sut.deletionEnded(with: .freed(300))
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Previews"])
+        #expect(sut.shownNames == ["Previews"])
     }
 
     @Test("A finished deletion says how much room came back")
@@ -107,10 +107,10 @@ final class LeftoverListViewModelDeletionTests {
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
 
         sut.confirm()
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.canBeDeleted) == [false, false])
+        #expect(sut.shownRows.map(\.canBeDeleted) == [false, false])
 
         sut.deletionEnded(with: .freed(300))
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.canBeDeleted) == [true])
+        #expect(sut.shownRows.map(\.canBeDeleted) == [true])
     }
 
     @Test("A deletion refused because the simulator is running says so")
@@ -123,7 +123,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.deletionEnded(with: .refused(.simulatorIsRunning))
 
         #expect(sut.uiModel.deletionMessage == "The simulator is running.")
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["iPhone 17 (iOS 26.4, 21B507D3)"])
+        #expect(sut.shownNames == ["iPhone 17 (iOS 26.4, 21B507D3)"])
     }
 
     @Test("A deletion that removed part of a leftover keeps its row at what is left")
@@ -136,7 +136,7 @@ final class LeftoverListViewModelDeletionTests {
 
         sut.deletionEnded(with: .partlyFreed(150, stillThere: 50, why: whatTheDiskSaid))
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.size) == ["50 bytes"])
+        #expect(sut.shownRows.map(\.size) == ["50 bytes"])
         #expect(sut.uiModel.deletionMessage == "150 bytes came back. Derived data was only partly deleted. \(whatTheDiskSaid)")
     }
 
@@ -164,7 +164,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.deletionEnded(with: .failed("Invalid device"))
 
         #expect(sut.uiModel.deletionMessage == "Derived data could not be deleted. Invalid device")
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
+        #expect(sut.shownNames == ["Derived data"])
     }
 
     @Test
@@ -175,7 +175,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.confirm()
 
         #expect(requests.deletions.isEmpty)
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.deletionUnderWay) == [nil])
+        #expect(sut.shownRows.map(\.deletionUnderWay) == [nil])
     }
 
     @Test
@@ -186,7 +186,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.deletionEnded(with: .freed(200))
 
         #expect(sut.uiModel.deletionMessage == nil)
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.name) == ["Derived data"])
+        #expect(sut.shownNames == ["Derived data"])
     }
 
     @Test("A running simulator offers no deletion")
@@ -195,8 +195,8 @@ final class LeftoverListViewModelDeletionTests {
 
         sut.measuringEnded(with: [simulator(taking: 200, refusedFor: .simulatorIsRunning)])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.canBeDeleted) == [false])
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.refusal) == ["The simulator is running."])
+        #expect(sut.shownRows.map(\.canBeDeleted) == [false])
+        #expect(sut.shownRows.map(\.refusal) == ["The simulator is running."])
     }
 
     @Test("A running simulator is not confirmed")
@@ -273,7 +273,7 @@ final class LeftoverListViewModelDeletionTests {
             simulator(taking: 200, refusedFor: .simulatorIsRunning),
         ])
 
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.refusal) == [nil, "The simulator is running."])
+        #expect(sut.shownRows.map(\.refusal) == [nil, "The simulator is running."])
     }
 
     @Test("A copy of Xcode that is open offers no deletion")
@@ -284,7 +284,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
 
         #expect(sut.uiModel.confirmation == nil)
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.refusal) == ["Xcode is open."])
+        #expect(sut.shownRows.map(\.refusal) == ["Xcode is open."])
     }
 
     @Test("The copy the command line tools point at offers no deletion")
@@ -295,7 +295,7 @@ final class LeftoverListViewModelDeletionTests {
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
 
         #expect(sut.uiModel.confirmation == nil)
-        #expect(sut.uiModel.sections.flatMap(\.rows).map(\.refusal) == ["The command line tools point at this one."])
+        #expect(sut.shownRows.map(\.refusal) == ["The command line tools point at this one."])
     }
 }
 
