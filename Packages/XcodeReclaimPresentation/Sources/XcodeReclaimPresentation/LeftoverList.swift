@@ -58,12 +58,12 @@ struct LeftoverList {
     }
 
     mutating func drop(_ leftover: Leftover) {
-        held.removeAll { $0 == leftover }
+        held.removeAll { $0.place == leftover.place }
         selected.remove(identity(of: leftover.place))
     }
 
     mutating func resize(_ leftover: Leftover, to bytes: Int) {
-        guard let row = held.firstIndex(of: leftover) else { return }
+        guard let row = held.firstIndex(where: { $0.place == leftover.place }) else { return }
 
         held[row] = Leftover(
             name: leftover.name,
@@ -183,7 +183,7 @@ private extension LeftoverList {
             size: ByteCountFormat.written(leftover.bytes),
             refusal: leftover.refusal.map(refusalSentence(for:)),
             holdsTheMostRoom: leftover == marked,
-            deletionUnderWay: beingDeleted.contains(leftover) ? "Deleting…" : nil,
+            deletionUnderWay: beingDeleted.contains { $0.place == leftover.place } ? "Deleting…" : nil,
             canBeDeleted: leftover.refusal == nil && beingDeleted.isEmpty)
     }
 

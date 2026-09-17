@@ -225,6 +225,35 @@ final class LeftoverListViewModelDeletionTests {
         #expect(sut.uiModel.deletionMessage == "200 bytes came back.")
     }
 
+    @Test("A deletion that ends after the screen measured again takes its row off the new list")
+    func deletionEnded_takesItsRowOffTheListMeasuredWhileItRan() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300), folder(named: "Previews", taking: 200)])
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+        sut.confirm()
+        sut.refresh()
+
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 120), folder(named: "Previews", taking: 200)])
+        #expect(sut.namesBeingDeleted == ["Derived data"])
+
+        sut.deletionEnded(with: .freed(300))
+        #expect(sut.shownNames == ["Previews"])
+    }
+
+    @Test
+    func deletionEnded_leavesTheRowMeasuredWhileItRanAtWhatIsLeft() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 300)])
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+        sut.confirm()
+        sut.refresh()
+        sut.measuringEnded(with: [folder(named: "Derived data", taking: 120)])
+
+        sut.deletionEnded(with: .partlyFreed(250, stillThere: 50, why: "it could not be removed"))
+
+        #expect(sut.shownRows.map(\.size) == ["50 bytes"])
+    }
+
     @Test("A confirmation says how much room it frees the way a person reads it")
     func askAboutDeleting_saysHowMuchRoomItFreesTheWayAPersonReadsIt() throws {
         let (sut, _) = makeSUT()
