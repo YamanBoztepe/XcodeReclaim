@@ -24,14 +24,17 @@ private enum Kind: CaseIterable {
 }
 
 struct LeftoverList {
-    var held: [Leftover] = []
-    var isMeasuring = true
     var beingMeasured: String?
-    var deletionMessage: String?
-    var confirmation: LeftoverListUIModel.Confirmation?
-    var beingDeleted: [Leftover] = []
     var selected: Set<String> = []
     var sorting = LeftoverListUIModel.Sorting.biggestFirst
+    private(set) var held: [Leftover] = []
+    private(set) var isMeasuring = true
+    private(set) var deletionMessage: String?
+    private(set) var confirmation: LeftoverListUIModel.Confirmation?
+    private(set) var beingConfirmed: [Leftover] = []
+    private(set) var beingDeleted: [Leftover] = []
+    private(set) var roomThatCameBack = 0
+    private(set) var whatWentWrong: [String] = []
 
     var uiModel: LeftoverListUIModel {
         let sections = sectionsInOrder()
@@ -48,13 +51,79 @@ struct LeftoverList {
             canDeleteSelection: !offered(shownAs: selected).isEmpty && beingDeleted.isEmpty,
             confirmation: confirmation)
     }
+}
 
+extension LeftoverList {
+    mutating func beginMeasuring() {
+        isMeasuring = true
+        beingMeasured = nil
+        held = []
+        selected = []
+        deletionMessage = nil
+    }
+
+    mutating func endMeasuring(with measured: [Leftover]) {
+        held = measured
+        isMeasuring = false
+        beingMeasured = nil
+        selected = []
+    }
+
+    mutating func askAboutDeleting(_ shown: Set<String>) {
+        let asked = leftovers(shownAs: shown)
+        let offered = beingDeleted.isEmpty ? self.offered(shownAs: shown) : []
+
+        selected = shown
+        beingConfirmed = offered
+        confirmation = offered.isEmpty ? nil : confirmationOver(offered, keeping: asked.count - offered.count)
+    }
+
+    mutating func cancelDeletion() {
+        beingConfirmed = []
+        confirmation = nil
+    }
+
+    mutating func confirmDeletion() {
+        beingDeleted = beingConfirmed
+        beingConfirmed = []
+        confirmation = nil
+        roomThatCameBack = 0
+        whatWentWrong = []
+    }
+
+    mutating func endDeletion(with deletion: Deletion) {
+        guard !beingDeleted.isEmpty else { return }
+
+        record(deletion, about: beingDeleted.removeFirst())
+        guard beingDeleted.isEmpty else { return }
+
+        deletionMessage = deletionSentence(over: roomThatCameBack, andWhatWentWrong: whatWentWrong)
+    }
+}
+
+private extension LeftoverList {
     func leftovers(shownAs shown: Set<String>) -> [Leftover] {
         held.filter { shown.contains(identity(of: $0.place)) }
     }
 
     func offered(shownAs shown: Set<String>) -> [Leftover] {
         leftovers(shownAs: shown).filter { $0.refusal == nil }
+    }
+
+    mutating func record(_ deletion: Deletion, about deleted: Leftover) {
+        switch deletion {
+        case .freed(let bytes):
+            roomThatCameBack += bytes
+            drop(deleted)
+        case .partlyFreed(let bytes, let stillThere, let why):
+            roomThatCameBack += bytes
+            resize(deleted, to: stillThere)
+            whatWentWrong.append(partialSentence(about: deleted, why: why))
+        case .refused(let refusal):
+            whatWentWrong.append(refusalSentence(for: refusal))
+        case .failed(let why):
+            whatWentWrong.append(failureSentence(about: deleted, why: why))
+        }
     }
 
     mutating func drop(_ leftover: Leftover) {
@@ -73,32 +142,11 @@ struct LeftoverList {
             refusal: leftover.refusal)
     }
 
-    func confirmationOver(_ leftovers: [Leftover], keeping kept: Int) -> LeftoverListUIModel.Confirmation {
-        LeftoverListUIModel.Confirmation(
-            question: question(over: leftovers),
-            sentence: confirmationSentence(for: leftovers, keeping: kept))
-    }
-
-    func refusalSentence(for refusal: Leftover.Refusal) -> String {
-        switch refusal {
-        case .simulatorIsRunning: "The simulator is running."
-        case .xcodeIsOpen: "Xcode is open."
-        case .commandLineToolsPointAtIt: "The command line tools point at this one."
+    func identity(of place: Leftover.Place) -> String {
+        switch place {
+        case .folder(let url), .xcodeCopy(let url): url.path(percentEncoded: false)
+        case .simulator(let identifier): identifier
         }
-    }
-
-    func failureSentence(about deleted: Leftover, why: String) -> String {
-        "\(deleted.name) could not be deleted. \(why)"
-    }
-
-    func partialSentence(about deleted: Leftover, why: String) -> String {
-        "\(deleted.name) was only partly deleted. \(why)"
-    }
-
-    func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {
-        let said = (roomThatCameBack > 0 ? ["\(ByteCountFormat.written(roomThatCameBack)) came back."] : []) + wrong
-
-        return said.isEmpty ? nil : said.joined(separator: " ")
     }
 }
 
@@ -194,12 +242,13 @@ private extension LeftoverList {
         case .xcodeCopy: .xcodeCopy
         }
     }
+}
 
-    func identity(of place: Leftover.Place) -> String {
-        switch place {
-        case .folder(let url), .xcodeCopy(let url): url.path(percentEncoded: false)
-        case .simulator(let identifier): identifier
-        }
+private extension LeftoverList {
+    func confirmationOver(_ leftovers: [Leftover], keeping kept: Int) -> LeftoverListUIModel.Confirmation {
+        LeftoverListUIModel.Confirmation(
+            question: question(over: leftovers),
+            sentence: confirmationSentence(for: leftovers, keeping: kept))
     }
 
     func question(over leftovers: [Leftover]) -> String {
@@ -226,5 +275,27 @@ private extension LeftoverList {
 
     func sentence(from cost: String) -> String {
         cost.prefix(1).uppercased() + cost.dropFirst() + "."
+    }
+
+    func refusalSentence(for refusal: Leftover.Refusal) -> String {
+        switch refusal {
+        case .simulatorIsRunning: "The simulator is running."
+        case .xcodeIsOpen: "Xcode is open."
+        case .commandLineToolsPointAtIt: "The command line tools point at this one."
+        }
+    }
+
+    func failureSentence(about deleted: Leftover, why: String) -> String {
+        "\(deleted.name) could not be deleted. \(why)"
+    }
+
+    func partialSentence(about deleted: Leftover, why: String) -> String {
+        "\(deleted.name) was only partly deleted. \(why)"
+    }
+
+    func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {
+        let said = (roomThatCameBack > 0 ? ["\(ByteCountFormat.written(roomThatCameBack)) came back."] : []) + wrong
+
+        return said.isEmpty ? nil : said.joined(separator: " ")
     }
 }
