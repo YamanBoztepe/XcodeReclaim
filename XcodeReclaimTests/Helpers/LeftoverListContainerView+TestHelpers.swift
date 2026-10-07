@@ -27,11 +27,11 @@ extension LeftoverListContainerView {
     }
 
     func refreshFromTheMenu() {
-        menu.onRefresh()
+        menu.refresh.perform()
     }
 
     func askToDeleteFromTheMenu() {
-        menu.onAskAboutDeleting()
+        menu.deletion.perform()
     }
 
     func confirm() {
@@ -101,15 +101,15 @@ extension LeftoverListContainerView {
     var rowsBeingDeleted: [String] { rows.compactMap { $0.deletionUnderWay == nil ? nil : $0.name } }
     var chosenRows: [String] { rows.filter { uiModelHandedToTheView.selection.contains($0.id) }.map(\.name) }
     var offersToDeleteWhatIsChosen: Bool { uiModelHandedToTheView.canDeleteSelection }
-    var menuOffersDeletion: Bool { menu.model.canDeleteSelection }
-    var menuOffersARefresh: Bool { !menu.model.isMeasuring }
+    var menuOffersDeletion: Bool { menu.deletion.isOffered }
+    var menuOffersARefresh: Bool { menu.refresh.isOffered }
 }
 
 @MainActor
 private extension LeftoverListContainerView {
     var view: LeftoverListView { screen }
 
-    var menu: LeftoverListCommands { commands }
+    var menu: LeftoverListMenu { commands.menu }
 
     var rows: [LeftoverRow] { uiModelHandedToTheView.sections.flatMap(\.rows) }
 

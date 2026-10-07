@@ -23,9 +23,7 @@ public struct LeftoverListContainerView: View {
 
     public var commands: LeftoverListCommands {
         LeftoverListCommands(
-            model: model.uiModel,
-            onRefresh: model.refresh,
-            onAskAboutDeleting: model.askAboutDeletingWhatIsChosen)
+            menu: LeftoverListMenu(model: model.uiModel, onRefresh: model.refresh, onAskAboutDeleting: model.askAboutDeletingWhatIsChosen))
     }
 
     public var body: some View {
