@@ -11,7 +11,9 @@ room it takes — and deletes what you choose.
 
 Xcode leaves derived data, previews, interface builder caches, documentation
 caches and device support folders behind; it keeps every simulator you have ever
-made; and every copy of Xcode you have downloaded stays where you put it. This
+made and every simulator runtime you have downloaded; your archives pile up one
+build at a time, Swift packages are cached and toolchains installed beside
+Xcode; and every copy of Xcode you have downloaded stays where you put it. This
 app measures all of it, shows it in one list with the room each one holds, and
 deletes the ones you pick — one at a time or several at once.
 
@@ -21,12 +23,13 @@ deletes the ones you pick — one at a time or several at once.
 it, so every deletion is permanent. That is why every deletion is confirmed
 first, and why the confirmation says what it costs rather than only what it
 frees: a simulator takes the apps inside it with it, a copy of Xcode has to be
-downloaded again.
+downloaded again, an archive takes its debug symbols with it.
 
-It never offers your provisioning profiles, your archives or your settings.
+It never offers your provisioning profiles or your settings.
 
 It refuses what it should not touch, and says why in the row: a simulator that is
-running, a copy of Xcode that is open, and the copy your command line tools point
+running, a runtime a running simulator sits on, a copy of Xcode that is open, the
+copy your command line tools point at, and the toolchain `swift-latest` points
 at.
 
 ## Building it
