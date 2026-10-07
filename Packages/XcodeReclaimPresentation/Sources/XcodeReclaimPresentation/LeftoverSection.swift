@@ -1,8 +1,11 @@
 public struct LeftoverSection: Equatable, Identifiable {
-    public enum Tint: Equatable, CaseIterable {
-        case accent
-        case teal
+    public enum Tint: Equatable {
+        case blue
         case orange
+        case purple
+        case teal
+        case green
+        case pink
     }
 
     public let id: String

@@ -9,25 +9,14 @@ private enum SectionKind: CaseIterable {
     case toolchain
     case archive
 
-    var name: String {
+    var appearance: (name: String, symbol: String, tint: LeftoverSection.Tint) {
         switch self {
-        case .folder: "Caches and support files"
-        case .simulator: "Simulators"
-        case .runtime: "Simulator runtimes"
-        case .xcodeCopy: "Xcode versions"
-        case .toolchain: "Swift toolchains"
-        case .archive: "Archives"
-        }
-    }
-
-    var symbol: String {
-        switch self {
-        case .folder: "folder.fill"
-        case .simulator: "iphone"
-        case .runtime: "square.stack.3d.up.fill"
-        case .xcodeCopy: "hammer.fill"
-        case .toolchain: "swift"
-        case .archive: "archivebox.fill"
+        case .folder: ("Caches and support files", "folder.fill", .blue)
+        case .simulator: ("Simulators", "iphone", .orange)
+        case .runtime: ("Simulator runtimes", "square.stack.3d.up.fill", .purple)
+        case .xcodeCopy: ("Xcode versions", "hammer.fill", .teal)
+        case .toolchain: ("Swift toolchains", "swift", .green)
+        case .archive: ("Archives", "archivebox.fill", .pink)
         }
     }
 }
@@ -172,14 +161,13 @@ private extension LeftoverList {
     func drawn(_ sections: [Section]) -> [LeftoverSection] {
         let marked = largest(in: sections.flatMap(\.held))
         let roomOnTheScreen = roomShown(in: held)
-        let tints = LeftoverSection.Tint.allCases
 
-        return sections.enumerated().map { place, section in
+        return sections.map { section in
             LeftoverSection(
-                id: section.kind.name,
-                name: section.kind.name,
-                symbol: section.kind.symbol,
-                tint: tints[place % tints.count],
+                id: section.kind.appearance.name,
+                name: section.kind.appearance.name,
+                symbol: section.kind.appearance.symbol,
+                tint: section.kind.appearance.tint,
                 size: ByteCountFormat.written(roomShown(in: section.held)),
                 share: Double(roomShown(in: section.held)) / Double(roomOnTheScreen),
                 rows: sorted(section.held).map { row(for: $0, marked: marked) })

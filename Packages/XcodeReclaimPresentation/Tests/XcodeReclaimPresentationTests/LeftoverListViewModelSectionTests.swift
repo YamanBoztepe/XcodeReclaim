@@ -80,12 +80,14 @@ final class LeftoverListViewModelSectionTests {
     }
 
     @Test
-    func measuringEnded_tintsTheSectionsInTurnAndBeginsAgainAfterTheLast() {
+    func measuringEnded_tintsEachKindOfSectionItsOwnWayWhereverItIsShown() {
         let sut = makeSUT()
 
-        sut.measuringEnded(with: [derivedData(taking: 400), simulator(taking: 300), copyOfXcode(taking: 200), runtime(taking: 100)])
+        sut.measuringEnded(with: [
+            archive(taking: 600), toolchain(taking: 500), copyOfXcode(taking: 400), runtime(taking: 300), simulator(taking: 200), derivedData(taking: 100),
+        ])
 
-        #expect(sut.uiModel.sections.map(\.tint) == [.accent, .teal, .orange, .accent])
+        #expect(sut.uiModel.sections.map(\.tint) == [.pink, .green, .teal, .purple, .orange, .blue])
     }
 
     @Test("A section says how much room it holds")

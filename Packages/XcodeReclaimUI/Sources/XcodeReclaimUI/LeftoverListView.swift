@@ -86,9 +86,12 @@ private extension LeftoverListUIModel {
 private extension LeftoverSection.Tint {
     var colour: Color {
         switch self {
-        case .accent: .accentColor
-        case .teal: .teal
+        case .blue: .blue
         case .orange: .orange
+        case .purple: .purple
+        case .teal: .teal
+        case .green: .green
+        case .pink: .pink
         }
     }
 }

@@ -42,7 +42,7 @@ struct LeftoverListViewSnapshotTests {
                 title: "119.4 GB to reclaim",
                 isMeasuring: false,
                 deletionMessage: "28.4 GB came back.",
-                sections: [caches(tinted: .accent)])
+                sections: [caches])
         )
         .verify(named: "LEFTOVER_LIST_AFTER_A_DELETION")
     }
@@ -100,7 +100,7 @@ private extension LeftoverListViewSnapshotTests {
             onCancel: {})
     }
 
-    var everyKindOfSection: [LeftoverSection] { [simulators, caches(tinted: .teal), xcodeVersions] }
+    var everyKindOfSection: [LeftoverSection] { [simulators, caches, xcodeVersions] }
 
     var simulators: LeftoverSection {
         let shareOfTheRoom = 0.54
@@ -108,7 +108,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Simulators",
             name: "Simulators",
             symbol: "iphone",
-            tint: .accent,
+            tint: .orange,
             size: "79.8 GB",
             share: shareOfTheRoom,
             rows: [
@@ -117,13 +117,13 @@ private extension LeftoverListViewSnapshotTests {
             ])
     }
 
-    func caches(tinted tint: LeftoverSection.Tint) -> LeftoverSection {
+    var caches: LeftoverSection {
         let shareOfTheRoom = 0.38
         return LeftoverSection(
             id: "Caches and support files",
             name: "Caches and support files",
             symbol: "folder.fill",
-            tint: tint,
+            tint: .blue,
             size: "68.0 GB",
             share: shareOfTheRoom,
             rows: [
@@ -139,7 +139,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Xcode versions",
             name: "Xcode versions",
             symbol: "hammer.fill",
-            tint: .orange,
+            tint: .teal,
             size: "11.8 GB",
             share: shareOfTheRoom,
             rows: [
@@ -154,7 +154,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Caches and support files",
             name: "Caches and support files",
             symbol: "folder.fill",
-            tint: .accent,
+            tint: .blue,
             size: "68.0 GB",
             share: 1,
             rows: [
