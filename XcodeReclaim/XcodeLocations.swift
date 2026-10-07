@@ -12,12 +12,14 @@ public struct XcodeLocations: Sendable {
     private static let whatIsWorthDeleting = 100_000_000
 
     public static func forUser(at home: URL) -> XcodeLocations {
-        XcodeLocations(
-            developerFolder: home.appending(path: "Library/Developer"),
+        let developer = home.appending(path: "Library/Developer")
+
+        return XcodeLocations(
+            developerFolder: developer,
             applicationsFolder: URL(filePath: "/Applications"),
-            archivesFolder: home.appending(path: "Library/Developer/Xcode/Archives"),
+            archivesFolder: developer.appending(path: "Xcode/Archives"),
             cachesFolder: home.appending(path: "Library/Caches"),
-            toolchainsFolder: home.appending(path: "Library/Developer/Toolchains"),
+            toolchainsFolder: developer.appending(path: "Toolchains"),
             worthDeleting: whatIsWorthDeleting,
             calendar: daysWrittenInEnglishWhereTheDeveloperIs)
     }
