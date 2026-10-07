@@ -208,6 +208,18 @@ struct DeleteLeftoverTests {
 
         #expect(received == .failed(whatTheServiceSaid))
     }
+
+    @Test
+    func delete_readsNothingFromTheDiskWhenTheServiceRefuses() {
+        let (sut, disk, simulators, runtimes) = makeSUTDeletingRuntimes()
+        simulators.deletion = .failure(WorldFailure(sentence: "Invalid device"))
+        runtimes.deletion = .failure(WorldFailure(sentence: "Invalid runtime"))
+
+        _ = sut.delete(simulator())
+        _ = sut.delete(runtime(taking: 200))
+
+        #expect(disk.messages.isEmpty)
+    }
 }
 
 private extension DeleteLeftoverTests {
