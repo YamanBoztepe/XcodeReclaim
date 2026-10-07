@@ -197,7 +197,7 @@ final class LeftoverListViewModelSelectionTests {
 private extension LeftoverListViewModelSelectionTests {
     func makeSUT() -> (sut: LeftoverListViewModel, requests: ScreenRequestsSpy) {
         let requests = ScreenRequestsSpy()
-        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
+        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete, calendar: calendar())
         released.append { [weak sut] in sut == nil }
         return (sut, requests)
     }

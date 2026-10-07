@@ -63,9 +63,13 @@ private extension MeasureLeftoversSimulatorTests {
         let simulators = SimulatorServiceSpy()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
+            cachesFolder: DeveloperFolder.caches,
             disk: disk,
             simulatorService: simulators,
+            runtimeService: RuntimeServiceSpy(),
             xcodeCopyLoader: XcodeCopyLoaderStub(),
+            archiveLoader: ArchiveLoaderStub(),
+            toolchainLoader: ToolchainLoaderStub(),
             worthDeleting: worthDeleting)
         return (sut, disk, simulators)
     }

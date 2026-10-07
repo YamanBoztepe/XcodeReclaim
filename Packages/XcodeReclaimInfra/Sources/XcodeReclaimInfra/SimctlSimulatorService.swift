@@ -17,7 +17,7 @@ public struct SimctlSimulatorService: SimulatorService {
                 Simulator(
                     identifier: device.udid,
                     name: device.name,
-                    runtime: runtimeNamed(runtime),
+                    runtime: SimulatorRuntimeIdentifier.name(of: runtime),
                     isShutDown: device.state == "Shutdown",
                     bytes: device.dataPathSize ?? 0)
             }
@@ -42,11 +42,4 @@ private struct ReportedDevices: Decodable {
 
 private extension SimctlSimulatorService {
     var xcrun: URL { URL(fileURLWithPath: "/usr/bin/xcrun") }
-
-    func runtimeNamed(_ identifier: String) -> String {
-        let platformAndVersion = /^com\.apple\.CoreSimulator\.SimRuntime\.([A-Za-z]+)((?:-\d+)+)$/
-        guard let read = try? platformAndVersion.wholeMatch(in: identifier) else { return identifier }
-
-        return "\(read.1) \(read.2.dropFirst().split(separator: "-").joined(separator: "."))"
-    }
 }

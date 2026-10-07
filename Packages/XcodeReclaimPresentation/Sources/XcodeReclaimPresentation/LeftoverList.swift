@@ -4,13 +4,19 @@ import XcodeReclaimCore
 private enum SectionKind: CaseIterable {
     case folder
     case simulator
+    case runtime
     case xcodeCopy
+    case toolchain
+    case archive
 
     var name: String {
         switch self {
         case .folder: "Caches and support files"
         case .simulator: "Simulators"
+        case .runtime: "Simulator runtimes"
         case .xcodeCopy: "Xcode versions"
+        case .toolchain: "Swift toolchains"
+        case .archive: "Archives"
         }
     }
 
@@ -18,12 +24,16 @@ private enum SectionKind: CaseIterable {
         switch self {
         case .folder: "folder.fill"
         case .simulator: "iphone"
+        case .runtime: "square.stack.3d.up.fill"
         case .xcodeCopy: "hammer.fill"
+        case .toolchain: "swift"
+        case .archive: "archivebox.fill"
         }
     }
 }
 
 struct LeftoverList {
+    let calendar: Calendar
     var beingMeasured: (kind: Leftover.Kind, place: Leftover.Place)?
     var selected: Set<String> = []
     var sorting = LeftoverListUIModel.Sorting.biggestFirst
@@ -144,7 +154,7 @@ private extension LeftoverList {
     func identity(of place: Leftover.Place) -> String {
         switch place {
         case .folder(let url), .xcodeCopy(let url): url.path(percentEncoded: false)
-        case .simulator(let identifier): identifier
+        case .simulator(let identifier), .runtime(let identifier): identifier
         }
     }
 }
@@ -236,9 +246,12 @@ private extension LeftoverList {
 
     func sectionKind(of kind: Leftover.Kind) -> SectionKind {
         switch kind {
-        case .derivedData, .interfaceBuilderCache, .previews, .documentationCache, .deviceSupport: .folder
+        case .derivedData, .interfaceBuilderCache, .previews, .documentationCache, .deviceSupport, .swiftPackageCache: .folder
         case .simulator: .simulator
+        case .runtime: .runtime
         case .xcodeCopy: .xcodeCopy
+        case .toolchain: .toolchain
+        case .archive: .archive
         }
     }
 }
@@ -279,6 +292,10 @@ private extension LeftoverList {
         case .deviceSupport: "The symbols are put back the next time that device is plugged in."
         case .simulator: "The apps inside it and their data are gone."
         case .xcodeCopy(_, let canBeRemovedWhereItStands): costOfACopy(thatCanBeRemovedWhereItStands: canBeRemovedWhereItStands)
+        case .runtime: "Its simulators do not start until it is downloaded again."
+        case .swiftPackageCache: "The packages are downloaded again."
+        case .toolchain: "Anything that builds with it needs it installed again."
+        case .archive: "Its debug symbols go with it: crashes from that build can be read only if the symbols were uploaded somewhere else."
         }
     }
 
@@ -297,14 +314,44 @@ private extension LeftoverList {
         let identity = identity(of: place)
 
         switch kind {
-        case .derivedData: return "Derived data"
-        case .interfaceBuilderCache: return "Interface builder cache"
-        case .previews: return "Previews"
-        case .documentationCache: return "Documentation cache"
+        case .derivedData, .interfaceBuilderCache, .previews, .documentationCache, .swiftPackageCache: return nameOfAFolder(kind)
         case .deviceSupport(let systemVersion): return nameOfDeviceSupport(holding: systemVersion, inFolder: identity)
         case .simulator(let name, let runtime): return "\(name) (\(runtime), \(identity.prefix { $0 != "-" }))"
         case .xcodeCopy(let version, _): return nameOfACopy(carrying: version, at: identity)
+        case .runtime(let name, let build, let lastUsed): return nameOfARuntime(named: name, build: build, lastUsed: lastUsed)
+        case .archive(let name, let version, let build, let created): return nameOfAnArchive(named: name, version: version, build: build, created: created)
+        case .toolchain(let name): return name
         }
+    }
+
+    func nameOfAFolder(_ kind: Leftover.Kind) -> String {
+        switch kind {
+        case .derivedData: "Derived data"
+        case .interfaceBuilderCache: "Interface builder cache"
+        case .previews: "Previews"
+        case .documentationCache: "Documentation cache"
+        case .swiftPackageCache: "Swift package cache"
+        case .deviceSupport, .simulator, .xcodeCopy, .runtime, .archive, .toolchain: ""
+        }
+    }
+
+    func nameOfARuntime(named name: String, build: String, lastUsed: Date?) -> String {
+        guard let lastUsed else { return "\(name) (\(build)) — never used" }
+
+        return "\(name) (\(build)) — last used \(day(of: lastUsed))"
+    }
+
+    func nameOfAnArchive(named name: String, version: String?, build: String?, created: Date?) -> String {
+        let parts = [name, version, build.map { "(\($0))" }].compactMap(\.self).joined(separator: " ")
+        guard let created else { return parts }
+
+        return "\(parts) — \(day(of: created))"
+    }
+
+    func day(of moment: Date) -> String {
+        let month = calendar.shortMonthSymbols[calendar.component(.month, from: moment) - 1]
+
+        return "\(calendar.component(.day, from: moment)) \(month) \(calendar.component(.year, from: moment))"
     }
 
     func nameOfDeviceSupport(holding systemVersion: String?, inFolder path: String) -> String {
@@ -324,6 +371,8 @@ private extension LeftoverList {
         switch refusal {
         case .simulatorIsRunning: "The simulator is running."
         case .xcodeIsOpen: "Xcode is open."
+        case .runtimeIsInUse: "A simulator on it is running."
+        case .swiftLatestPointsAtIt: "swift-latest points at this one."
         case .commandLineToolsPointAtIt: "The command line tools point at this one."
         }
     }

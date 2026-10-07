@@ -28,14 +28,18 @@ final class LeftoverListViewModelSectionTests {
 
         sut.measuringEnded(with: [
             derivedData(taking: 900), interfaceBuilderCache(taking: 800), previews(taking: 700), documentationCache(taking: 600),
-            deviceSupport(for: "26.4", taking: 500), simulator(taking: 400), copyOfXcode(taking: 300),
+            deviceSupport(for: "26.4", taking: 500), simulator(taking: 400), copyOfXcode(taking: 300), runtime(taking: 250),
+            archive(taking: 240), swiftPackageCache(taking: 230), toolchain(taking: 220),
         ])
 
         #expect(
             sut.uiModel.sections.map { $0.rows.map(\.name) } == [
-                ["Derived data", "Interface builder cache", "Previews", "Documentation cache", "Device support (iOS 26.4)"],
+                ["Derived data", "Interface builder cache", "Previews", "Documentation cache", "Device support (iOS 26.4)", "Swift package cache"],
                 ["iPhone 17 (iOS 26.4, 21B507D3)"],
                 ["Xcode 26.2 (17C51) — Applications"],
+                ["iOS 26.2 (23C54) — never used"],
+                ["Communite Test 2.0.0 (676)"],
+                ["Swift 6.2.4 Release 2026-02-24 (a)"],
             ])
     }
 
@@ -153,12 +157,53 @@ final class LeftoverListViewModelSectionTests {
 
         #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "hammer.fill"])
     }
+
+    @Test("Swift toolchains are shown in their own section")
+    func measuringEnded_showsTheSwiftToolchainsInTheirOwnSection() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [swiftPackageCache(taking: 200), toolchain(named: "Swift 6.2.4 Release 2026-02-24 (a)", taking: 100)])
+
+        #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Swift toolchains"])
+        #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "swift"])
+        #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Swift package cache"], ["Swift 6.2.4 Release 2026-02-24 (a)"]])
+    }
+
+    @Test("Archives are shown in their own section")
+    func measuringEnded_showsTheArchivesInTheirOwnSection() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [derivedData(taking: 200), archive(taking: 100)])
+
+        #expect(sut.uiModel.sections.map(\.name) == ["Caches and support files", "Archives"])
+        #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "archivebox.fill"])
+        #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["Derived data"], ["Communite Test 2.0.0 (676)"]])
+    }
+
+    @Test("Simulator runtimes are shown in their own section")
+    func measuringEnded_showsTheSimulatorRuntimesInTheirOwnSection() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [simulator(taking: 200), runtime(named: "iOS 26.2", build: "23C54", taking: 100)])
+
+        #expect(sut.uiModel.sections.map(\.name) == ["Simulators", "Simulator runtimes"])
+        #expect(sut.uiModel.sections.map { $0.rows.map(\.name) } == [["iPhone 17 (iOS 26.4, 21B507D3)"], ["iOS 26.2 (23C54) — never used"]])
+    }
+
+    @Test("The Simulator runtimes section carries the symbol that names it")
+    func measuringEnded_givesTheSimulatorRuntimesSectionTheSymbolThatNamesIt() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [runtime(taking: 100)])
+
+        #expect(sut.uiModel.sections.map(\.symbol) == ["square.stack.3d.up.fill"])
+    }
 }
 
 private extension LeftoverListViewModelSectionTests {
     func makeSUT() -> LeftoverListViewModel {
         let requests = ScreenRequestsSpy()
-        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
+        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete, calendar: calendar())
         released.append { [weak sut] in sut == nil }
         return sut
     }

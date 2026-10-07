@@ -1,3 +1,4 @@
+import Foundation
 import XcodeReclaimCore
 import XcodeReclaimPresentation
 
@@ -6,13 +7,14 @@ public enum LeftoverListUIComposer {
     public typealias Measuring = @Sendable (_ announcing: @escaping @Sendable (Leftover.Kind, Leftover.Place) -> Void) async -> [Leftover]
     public typealias Deleting = @Sendable (Leftover) -> Deletion
 
-    public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting) -> LeftoverListContainerView {
+    public static func screen(measuring: @escaping Measuring, deleting: @escaping Deleting, calendar: Calendar) -> LeftoverListContainerView {
         let screen = WeakReference<LeftoverListViewModel>()
         let latestMeasuring = latestMeasuring(reaching: screen)
 
         let model = LeftoverListViewModel(
             measure: { measureInTheBackground(measuring, reaching: latestMeasuring) },
-            delete: { deleteInTheBackground($0, with: deleting, reaching: screen) })
+            delete: { deleteInTheBackground($0, with: deleting, reaching: screen) },
+            calendar: calendar)
         screen.object = model
 
         return LeftoverListContainerView(model: model)

@@ -106,9 +106,13 @@ private extension MeasureLeftoversXcodeCopyTests {
         let copies = XcodeCopyLoaderStub()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
+            cachesFolder: DeveloperFolder.caches,
             disk: disk,
             simulatorService: SimulatorServiceSpy(),
+            runtimeService: RuntimeServiceSpy(),
             xcodeCopyLoader: copies,
+            archiveLoader: ArchiveLoaderStub(),
+            toolchainLoader: ToolchainLoaderStub(),
             worthDeleting: worthDeleting)
         return (sut, disk, copies)
     }

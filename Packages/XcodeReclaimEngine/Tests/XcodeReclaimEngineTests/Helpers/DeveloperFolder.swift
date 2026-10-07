@@ -7,6 +7,9 @@ enum DeveloperFolder {
     static let previews = root.appending(path: "Xcode/UserData/Previews")
     static let documentationCache = root.appending(path: "Xcode/DocumentationCache")
     static let deviceSupport = root.appending(path: "Xcode/iOS DeviceSupport")
+    static let caches = URL(fileURLWithPath: "/caches")
+    static let swiftPackageCache = caches.appending(path: "org.swift.swiftpm")
+    static let toolchains = root.appending(path: "Toolchains")
 
     static let everythingOffered = [derivedData, interfaceBuilderCache, previews, documentationCache]
 
