@@ -23,6 +23,10 @@ enum FolderOnDisk {
         return made
     }
 
+    static func putALink(named name: String, to destination: URL, inside folder: URL) {
+        try? FileManager.default.createSymbolicLink(at: folder.appending(path: name), withDestinationURL: destination)
+    }
+
     static func putASecondPathTo(_ name: String, named second: String, inside folder: URL) {
         try? FileManager.default.linkItem(at: folder.appending(path: name), to: folder.appending(path: second))
     }
