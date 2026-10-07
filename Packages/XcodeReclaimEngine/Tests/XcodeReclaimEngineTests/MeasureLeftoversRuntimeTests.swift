@@ -104,7 +104,8 @@ struct MeasureLeftoversRuntimeTests {
 private struct ServiceCannotList: Error {}
 
 private extension MeasureLeftoversRuntimeTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, runtimes: RuntimeServiceSpy, simulators: SimulatorServiceSpy) {
+    func makeSUT() -> (sut: MeasureLeftovers, disk: WorldSpy, runtimes: RuntimeServiceSpy, simulators: SimulatorServiceSpy) {
+        let anythingIsWorthDeleting = 1
         let disk = WorldSpy()
         let runtimes = RuntimeServiceSpy()
         let simulators = SimulatorServiceSpy()
@@ -117,7 +118,7 @@ private extension MeasureLeftoversRuntimeTests {
             xcodeCopyLoader: XcodeCopyLoaderStub(),
             archiveLoader: ArchiveLoaderStub(),
             toolchainLoader: ToolchainLoaderStub(),
-            worthDeleting: worthDeleting)
+            worthDeleting: anythingIsWorthDeleting)
         return (sut, disk, runtimes, simulators)
     }
 

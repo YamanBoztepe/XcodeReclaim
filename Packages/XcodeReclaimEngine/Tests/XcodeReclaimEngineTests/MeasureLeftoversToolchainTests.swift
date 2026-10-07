@@ -28,7 +28,8 @@ struct MeasureLeftoversToolchainTests {
 }
 
 private extension MeasureLeftoversToolchainTests {
-    func makeSUT(worthDeleting: Int = 1) -> (sut: MeasureLeftovers, disk: WorldSpy, toolchains: ToolchainLoaderStub) {
+    func makeSUT() -> (sut: MeasureLeftovers, disk: WorldSpy, toolchains: ToolchainLoaderStub) {
+        let anythingIsWorthDeleting = 1
         let disk = WorldSpy()
         let toolchains = ToolchainLoaderStub()
         let sut = MeasureLeftovers(
@@ -40,7 +41,7 @@ private extension MeasureLeftoversToolchainTests {
             xcodeCopyLoader: XcodeCopyLoaderStub(),
             archiveLoader: ArchiveLoaderStub(),
             toolchainLoader: toolchains,
-            worthDeleting: worthDeleting)
+            worthDeleting: anythingIsWorthDeleting)
         return (sut, disk, toolchains)
     }
 

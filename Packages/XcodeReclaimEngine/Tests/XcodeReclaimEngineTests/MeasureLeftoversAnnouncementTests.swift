@@ -85,12 +85,11 @@ private extension MeasureLeftoversAnnouncementTests {
         return (sut, disk)
     }
 
-    func makeSUT(
-        worthDeleting: Int = 1
-    ) -> (
+    func makeSUT() -> (
         sut: MeasureLeftovers, disk: WorldSpy, simulators: SimulatorServiceSpy, copies: XcodeCopyLoaderStub, runtimes: RuntimeServiceSpy,
         archives: ArchiveLoaderStub, toolchains: ToolchainLoaderStub
     ) {
+        let anythingIsWorthDeleting = 1
         let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
         let copies = XcodeCopyLoaderStub()
@@ -106,7 +105,7 @@ private extension MeasureLeftoversAnnouncementTests {
             xcodeCopyLoader: copies,
             archiveLoader: archives,
             toolchainLoader: toolchains,
-            worthDeleting: worthDeleting)
+            worthDeleting: anythingIsWorthDeleting)
         return (sut, disk, simulators, copies, runtimes, archives, toolchains)
     }
 }
