@@ -5,6 +5,17 @@ import XcodeReclaimInfra
 
 struct SystemXcodeCopyLoaderTests {
     @Test
+    func load_asksTheSearchForEveryBundleCarryingXcodesIdentifier() {
+        let (sut, commandRunner, _) = makeSUT(applicationsFolder: URL(filePath: "/Applications"))
+
+        _ = sut.load()
+
+        #expect(
+            commandRunner.runs.first
+                == .init(executable: URL(fileURLWithPath: "/usr/bin/mdfind"), arguments: ["kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]))
+    }
+
+    @Test
     func load_deliversTheVersionAndBuildTheBundleDeclares() {
         let applications = FolderOnDisk.made()
         defer { FolderOnDisk.throwAway(applications) }
