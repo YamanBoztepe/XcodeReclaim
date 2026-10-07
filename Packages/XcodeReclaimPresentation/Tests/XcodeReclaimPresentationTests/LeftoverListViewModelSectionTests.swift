@@ -79,6 +79,15 @@ final class LeftoverListViewModelSectionTests {
         #expect(sut.uiModel.sections.map(\.symbol) == ["folder.fill", "iphone"])
     }
 
+    @Test
+    func measuringEnded_tintsTheSectionsInTurnAndBeginsAgainAfterTheLast() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [derivedData(taking: 400), simulator(taking: 300), copyOfXcode(taking: 200), runtime(taking: 100)])
+
+        #expect(sut.uiModel.sections.map(\.tint) == [.accent, .teal, .orange, .accent])
+    }
+
     @Test("A section says how much room it holds")
     func measuringEnded_saysHowMuchRoomEachSectionHolds() {
         let sut = makeSUT()
