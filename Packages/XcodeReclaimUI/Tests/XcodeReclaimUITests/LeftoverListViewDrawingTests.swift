@@ -34,10 +34,25 @@ struct LeftoverListViewDrawingTests {
         #expect(biggestFirst.sortDescriptors.map(\.ascending) == [false])
         #expect(byNameAscending.sortDescriptors.map(\.ascending) == [true])
     }
+
+    @Test
+    func sort_asksForTheBiggestFirstWhenTheTableClearsItsOrder() throws {
+        var asked: [LeftoverListUIModel.Sorting] = []
+        let table = try tableOf(
+            makeSUT(holding: 2, sortedBy: LeftoverListUIModel.Sorting(column: .name, isAscending: true), onSort: { asked.append($0) }))
+
+        table.sortDescriptors = []
+
+        #expect(asked == [.biggestFirst])
+    }
 }
 
 private extension LeftoverListViewDrawingTests {
-    func makeSUT(holding rows: Int, sortedBy sorting: LeftoverListUIModel.Sorting = .biggestFirst) -> LeftoverListView {
+    func makeSUT(
+        holding rows: Int,
+        sortedBy sorting: LeftoverListUIModel.Sorting = .biggestFirst,
+        onSort: @escaping (LeftoverListUIModel.Sorting) -> Void = { _ in }
+    ) -> LeftoverListView {
         let section = LeftoverSection(
             id: "Caches and support files",
             name: "Caches and support files",
@@ -52,7 +67,7 @@ private extension LeftoverListViewDrawingTests {
             onAppear: {},
             onRefresh: {},
             onSelect: { _ in },
-            onSort: { _ in },
+            onSort: onSort,
             onAskAboutDeleting: { _ in },
             onConfirm: {},
             onCancel: {})
