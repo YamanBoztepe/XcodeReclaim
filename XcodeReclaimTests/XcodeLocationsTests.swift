@@ -24,11 +24,13 @@ struct XcodeLocationsTests {
     }
 
     @Test func forUser_writesDaysInEnglishWhereTheDeveloperIs() {
+        var englishDaysWhereTheDeveloperIs = Calendar(identifier: .gregorian)
+        englishDaysWhereTheDeveloperIs.locale = Locale(identifier: "en_US_POSIX")
+        englishDaysWhereTheDeveloperIs.timeZone = .autoupdatingCurrent
+
         let places = XcodeLocations.forUser(at: anyHome)
 
-        #expect(places.calendar.identifier == .gregorian)
-        #expect(places.calendar.locale == Locale(identifier: "en_US_POSIX"))
-        #expect(places.calendar.timeZone == .autoupdatingCurrent)
+        #expect(places.calendar == englishDaysWhereTheDeveloperIs)
     }
 
     @Test func forUser_namesAFolderEveryMacReallyHas() {
