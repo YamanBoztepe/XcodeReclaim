@@ -68,6 +68,20 @@ struct LocalToolchainLoaderTests {
     }
 
     @Test
+    func load_deliversTheToolchainALinkWrittenInFullThroughItsParentPointsAtAsTheOneItPointsAt() {
+        let toolchains = FolderOnDisk.made()
+        defer { FolderOnDisk.throwAway(toolchains) }
+        let latest = FolderOnDisk.putAFolder(named: "swift-6.4.0-RELEASE.xctoolchain", inside: toolchains)
+        linkSwiftLatest(to: "\(toolchains.path(percentEncoded: false))/../\(toolchains.lastPathComponent)/swift-6.4.0-RELEASE.xctoolchain", inside: toolchains)
+        let (sut, disk) = makeSUT(readingToolchainsIn: toolchains)
+        disk.folders[toolchains] = [latest]
+
+        let received = sut.load()
+
+        #expect(received.map(\.isPointedAtBySwiftLatest) == [true])
+    }
+
+    @Test
     func load_deliversNoToolchainAsPointedAtWhenThereIsNoLink() {
         let toolchains = FolderOnDisk.made()
         defer { FolderOnDisk.throwAway(toolchains) }
