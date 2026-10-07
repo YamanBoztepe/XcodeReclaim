@@ -31,11 +31,11 @@ private extension LeftoverListUIComposer {
     }
 
     static func measureInTheBackground(_ measuring: @escaping Measuring, reaching latestMeasuring: LatestMeasuringDecorator) {
-        let thisMeasuring = latestMeasuring.beginMeasuring()
-        let announceOnTheMainThread = announcingOnTheMainThread(to: latestMeasuring, from: thisMeasuring)
+        let ticket = latestMeasuring.beginMeasuring()
+        let announceOnTheMainThread = announcingOnTheMainThread(to: latestMeasuring, from: ticket)
 
         BackgroundDecorator { await measuring(announceOnTheMainThread) }
-            .handle(then: deliveringOnTheMainThread(to: latestMeasuring, from: thisMeasuring))
+            .handle(then: deliveringOnTheMainThread(to: latestMeasuring, from: ticket))
     }
 
     static func deleteInTheBackground(_ leftover: Leftover, with deleting: @escaping Deleting, reaching screen: Screen) {
@@ -45,15 +45,18 @@ private extension LeftoverListUIComposer {
 
     static func announcingOnTheMainThread(
         to latestMeasuring: LatestMeasuringDecorator,
-        from measuring: Int
+        from ticket: LatestMeasuringDecorator.Ticket
     ) -> @Sendable (Leftover.Kind, Leftover.Place) -> Void {
-        let announce = MainThreadDecorator<(Leftover.Kind, Leftover.Place)> { latestMeasuring.announce($0.0, at: $0.1, from: measuring) }
+        let announce = MainThreadDecorator<(Leftover.Kind, Leftover.Place)> { latestMeasuring.announce($0.0, at: $0.1, from: ticket) }
 
         return { announce.handle(($0, $1)) }
     }
 
-    static func deliveringOnTheMainThread(to latestMeasuring: LatestMeasuringDecorator, from measuring: Int) -> @Sendable ([Leftover]) -> Void {
-        MainThreadDecorator<[Leftover]> { latestMeasuring.deliver($0, from: measuring) }.handle
+    static func deliveringOnTheMainThread(
+        to latestMeasuring: LatestMeasuringDecorator,
+        from ticket: LatestMeasuringDecorator.Ticket
+    ) -> @Sendable ([Leftover]) -> Void {
+        MainThreadDecorator<[Leftover]> { latestMeasuring.deliver($0, from: ticket) }.handle
     }
 
     static func endingTheDeletionOnTheMainThread(reaching screen: Screen) -> @Sendable (Deletion) -> Void {
