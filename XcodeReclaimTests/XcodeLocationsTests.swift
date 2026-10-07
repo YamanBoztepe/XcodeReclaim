@@ -10,6 +10,9 @@ struct XcodeLocationsTests {
 
         #expect(places.developerFolder.path(percentEncoded: false) == "/Users/developer/Library/Developer")
         #expect(places.applicationsFolder.path(percentEncoded: false) == "/Applications")
+        #expect(places.archivesFolder.path(percentEncoded: false) == "/Users/developer/Library/Developer/Xcode/Archives")
+        #expect(places.cachesFolder.path(percentEncoded: false) == "/Users/developer/Library/Caches")
+        #expect(places.toolchainsFolder.path(percentEncoded: false) == "/Users/developer/Library/Developer/Toolchains")
     }
 
     @Test func forUser_saysAHundredMegabytesIsWorthDeleting() {
@@ -18,6 +21,16 @@ struct XcodeLocationsTests {
         let places = XcodeLocations.forUser(at: anyHome)
 
         #expect(places.worthDeleting == aHundredMegabytes)
+    }
+
+    @Test func forUser_writesDaysInEnglishWhereTheDeveloperIs() {
+        var englishDaysWhereTheDeveloperIs = Calendar(identifier: .gregorian)
+        englishDaysWhereTheDeveloperIs.locale = Locale(identifier: "en_US_POSIX")
+        englishDaysWhereTheDeveloperIs.timeZone = .autoupdatingCurrent
+
+        let places = XcodeLocations.forUser(at: anyHome)
+
+        #expect(places.calendar == englishDaysWhereTheDeveloperIs)
     }
 
     @Test func forUser_namesAFolderEveryMacReallyHas() {

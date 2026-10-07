@@ -286,6 +286,28 @@ final class LeftoverListViewModelDeletionTests {
         #expect(sut.shownRows.map(\.refusal) == ["Xcode is open."])
     }
 
+    @Test("A simulator runtime in use offers no deletion")
+    func askAboutDeleting_asksNothingForASimulatorRuntimeInUse() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [runtime(taking: 200, refusedFor: .runtimeIsInUse)])
+
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+
+        #expect(sut.uiModel.confirmation == nil)
+        #expect(sut.shownRows.map(\.refusal) == ["A simulator on it is running."])
+    }
+
+    @Test("The toolchain swift-latest points at offers no deletion")
+    func askAboutDeleting_asksNothingForTheToolchainSwiftLatestPointsAt() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [toolchain(taking: 200, refusedFor: .swiftLatestPointsAtIt)])
+
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+
+        #expect(sut.uiModel.confirmation == nil)
+        #expect(sut.shownRows.map(\.refusal) == ["swift-latest points at this one."])
+    }
+
     @Test("The copy the command line tools point at offers no deletion")
     func askAboutDeleting_asksNothingForTheCopyTheCommandLineToolsPointAt() throws {
         let (sut, _) = makeSUT()
@@ -301,7 +323,7 @@ final class LeftoverListViewModelDeletionTests {
 private extension LeftoverListViewModelDeletionTests {
     func makeSUT() -> (sut: LeftoverListViewModel, requests: ScreenRequestsSpy) {
         let requests = ScreenRequestsSpy()
-        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
+        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete, calendar: calendar())
         released.append { [weak sut] in sut == nil }
         return (sut, requests)
     }

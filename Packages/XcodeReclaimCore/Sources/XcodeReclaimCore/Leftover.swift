@@ -9,6 +9,10 @@ public struct Leftover: Hashable, Sendable {
         case deviceSupport(systemVersion: String?)
         case simulator(name: String, runtime: String)
         case xcodeCopy(version: XcodeVersion?, canBeRemovedWhereItStands: Bool)
+        case runtime(name: String, build: String, lastUsed: Date?)
+        case archive(name: String, version: String?, build: String?, created: Date?)
+        case swiftPackageCache
+        case toolchain(name: String)
     }
 
     public struct XcodeVersion: Hashable, Sendable {
@@ -25,12 +29,15 @@ public struct Leftover: Hashable, Sendable {
         case folder(URL)
         case simulator(String)
         case xcodeCopy(URL)
+        case runtime(String)
     }
 
     public enum Refusal: Hashable, Sendable {
         case simulatorIsRunning
         case xcodeIsOpen
         case commandLineToolsPointAtIt
+        case runtimeIsInUse
+        case swiftLatestPointsAtIt
     }
 
     public let kind: Kind

@@ -134,6 +134,28 @@ struct LeftoverListUIIntegrationTests {
         #expect(screen.rowNames == ["Previews"])
     }
 
+    @Test func refresh_dropsWhatAReplacedMeasuringAnnounces() async {
+        let theMeasuringTheRefreshReplaces = 0
+        let theMeasuringTheRefreshStarts = 1
+        let machine = LateAnnouncingMachineStub(eachMeasuring: [
+            MachineStub(announcing: [derivedData(taking: 300)], finding: [derivedData(taking: 300)]),
+            MachineStub(finding: [previews(taking: 300)]),
+        ])
+        let screen = screenMeasuring(machine)
+        screen.open()
+        await screen.waitUntil { machine.measuringsBegun == 1 }
+        screen.refresh()
+
+        machine.letMeasuringFinish(theMeasuringTheRefreshReplaces)
+        await screen.waitUntil { machine.measuringsAnswered == 1 }
+        await screen.waitForEverythingQueuedToRun()
+        #expect(screen.leftoverBeingMeasured == nil)
+
+        machine.letMeasuringFinish(theMeasuringTheRefreshStarts)
+        await screen.waitForMeasuringToEnd()
+        #expect(screen.rowNames == ["Previews"])
+    }
+
     @Test func choose_marksTheRowsOnTheScreenAndOffersToDeleteThem() async throws {
         let machine = MachineStub(finding: [derivedData(taking: 300), simulator(taking: 200)])
         let screen = screenMeasuring(machine)

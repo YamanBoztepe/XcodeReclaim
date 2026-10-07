@@ -171,17 +171,78 @@ struct DeleteLeftoverTests {
         #expect(received == [.refused(.xcodeIsOpen), .refused(.commandLineToolsPointAtIt)])
         #expect(disk.messages.isEmpty)
     }
+
+    @Test("A deleted archive is gone from its folder")
+    func delete_removesTheArchiveFromItsFolderAndFreesItsRoom() {
+        let roomItTook = 385_875_968
+        let archive = DeveloperFolder.root.appending(path: "Xcode/Archives/2026-09-16/Communite Test 676.xcarchive")
+        let (sut, disk, _) = makeSUT()
+
+        let received = sut.delete(
+            Leftover(kind: .archive(name: "Communite Test", version: "2.0.0", build: "676", created: nil), bytes: roomItTook, place: .folder(archive)))
+
+        #expect(disk.messages == [.removed(archive)])
+        #expect(received == .freed(roomItTook))
+    }
+
+    @Test("A deleted simulator runtime delivers the room it took")
+    func delete_tellsTheServiceToDeleteTheRuntimeAndFreesTheRoomItTook() {
+        let roomItTook = 10_407_690_816
+        let (sut, disk, simulators, runtimes) = makeSUTDeletingRuntimes()
+
+        let received = sut.delete(runtime(taking: roomItTook))
+
+        #expect(runtimes.messages == [.deleted(runtimeIdentifier)])
+        #expect(simulators.messages.isEmpty)
+        #expect(disk.messages.isEmpty)
+        #expect(received == .freed(roomItTook))
+    }
+
+    @Test("A simulator runtime the service refuses to delete frees nothing")
+    func delete_failsSayingWhatTheServiceSaidWhenItRefusesToDeleteARuntime() {
+        let whatTheServiceSaid = "Invalid runtime"
+        let (sut, _, _, runtimes) = makeSUTDeletingRuntimes()
+        runtimes.deletion = .failure(WorldFailure(sentence: whatTheServiceSaid))
+
+        let received = sut.delete(runtime(taking: 200))
+
+        #expect(received == .failed(whatTheServiceSaid))
+    }
+
+    @Test
+    func delete_readsNothingFromTheDiskWhenTheServiceRefuses() {
+        let (sut, disk, simulators, runtimes) = makeSUTDeletingRuntimes()
+        simulators.deletion = .failure(WorldFailure(sentence: "Invalid device"))
+        runtimes.deletion = .failure(WorldFailure(sentence: "Invalid runtime"))
+
+        _ = sut.delete(simulator())
+        _ = sut.delete(runtime(taking: 200))
+
+        #expect(disk.messages.isEmpty)
+    }
 }
 
 private extension DeleteLeftoverTests {
     var deviceIdentifier: String { "21B507D3-909E-465B-957C-4B370278399F" }
     var copyPath: URL { URL(fileURLWithPath: "/Applications/Xcode 26.2.app") }
 
+    var runtimeIdentifier: String { "9A65D489-798D-4E19-8CBC-FA5C9A1F2A1E" }
+
     func makeSUT() -> (sut: DeleteLeftover, disk: WorldSpy, simulators: SimulatorServiceSpy) {
+        let (sut, disk, simulators, _) = makeSUTDeletingRuntimes()
+        return (sut, disk, simulators)
+    }
+
+    func makeSUTDeletingRuntimes() -> (sut: DeleteLeftover, disk: WorldSpy, simulators: SimulatorServiceSpy, runtimes: RuntimeServiceSpy) {
         let disk = WorldSpy()
         let simulators = SimulatorServiceSpy()
-        let sut = DeleteLeftover(disk: disk, simulatorService: simulators)
-        return (sut, disk, simulators)
+        let runtimes = RuntimeServiceSpy()
+        let sut = DeleteLeftover(disk: disk, simulatorService: simulators, runtimeService: runtimes)
+        return (sut, disk, simulators, runtimes)
+    }
+
+    func runtime(taking bytes: Int) -> Leftover {
+        Leftover(kind: .runtime(name: "iOS 26.2", build: "23C54", lastUsed: nil), bytes: bytes, place: .runtime(runtimeIdentifier))
     }
 
     func derivedData(taking bytes: Int) -> Leftover {

@@ -47,6 +47,18 @@ struct MeasureLeftoversTests {
         #expect(received == [Leftover(kind: .derivedData, bytes: roomItTakes, place: .folder(DeveloperFolder.derivedData))])
     }
 
+    @Test("The Swift package cache is delivered with the room it takes")
+    func measure_deliversTheSwiftPackageCacheWithTheRoomItTakes() {
+        let roomItTakes = 200
+        let (sut, disk, _, _) = makeSUT()
+        disk.sizes[DeveloperFolder.swiftPackageCache] = roomItTakes
+        disk.sizes[DeveloperFolder.root.appending(path: "org.swift.swiftpm")] = roomItTakes + 1
+
+        let received = sut.leftovers(measuring: [.swiftPackageCache], announcing: disk.announce)
+
+        #expect(received == [Leftover(kind: .swiftPackageCache, bytes: roomItTakes, place: .folder(DeveloperFolder.swiftPackageCache))])
+    }
+
     @Test("Every offered leftover is delivered when it takes room")
     func measure_deliversEveryOfferedLeftoverThatTakesRoom() {
         let roomEachTakes = 100
@@ -161,9 +173,13 @@ private extension MeasureLeftoversTests {
         let copies = XcodeCopyLoaderStub()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
+            cachesFolder: DeveloperFolder.caches,
             disk: disk,
             simulatorService: simulators,
+            runtimeService: RuntimeServiceSpy(),
             xcodeCopyLoader: copies,
+            archiveLoader: ArchiveLoaderStub(),
+            toolchainLoader: ToolchainLoaderStub(),
             worthDeleting: worthDeleting)
         return (sut, disk, simulators, copies)
     }

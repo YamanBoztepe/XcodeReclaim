@@ -1,17 +1,21 @@
+import Foundation
 import Observation
 import XcodeReclaimCore
 
 @Observable
 public final class LeftoverListViewModel {
-    public private(set) var uiModel = LeftoverList().uiModel
+    public private(set) var uiModel: LeftoverListUIModel
 
-    private var list = LeftoverList()
+    private var list: LeftoverList
     private let measure: () -> Void
     private let delete: (Leftover) -> Void
 
-    public init(measure: @escaping () -> Void, delete: @escaping (Leftover) -> Void) {
+    public init(measure: @escaping () -> Void, delete: @escaping (Leftover) -> Void, calendar: Calendar) {
         self.measure = measure
         self.delete = delete
+        let nothingMeasuredYet = LeftoverList(calendar: calendar)
+        list = nothingMeasuredYet
+        uiModel = nothingMeasuredYet.uiModel
     }
 
     public func open() {

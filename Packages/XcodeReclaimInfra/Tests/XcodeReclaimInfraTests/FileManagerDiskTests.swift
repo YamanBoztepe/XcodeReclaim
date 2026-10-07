@@ -112,8 +112,9 @@ struct FileManagerDiskTests {
         let sut = makeSUT()
         let deviceSupport = makeFolder(holding: 0)
         defer { throwAway(deviceSupport) }
-        _ = FolderOnDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: deviceSupport)
+        let symbols = FolderOnDisk.putAFolder(named: "iPhone15,2 26.4 (22A1)", inside: deviceSupport)
         FolderOnDisk.put(blocks: 1, named: "a file sitting beside them", inside: deviceSupport)
+        FolderOnDisk.putALink(named: "a link to one of them", to: symbols, inside: deviceSupport)
 
         let received = sut.foldersInside(deviceSupport)
 

@@ -6,10 +6,12 @@ public struct DeleteLeftover {
 
     private let disk: any Disk
     private let simulatorService: any SimulatorService
+    private let runtimeService: any RuntimeService
 
-    public init(disk: any Disk, simulatorService: any SimulatorService) {
+    public init(disk: any Disk, simulatorService: any SimulatorService, runtimeService: any RuntimeService) {
         self.disk = disk
         self.simulatorService = simulatorService
+        self.runtimeService = runtimeService
     }
 
     public func delete(_ leftover: Leftover) -> Deletion {
@@ -43,7 +45,7 @@ private extension DeleteLeftover {
     func folder(holding place: Leftover.Place) -> URL? {
         switch place {
         case .folder(let url), .xcodeCopy(let url): url
-        case .simulator: nil
+        case .simulator, .runtime: nil
         }
     }
 
@@ -53,6 +55,9 @@ private extension DeleteLeftover {
             return try disk.removeItem(at: url)
         case .simulator(let identifier):
             try simulatorService.delete(simulatorWithIdentifier: identifier)
+            return true
+        case .runtime(let identifier):
+            try runtimeService.delete(runtimeWithIdentifier: identifier)
             return true
         }
     }

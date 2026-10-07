@@ -80,6 +80,59 @@ final class LeftoverListViewModelNamingTests {
         #expect(sut.shownNames == ["Xcode 26.2 (17C51) — Applications", "Xcode 26.2 (17C51) — Desktop"])
     }
 
+    @Test("A simulator runtime is named by its version, its build and the day it was last used")
+    func measuringEnded_namesARuntimeByItsVersionItsBuildAndTheDayItWasLastUsed() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [runtime(named: "iOS 26.2", build: "23C54", lastUsed: moment("2026-10-01T12:17:46Z"), taking: 200)])
+
+        #expect(sut.shownNames == ["iOS 26.2 (23C54) — last used 1 Oct 2026"])
+    }
+
+    @Test("A simulator runtime never used says so")
+    func measuringEnded_saysASimulatorRuntimeWasNeverUsed() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [runtime(named: "watchOS 11.1", build: "22R581", lastUsed: nil, taking: 200)])
+
+        #expect(sut.shownNames == ["watchOS 11.1 (22R581) — never used"])
+    }
+
+    @Test("An archive is named by its app, its version, its build and the day it was made")
+    func measuringEnded_namesAnArchiveByItsAppItsVersionItsBuildAndTheDayItWasMade() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [archive(named: "Communite Test", version: "2.0.0", build: "676", created: moment("2026-09-16T15:22:46Z"), taking: 200)])
+
+        #expect(sut.shownNames == ["Communite Test 2.0.0 (676) — 16 Sep 2026"])
+    }
+
+    @Test(
+        "An archive is named by what its record carries",
+        arguments: [
+            (nil, nil, nil, "Communite Test 676"),
+            ("2.0.0", nil, nil, "Communite Test 676 2.0.0"),
+            (nil, "676", nil, "Communite Test 676 (676)"),
+            (nil, nil, "2026-09-16T15:22:46Z", "Communite Test 676 — 16 Sep 2026"),
+        ])
+    func measuringEnded_namesAnArchiveByWhatItsRecordCarries(version: String?, build: String?, created: String?, name: String) {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [archive(named: "Communite Test 676", version: version, build: build, created: created.map(moment), taking: 200)])
+
+        #expect(sut.shownNames == [name])
+    }
+
+    @Test("A day is written in the developer's time zone")
+    func measuringEnded_writesTheDayInTheDevelopersTimeZone() throws {
+        let istanbul = try #require(TimeZone(identifier: "Europe/Istanbul"))
+        let sut = makeSUT(in: istanbul)
+
+        sut.measuringEnded(with: [runtime(named: "iOS 26.2", build: "23C54", lastUsed: moment("2026-10-01T22:30:00Z"), taking: 200)])
+
+        #expect(sut.shownNames == ["iOS 26.2 (23C54) — last used 2 Oct 2026"])
+    }
+
     @Test(
         "A confirmation says what deleting each kind of leftover costs",
         arguments: [
@@ -93,6 +146,14 @@ final class LeftoverListViewModelNamingTests {
             ),
             (simulator(taking: 200), "Frees 200 bytes. The apps inside it and their data are gone. This cannot be undone."),
             (copyOfXcode(taking: 200), "Frees 200 bytes. That version has to be downloaded again. This cannot be undone."),
+            (runtime(taking: 200), "Frees 200 bytes. Its simulators do not start until it is downloaded again. This cannot be undone."),
+            (swiftPackageCache(taking: 200), "Frees 200 bytes. The packages are downloaded again. This cannot be undone."),
+            (toolchain(taking: 200), "Frees 200 bytes. Anything that builds with it needs it installed again. This cannot be undone."),
+            (
+                archive(taking: 200),
+                "Frees 200 bytes. Its debug symbols go with it: crashes from that build can be read only if the symbols were uploaded "
+                    + "somewhere else. This cannot be undone."
+            ),
         ])
     func askAboutDeleting_saysWhatDeletingEachKindOfLeftoverCosts(leftover: Leftover, sentence: String) throws {
         let sut = makeSUT()
@@ -116,9 +177,9 @@ final class LeftoverListViewModelNamingTests {
 }
 
 private extension LeftoverListViewModelNamingTests {
-    func makeSUT() -> LeftoverListViewModel {
+    func makeSUT(in timeZone: TimeZone = .gmt) -> LeftoverListViewModel {
         let requests = ScreenRequestsSpy()
-        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
+        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete, calendar: calendar(in: timeZone))
         released.append { [weak sut] in sut == nil }
         return sut
     }

@@ -18,13 +18,6 @@ private extension XcodeReclaimApp {
     static var places: XcodeLocations { .forUser(at: URL(filePath: NSHomeDirectory())) }
 
     static var xcodeReclaim: XcodeReclaim {
-        let applicationsFolder = places.applicationsFolder
-
-        return XcodeReclaim(
-            developerFolder: places.developerFolder,
-            worthDeleting: places.worthDeleting,
-            disk: { FileManagerDisk() },
-            simulatorService: { SimctlSimulatorService(commandRunner: ProcessCommandRunner()) },
-            xcodeCopyLoader: { SystemXcodeCopyLoader(commandRunner: ProcessCommandRunner(), disk: FileManagerDisk(), applicationsFolder: applicationsFolder) })
+        XcodeReclaim(places: places, disk: { FileManagerDisk() }, commandRunner: { ProcessCommandRunner() })
     }
 }

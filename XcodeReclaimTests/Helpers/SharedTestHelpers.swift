@@ -6,6 +6,15 @@ let derivedDataFolder = developerFolder.appending(path: "Xcode/DerivedData")
 let previewsFolder = developerFolder.appending(path: "Xcode/UserData/Previews")
 let interfaceBuilderCacheFolder = developerFolder.appending(path: "Xcode/UserData/IB Support")
 let documentationCacheFolder = developerFolder.appending(path: "Xcode/DocumentationCache")
+let cachesFolder = URL(filePath: "/caches")
+let swiftPackageCacheFolder = cachesFolder.appending(path: "org.swift.swiftpm")
+
+var calendarInGreenwich: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US_POSIX")
+    calendar.timeZone = .gmt
+    return calendar
+}
 
 func derivedData(taking bytes: Int) -> Leftover {
     Leftover(kind: .derivedData, bytes: bytes, place: .folder(derivedDataFolder))

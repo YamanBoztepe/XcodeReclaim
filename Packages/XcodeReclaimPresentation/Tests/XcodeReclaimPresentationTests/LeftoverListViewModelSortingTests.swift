@@ -113,7 +113,7 @@ private extension LeftoverListViewModelSortingTests {
 
     func makeSUT() -> LeftoverListViewModel {
         let requests = ScreenRequestsSpy()
-        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete)
+        let sut = LeftoverListViewModel(measure: requests.measure, delete: requests.delete, calendar: calendar())
         released.append { [weak sut] in sut == nil }
         return sut
     }

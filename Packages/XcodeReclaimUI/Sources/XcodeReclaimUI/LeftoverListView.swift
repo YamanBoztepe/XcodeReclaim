@@ -66,6 +66,7 @@ public struct LeftoverListView: View {
         static let betweenHeaderLines: CGFloat = 12
         static let betweenKeys: CGFloat = 20
         static let underKey: CGFloat = 6
+        static let narrowestKey: CGFloat = 210
         static let besideSymbol: CGFloat = 6
         static let underRowName: CGFloat = 2
         static let underMeasuringSentence: CGFloat = 4
@@ -86,9 +87,12 @@ private extension LeftoverListUIModel {
 private extension LeftoverSection.Tint {
     var colour: Color {
         switch self {
-        case .accent: .accentColor
-        case .teal: .teal
+        case .blue: .blue
         case .orange: .orange
+        case .purple: .purple
+        case .teal: .teal
+        case .green: .green
+        case .pink: .pink
         }
     }
 }
@@ -134,14 +138,12 @@ private extension LeftoverListView {
     }
 
     var legend: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: Layout.betweenKeys) {
-                keys
-                Spacer()
-            }
-            VStack(alignment: .leading, spacing: Layout.underKey) {
-                keys
-            }
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: Layout.narrowestKey), spacing: Layout.betweenKeys, alignment: .leading)],
+            alignment: .leading,
+            spacing: Layout.underKey
+        ) {
+            keys
         }
     }
 
@@ -151,10 +153,9 @@ private extension LeftoverListView {
                 Circle()
                     .fill(section.tint.colour)
                     .frame(width: Layout.keyDot, height: Layout.keyDot)
-                Text(section.name).font(.callout)
-                Text(section.size).font(.callout).foregroundStyle(.secondary)
+                Text(section.name).font(.callout).lineLimit(1)
+                Text(section.size).font(.callout).foregroundStyle(.secondary).fixedSize()
             }
-            .fixedSize()
             .accessibilityElement(children: .combine)
         }
     }

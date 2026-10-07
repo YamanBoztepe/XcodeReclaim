@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import Testing
+import XcodeReclaim
 
 @MainActor
 struct XcodeReclaimAcceptanceTests {
@@ -77,6 +78,92 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForDeletionToEnd()
         #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
         #expect(app.deletionMessage == "4.0 GB came back.")
+    }
+
+    @Test("The developer deletes a simulator runtime they no longer use")
+    func confirm_takesTheDeletedRuntimeOffTheScreenAndSaysWhatCameBack() async throws {
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], runtimesTaking: [10_407_690_816])
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        try app.askToDelete("iOS 26.2 (23C54) — last used 1 Oct 2026")
+        #expect(app.confirmationMessage == "Frees 10.4 GB. Its simulators do not start until it is downloaded again. This cannot be undone.")
+
+        app.confirm()
+        await app.waitForDeletionToEnd()
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
+        #expect(app.deletionMessage == "10.4 GB came back.")
+    }
+
+    @Test("The developer deletes an archive they no longer need")
+    func confirm_takesTheDeletedArchiveOffTheScreenSayingItsSymbolsGoWithIt() async throws {
+        let whatItCosts = "Its debug symbols go with it: crashes from that build can be read only if the symbols were uploaded somewhere else."
+        let app = appMeasuring(foldersHolding: [derivedDataFolder: 300], archivesTaking: [385_875_968])
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        try app.askToDelete("Communite Test 2.0.0 (676)")
+        #expect(app.confirmationMessage == "Frees 385.9 MB. \(whatItCosts) This cannot be undone.")
+
+        app.confirm()
+        await app.waitForDeletionToEnd()
+        #expect(app.shownLeftovers == ["Derived data — 300 bytes"])
+        #expect(app.deletionMessage == "385.9 MB came back.")
+    }
+
+    @Test
+    func open_showsTheSwiftPackageCacheAndTheToolchainsWithTheirSizes() async {
+        let app = appMeasuring(foldersHolding: [swiftPackageCacheFolder: 300], toolchainsTaking: [200])
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(app.shownLeftovers == ["Swift package cache — 300 bytes", "Swift 6.2.4 Release 2026-02-24 (a) — 200 bytes"])
+    }
+
+    @Test func open_findsWhatEachPlaceOnTheMachineHolds() async {
+        let aGigabyte = 1_000_000_000
+        let places = XcodeLocations.forUser(at: URL(filePath: "/Users/developer"))
+        let day = places.archivesFolder.appending(path: "2026-09-16")
+        let archive = day.appending(path: "Communite Test 676.xcarchive")
+        let toolchain = places.toolchainsFolder.appending(path: "swift-6.2.4-RELEASE.xctoolchain")
+        let copy = URL(filePath: "/Volumes/Older Xcodes/Xcode.app")
+        let disk = DiskStub(
+            holding: [
+                places.developerFolder.appending(path: "Xcode/DerivedData"): aGigabyte,
+                places.developerFolder.appending(path: "Xcode/UserData/Previews"): places.worthDeleting - 1,
+                places.cachesFolder.appending(path: "org.swift.swiftpm"): aGigabyte * 3 / 2,
+                archive: aGigabyte * 2,
+                toolchain: aGigabyte * 3,
+                copy: aGigabyte * 4,
+            ],
+            listing: [places.archivesFolder: [day], day: [archive], places.toolchainsFolder: [toolchain]])
+        let app = appReading(places, throughDisk: disk, answering: ["mdfind": copy.path(percentEncoded: false)])
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(
+            app.shownLeftovers == [
+                "Xcode — Older Xcodes — 4.0 GB",
+                "swift-6.2.4-RELEASE — 3.0 GB",
+                "Swift package cache — 1.5 GB",
+                "Derived data — 1.0 GB",
+                "Communite Test 676 — 2.0 GB",
+            ])
+    }
+
+    @Test func open_readsTheApplicationsFolderWhenTheSearchFindsNoCopy() async {
+        let places = XcodeLocations.forUser(at: URL(filePath: "/Users/developer"))
+        let copy = XcodeBundleOnDisk.made(carryingVersion: "26.2", build: "17C51", inFolderNamed: "Applications")
+        defer { XcodeBundleOnDisk.throwAway(copy) }
+        let disk = DiskStub(holding: [copy: places.worthDeleting], listing: [places.applicationsFolder: [copy]])
+        let app = appReading(places, throughDisk: disk, answering: [:])
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(app.shownLeftovers == ["Xcode 26.2 (17C51) — Applications — 100.0 MB"])
     }
 
     @Test func confirm_takesEveryChosenLeftoverOffTheScreenAndAddsUpWhatCameBack() async throws {

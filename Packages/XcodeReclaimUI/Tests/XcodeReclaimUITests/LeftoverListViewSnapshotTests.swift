@@ -42,7 +42,7 @@ struct LeftoverListViewSnapshotTests {
                 title: "119.4 GB to reclaim",
                 isMeasuring: false,
                 deletionMessage: "28.4 GB came back.",
-                sections: [caches(tinted: .accent)])
+                sections: [caches])
         )
         .verify(named: "LEFTOVER_LIST_AFTER_A_DELETION")
     }
@@ -58,6 +58,12 @@ struct LeftoverListViewSnapshotTests {
                 canDeleteSelection: true)
         )
         .verify(named: "LEFTOVER_LIST_WITH_ROWS_CHOSEN")
+    }
+
+    @Test
+    func draws_theKeyOfSixSectionsInColumns() {
+        makeSUT(showing: LeftoverListUIModel(title: "188.8 GB to reclaim", isMeasuring: false, sections: sixKindsOfSection))
+            .verify(named: "LEFTOVER_LIST_WITH_SIX_SECTIONS")
     }
 
     @Test
@@ -100,7 +106,40 @@ private extension LeftoverListViewSnapshotTests {
             onCancel: {})
     }
 
-    var everyKindOfSection: [LeftoverSection] { [simulators, caches(tinted: .teal), xcodeVersions] }
+    var everyKindOfSection: [LeftoverSection] { [simulators, caches, xcodeVersions] }
+
+    var sixKindsOfSection: [LeftoverSection] {
+        let runtimesShare = 0.47
+        let cachesShare = 0.30
+        let simulatorsShare = 0.07
+        let toolchainsShare = 0.06
+        let archivesShare = 0.06
+        let copiesShare = 0.04
+        return [
+            section(
+                "Simulator runtimes", symbol: "square.stack.3d.up.fill", tint: .purple, share: runtimesShare,
+                holding: row(named: "iOS 26.2 (23C54) — last used 1 Oct 2026", size: "88.9 GB")),
+            section(
+                "Caches and support files", symbol: "folder.fill", tint: .blue, share: cachesShare,
+                holding: row(named: "Derived data", size: "56.4 GB")),
+            section(
+                "Simulators", symbol: "iphone", tint: .orange, share: simulatorsShare,
+                holding: row(named: "iPhone 17 (iOS 26.4, 4D6D570A)", size: "12.8 GB")),
+            section(
+                "Swift toolchains", symbol: "swift", tint: .green, share: toolchainsShare,
+                holding: row(named: "Swift 6.2.4 Release 2026-02-24 (a)", size: "11.6 GB")),
+            section(
+                "Archives", symbol: "archivebox.fill", tint: .pink, share: archivesShare,
+                holding: row(named: "Communite Test 2.0.0 (697) — 24 Sep 2026", size: "11.2 GB")),
+            section(
+                "Xcode versions", symbol: "hammer.fill", tint: .teal, share: copiesShare,
+                holding: row(named: "Xcode 27.1 (27A9268) — Desktop", size: "7.9 GB")),
+        ]
+    }
+
+    func section(_ name: String, symbol: String, tint: LeftoverSection.Tint, share: Double, holding only: LeftoverRow) -> LeftoverSection {
+        LeftoverSection(id: name, name: name, symbol: symbol, tint: tint, size: only.size, share: share, rows: [only])
+    }
 
     var simulators: LeftoverSection {
         let shareOfTheRoom = 0.54
@@ -108,7 +147,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Simulators",
             name: "Simulators",
             symbol: "iphone",
-            tint: .accent,
+            tint: .orange,
             size: "79.8 GB",
             share: shareOfTheRoom,
             rows: [
@@ -117,13 +156,13 @@ private extension LeftoverListViewSnapshotTests {
             ])
     }
 
-    func caches(tinted tint: LeftoverSection.Tint) -> LeftoverSection {
+    var caches: LeftoverSection {
         let shareOfTheRoom = 0.38
         return LeftoverSection(
             id: "Caches and support files",
             name: "Caches and support files",
             symbol: "folder.fill",
-            tint: tint,
+            tint: .blue,
             size: "68.0 GB",
             share: shareOfTheRoom,
             rows: [
@@ -139,7 +178,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Xcode versions",
             name: "Xcode versions",
             symbol: "hammer.fill",
-            tint: .orange,
+            tint: .teal,
             size: "11.8 GB",
             share: shareOfTheRoom,
             rows: [
@@ -154,7 +193,7 @@ private extension LeftoverListViewSnapshotTests {
             id: "Caches and support files",
             name: "Caches and support files",
             symbol: "folder.fill",
-            tint: .accent,
+            tint: .blue,
             size: "68.0 GB",
             share: 1,
             rows: [

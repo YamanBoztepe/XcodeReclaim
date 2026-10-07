@@ -1,9 +1,11 @@
 import XcodeReclaimCore
 
 final class LatestMeasuringDecorator {
+    final class Ticket {}
+
     private let announcing: (Leftover.Kind, Leftover.Place) -> Void
     private let delivering: ([Leftover]) -> Void
-    private var latestMeasuring = 0
+    private var latestTicket: Ticket?
 
     init(
         announcing: @escaping (Leftover.Kind, Leftover.Place) -> Void,
@@ -13,19 +15,20 @@ final class LatestMeasuringDecorator {
         self.delivering = delivering
     }
 
-    func beginMeasuring() -> Int {
-        latestMeasuring += 1
-        return latestMeasuring
+    func beginMeasuring() -> Ticket {
+        let ticket = Ticket()
+        latestTicket = ticket
+        return ticket
     }
 
-    func announce(_ kind: Leftover.Kind, at place: Leftover.Place, from measuring: Int) {
-        guard measuring == latestMeasuring else { return }
+    func announce(_ kind: Leftover.Kind, at place: Leftover.Place, from ticket: Ticket) {
+        guard ticket === latestTicket else { return }
 
         announcing(kind, place)
     }
 
-    func deliver(_ leftovers: [Leftover], from measuring: Int) {
-        guard measuring == latestMeasuring else { return }
+    func deliver(_ leftovers: [Leftover], from ticket: Ticket) {
+        guard ticket === latestTicket else { return }
 
         delivering(leftovers)
     }

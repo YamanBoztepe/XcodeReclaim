@@ -87,9 +87,13 @@ private extension MeasureLeftoversDeviceSupportTests {
         let disk = WorldSpy()
         let sut = MeasureLeftovers(
             developerFolder: DeveloperFolder.root,
+            cachesFolder: DeveloperFolder.caches,
             disk: disk,
             simulatorService: SimulatorServiceSpy(),
+            runtimeService: RuntimeServiceSpy(),
             xcodeCopyLoader: XcodeCopyLoaderStub(),
+            archiveLoader: ArchiveLoaderStub(),
+            toolchainLoader: ToolchainLoaderStub(),
             worthDeleting: worthDeleting)
         return (sut, disk)
     }
