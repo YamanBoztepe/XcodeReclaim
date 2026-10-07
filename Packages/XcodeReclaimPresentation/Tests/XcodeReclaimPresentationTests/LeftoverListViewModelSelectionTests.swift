@@ -78,16 +78,20 @@ final class LeftoverListViewModelSelectionTests {
     @Test
     func confirm_asksForTheDeletionsOneAfterAnother() {
         let (sut, requests) = makeSUT()
-        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
-        sut.askAboutDeleting(rowsNamed: "Derived data", "Previews")
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200), documentationCache(taking: 100)])
+        sut.askAboutDeleting(rowsNamed: "Derived data", "Previews", "Documentation cache")
 
         sut.confirm()
         #expect(requests.deletions.map(\.kind) == [.derivedData])
-        #expect(sut.namesBeingDeleted == ["Derived data", "Previews"])
+        #expect(sut.namesBeingDeleted == ["Derived data", "Previews", "Documentation cache"])
 
         sut.deletionEnded(with: .freed(300))
         #expect(requests.deletions.map(\.kind) == [.derivedData, .previews])
-        #expect(sut.namesBeingDeleted == ["Previews"])
+        #expect(sut.namesBeingDeleted == ["Previews", "Documentation cache"])
+
+        sut.deletionEnded(with: .freed(200))
+        #expect(requests.deletions.map(\.kind) == [.derivedData, .previews, .documentationCache])
+        #expect(sut.namesBeingDeleted == ["Documentation cache"])
     }
 
     @Test
