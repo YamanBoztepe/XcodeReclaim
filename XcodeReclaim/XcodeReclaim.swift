@@ -1,6 +1,7 @@
 import Foundation
 import XcodeReclaimCore
 import XcodeReclaimEngine
+import XcodeReclaimInfra
 
 public struct XcodeReclaim: Sendable {
     public typealias DiskFactory = @Sendable () -> any MeasureLeftovers.Disk & DeleteLeftover.Disk
@@ -9,6 +10,7 @@ public struct XcodeReclaim: Sendable {
     public typealias XcodeCopyLoaderFactory = @Sendable () -> any XcodeCopyLoader
     public typealias ArchiveLoaderFactory = @Sendable () -> any ArchiveLoader
     public typealias ToolchainLoaderFactory = @Sendable () -> any ToolchainLoader
+    public typealias CommandRunnerFactory = @Sendable () -> any CommandRunner
 
     private let developerFolder: URL
     private let cachesFolder: URL
@@ -43,6 +45,20 @@ public struct XcodeReclaim: Sendable {
         self.archiveLoader = archiveLoader
         self.toolchainLoader = toolchainLoader
         self.calendar = calendar
+    }
+
+    public init(places: XcodeLocations, disk: @escaping DiskFactory, commandRunner: @escaping CommandRunnerFactory) {
+        self.init(
+            developerFolder: places.developerFolder,
+            cachesFolder: places.cachesFolder,
+            worthDeleting: places.worthDeleting,
+            disk: disk,
+            simulatorService: { SimctlSimulatorService(commandRunner: commandRunner()) },
+            runtimeService: { SimctlRuntimeService(commandRunner: commandRunner()) },
+            xcodeCopyLoader: { SystemXcodeCopyLoader(commandRunner: commandRunner(), disk: disk(), applicationsFolder: places.applicationsFolder) },
+            archiveLoader: { LocalArchiveLoader(disk: disk(), archivesFolder: places.archivesFolder) },
+            toolchainLoader: { LocalToolchainLoader(disk: disk(), toolchainsFolder: places.toolchainsFolder) },
+            calendar: places.calendar)
     }
 
     @MainActor public func leftoverList() -> LeftoverListContainerView {

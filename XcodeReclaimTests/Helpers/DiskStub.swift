@@ -3,6 +3,7 @@ import XcodeReclaimEngine
 
 struct DiskStub: FolderSizer, FolderLister, RemovalChecker, ItemRemover, Sendable {
     let holding: [URL: Int]
+    var listing: [URL: [URL]] = [:]
     var removesAnything = true
 
     func bytesUsedByFolder(at url: URL) -> Int {
@@ -10,7 +11,7 @@ struct DiskStub: FolderSizer, FolderLister, RemovalChecker, ItemRemover, Sendabl
     }
 
     func foldersInside(_ url: URL) -> [URL] {
-        []
+        listing[url, default: []]
     }
 
     func canRemoveItem(at url: URL) -> Bool { true }

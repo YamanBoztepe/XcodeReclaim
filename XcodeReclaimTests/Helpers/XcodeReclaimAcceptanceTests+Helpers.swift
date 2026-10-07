@@ -41,3 +41,8 @@ func appMeasuring(
     )
     .leftoverList()
 }
+
+@MainActor
+func appReading(_ places: XcodeLocations, throughDisk disk: DiskStub, answering answers: [String: String]) -> LeftoverListContainerView {
+    XcodeReclaim(places: places, disk: { disk }, commandRunner: { CommandRunnerStub(answers: answers) }).leftoverList()
+}

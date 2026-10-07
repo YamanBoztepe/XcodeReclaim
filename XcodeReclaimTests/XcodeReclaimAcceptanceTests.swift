@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import Testing
+import XcodeReclaim
 
 @MainActor
 struct XcodeReclaimAcceptanceTests {
@@ -118,6 +119,38 @@ struct XcodeReclaimAcceptanceTests {
         await app.waitForMeasuringToEnd()
 
         #expect(app.shownLeftovers == ["Swift package cache — 300 bytes", "Swift 6.2.4 Release 2026-02-24 (a) — 200 bytes"])
+    }
+
+    @Test func open_findsWhatEachPlaceOnTheMachineHolds() async {
+        let aGigabyte = 1_000_000_000
+        let places = XcodeLocations.forUser(at: URL(filePath: "/Users/developer"))
+        let day = places.archivesFolder.appending(path: "2026-09-16")
+        let archive = day.appending(path: "Communite Test 676.xcarchive")
+        let toolchain = places.toolchainsFolder.appending(path: "swift-6.2.4-RELEASE.xctoolchain")
+        let copy = URL(filePath: "/Volumes/Older Xcodes/Xcode.app")
+        let disk = DiskStub(
+            holding: [
+                places.developerFolder.appending(path: "Xcode/DerivedData"): aGigabyte,
+                places.developerFolder.appending(path: "Xcode/UserData/Previews"): places.worthDeleting - 1,
+                places.cachesFolder.appending(path: "org.swift.swiftpm"): aGigabyte * 3 / 2,
+                archive: aGigabyte * 2,
+                toolchain: aGigabyte * 3,
+                copy: aGigabyte * 4,
+            ],
+            listing: [places.archivesFolder: [day], day: [archive], places.toolchainsFolder: [toolchain]])
+        let app = appReading(places, throughDisk: disk, answering: ["mdfind": copy.path(percentEncoded: false)])
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(
+            app.shownLeftovers == [
+                "Xcode — Older Xcodes — 4.0 GB",
+                "swift-6.2.4-RELEASE — 3.0 GB",
+                "Swift package cache — 1.5 GB",
+                "Derived data — 1.0 GB",
+                "Communite Test 676 — 2.0 GB",
+            ])
     }
 
     @Test func confirm_takesEveryChosenLeftoverOffTheScreenAndAddsUpWhatCameBack() async throws {
