@@ -14,3 +14,8 @@ func screenMeasuring(_ machine: SlowMachineStub) -> LeftoverListContainerView {
 func screenMeasuring(_ machine: MachineThreadSpy) -> LeftoverListContainerView {
     LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: MachineStub().deleting, calendar: calendarInGreenwich)
 }
+
+@MainActor
+func screenMeasuring(_ machine: LateAnnouncingMachineStub) -> LeftoverListContainerView {
+    LeftoverListUIComposer.screen(measuring: machine.measuring, deleting: machine.deleting, calendar: calendarInGreenwich)
+}
