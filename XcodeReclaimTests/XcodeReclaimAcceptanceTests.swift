@@ -153,6 +153,19 @@ struct XcodeReclaimAcceptanceTests {
             ])
     }
 
+    @Test func open_readsTheApplicationsFolderWhenTheSearchFindsNoCopy() async {
+        let places = XcodeLocations.forUser(at: URL(filePath: "/Users/developer"))
+        let copy = XcodeBundleOnDisk.made(carryingVersion: "26.2", build: "17C51", inFolderNamed: "Applications")
+        defer { XcodeBundleOnDisk.throwAway(copy) }
+        let disk = DiskStub(holding: [copy: places.worthDeleting], listing: [places.applicationsFolder: [copy]])
+        let app = appReading(places, throughDisk: disk, answering: [:])
+
+        app.open()
+        await app.waitForMeasuringToEnd()
+
+        #expect(app.shownLeftovers == ["Xcode 26.2 (17C51) — Applications — 100.0 MB"])
+    }
+
     @Test func confirm_takesEveryChosenLeftoverOffTheScreenAndAddsUpWhatCameBack() async throws {
         let app = appMeasuring(foldersHolding: [derivedDataFolder: 300, previewsFolder: 200], simulatorsTaking: [100])
         app.open()
