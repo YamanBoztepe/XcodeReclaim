@@ -61,6 +61,12 @@ struct LeftoverListViewSnapshotTests {
     }
 
     @Test
+    func draws_theKeyOfSixSectionsInColumns() {
+        makeSUT(showing: LeftoverListUIModel(title: "188.8 GB to reclaim", isMeasuring: false, sections: sixKindsOfSection))
+            .verify(named: "LEFTOVER_LIST_WITH_SIX_SECTIONS")
+    }
+
+    @Test
     func draws_theScreenSqueezedToItsNarrowestWindow() {
         let narrowestWindow = CGSize(width: 460, height: 640)
 
@@ -101,6 +107,39 @@ private extension LeftoverListViewSnapshotTests {
     }
 
     var everyKindOfSection: [LeftoverSection] { [simulators, caches, xcodeVersions] }
+
+    var sixKindsOfSection: [LeftoverSection] {
+        let runtimesShare = 0.47
+        let cachesShare = 0.30
+        let simulatorsShare = 0.07
+        let toolchainsShare = 0.06
+        let archivesShare = 0.06
+        let copiesShare = 0.04
+        return [
+            section(
+                "Simulator runtimes", symbol: "square.stack.3d.up.fill", tint: .purple, share: runtimesShare,
+                holding: row(named: "iOS 26.2 (23C54) — last used 1 Oct 2026", size: "88.9 GB")),
+            section(
+                "Caches and support files", symbol: "folder.fill", tint: .blue, share: cachesShare,
+                holding: row(named: "Derived data", size: "56.4 GB")),
+            section(
+                "Simulators", symbol: "iphone", tint: .orange, share: simulatorsShare,
+                holding: row(named: "iPhone 17 (iOS 26.4, 4D6D570A)", size: "12.8 GB")),
+            section(
+                "Swift toolchains", symbol: "swift", tint: .green, share: toolchainsShare,
+                holding: row(named: "Swift 6.2.4 Release 2026-02-24 (a)", size: "11.6 GB")),
+            section(
+                "Archives", symbol: "archivebox.fill", tint: .pink, share: archivesShare,
+                holding: row(named: "Communite Test 2.0.0 (697) — 24 Sep 2026", size: "11.2 GB")),
+            section(
+                "Xcode versions", symbol: "hammer.fill", tint: .teal, share: copiesShare,
+                holding: row(named: "Xcode 27.1 (27A9268) — Desktop", size: "7.9 GB")),
+        ]
+    }
+
+    func section(_ name: String, symbol: String, tint: LeftoverSection.Tint, share: Double, holding only: LeftoverRow) -> LeftoverSection {
+        LeftoverSection(id: name, name: name, symbol: symbol, tint: tint, size: only.size, share: share, rows: [only])
+    }
 
     var simulators: LeftoverSection {
         let shareOfTheRoom = 0.54
