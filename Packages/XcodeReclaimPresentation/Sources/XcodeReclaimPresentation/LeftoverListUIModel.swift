@@ -31,6 +31,7 @@ public struct LeftoverListUIModel: Equatable {
     public let leftoverBeingMeasured: String?
     public let nothingToDelete: Bool
     public let deletionMessage: String?
+    public let deletionUnderWay: String?
     public let sections: [LeftoverSection]
     public let selection: Set<String>
     public let sorting: Sorting
@@ -43,6 +44,7 @@ public struct LeftoverListUIModel: Equatable {
         leftoverBeingMeasured: String? = nil,
         nothingToDelete: Bool = false,
         deletionMessage: String? = nil,
+        deletionUnderWay: String? = nil,
         sections: [LeftoverSection] = [],
         selection: Set<String> = [],
         sorting: Sorting = .biggestFirst,
@@ -54,6 +56,7 @@ public struct LeftoverListUIModel: Equatable {
         self.leftoverBeingMeasured = leftoverBeingMeasured
         self.nothingToDelete = nothingToDelete
         self.deletionMessage = deletionMessage
+        self.deletionUnderWay = deletionUnderWay
         self.sections = sections
         self.selection = selection
         self.sorting = sorting

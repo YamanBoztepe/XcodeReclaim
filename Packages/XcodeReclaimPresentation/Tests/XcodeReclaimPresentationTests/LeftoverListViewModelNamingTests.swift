@@ -174,6 +174,18 @@ final class LeftoverListViewModelNamingTests {
 
         #expect(sut.uiModel.confirmation?.sentence == "Frees 200 bytes. \(whatItCosts) This cannot be undone.")
     }
+
+    @Test("A row says under its name only why it cannot be deleted")
+    func measuringEnded_saysUnderARowsNameOnlyWhyItCannotBeDeleted() {
+        let sut = makeSUT()
+
+        sut.measuringEnded(with: [
+            deviceSupport(for: "26.4", taking: 300),
+            simulator(taking: 200, refusedFor: .simulatorIsRunning),
+        ])
+
+        #expect(sut.shownRows.map(\.refusal) == [nil, "The simulator is running."])
+    }
 }
 
 private extension LeftoverListViewModelNamingTests {

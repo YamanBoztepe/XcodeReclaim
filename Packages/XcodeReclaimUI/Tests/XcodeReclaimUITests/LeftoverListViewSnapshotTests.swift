@@ -29,10 +29,27 @@ struct LeftoverListViewSnapshotTests {
             .verify(named: "LEFTOVER_LIST_WITH_NOTHING_TO_DELETE")
     }
 
-    @Test("A screen with a deletion under way marks the row and offers no other deletion")
+    @Test("A screen with a deletion under way says so above the list, marks the row and offers no other deletion")
     func draws_theScreenWithADeletionUnderWay() {
-        makeSUT(showing: LeftoverListUIModel(title: "147.8 GB to reclaim", isMeasuring: false, sections: [cachesWithADeletionUnderWay]))
-            .verify(named: "LEFTOVER_LIST_WITH_A_DELETION_UNDER_WAY")
+        makeSUT(
+            showing: LeftoverListUIModel(
+                title: "Deleting…",
+                isMeasuring: false,
+                deletionUnderWay: "Deleting Derived data…",
+                sections: [cachesWithADeletionUnderWay])
+        )
+        .verify(named: "LEFTOVER_LIST_WITH_A_DELETION_UNDER_WAY")
+    }
+
+    @Test
+    func draws_theScreenMeasuringAgainWhileADeletionIsUnderWay() {
+        makeSUT(
+            showing: LeftoverListUIModel(
+                title: "Measuring…",
+                isMeasuring: true,
+                deletionUnderWay: "Deleting Derived data…")
+        )
+        .verify(named: "LEFTOVER_LIST_MEASURING_WHILE_A_DELETION_IS_UNDER_WAY")
     }
 
     @Test("A screen after a deletion says what came back")

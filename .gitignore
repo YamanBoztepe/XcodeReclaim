@@ -20,3 +20,5 @@ mutants/
 discipline/
 readings.md
 requirements.md
+.atlas/
+atlas.json

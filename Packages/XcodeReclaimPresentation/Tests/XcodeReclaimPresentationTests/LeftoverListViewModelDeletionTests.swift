@@ -112,6 +112,26 @@ final class LeftoverListViewModelDeletionTests {
         #expect(sut.shownRows.map(\.canBeDeleted) == [true])
     }
 
+    @Test("A deletion under way says so above the list")
+    func confirm_saysAboveTheListWhatIsBeingDeletedAndHowManyWaitBehindIt() {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200), documentationCache(taking: 100)])
+        sut.askAboutDeleting(rowsNamed: "Documentation cache")
+        sut.confirm()
+        sut.deletionEnded(with: .freed(100))
+        sut.askAboutDeleting(rowsNamed: "Derived data", "Previews")
+
+        sut.confirm()
+        #expect(sut.uiModel.deletionUnderWay == "Deleting Derived data and 1 more…")
+        #expect(sut.uiModel.deletionMessage == nil)
+
+        sut.deletionEnded(with: .freed(300))
+        #expect(sut.uiModel.deletionUnderWay == "Deleting Previews…")
+
+        sut.deletionEnded(with: .freed(200))
+        #expect(sut.uiModel.deletionUnderWay == nil)
+    }
+
     @Test("A deletion refused because the simulator is running says so")
     func deletionEnded_saysTheSimulatorIsRunningWhenTheDeletionWasRefused() throws {
         let (sut, _) = makeSUT()
@@ -261,18 +281,6 @@ final class LeftoverListViewModelDeletionTests {
         sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
 
         #expect(sut.uiModel.confirmation?.sentence == "Frees 28.4 GB. This cannot be undone.")
-    }
-
-    @Test("A row says under its name only why it cannot be deleted")
-    func measuringEnded_saysUnderARowsNameOnlyWhyItCannotBeDeleted() {
-        let (sut, _) = makeSUT()
-
-        sut.measuringEnded(with: [
-            deviceSupport(for: "26.4", taking: 300),
-            simulator(taking: 200, refusedFor: .simulatorIsRunning),
-        ])
-
-        #expect(sut.shownRows.map(\.refusal) == [nil, "The simulator is running."])
     }
 
     @Test("A copy of Xcode that is open offers no deletion")

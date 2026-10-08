@@ -109,6 +109,19 @@ final class LeftoverListViewModelTests {
         #expect(sut.uiModel.title == "300 bytes to reclaim")
     }
 
+    @Test("The title says a deletion is under way")
+    func confirm_saysInTheTitleThatADeletionIsUnderWayUntilItEnds() throws {
+        let (sut, _) = makeSUT()
+        sut.measuringEnded(with: [derivedData(taking: 300), previews(taking: 200)])
+        sut.askAboutDeleting(try #require(sut.uiModel.sections.first?.rows.first))
+
+        sut.confirm()
+        #expect(sut.uiModel.title == "Deleting…")
+
+        sut.deletionEnded(with: .freed(300))
+        #expect(sut.uiModel.title == "200 bytes to reclaim")
+    }
+
     @Test("A refresh says nothing about the deletion before it")
     func refresh_saysNothingAboutTheDeletionBeforeIt() throws {
         let (sut, _) = makeSUT()
