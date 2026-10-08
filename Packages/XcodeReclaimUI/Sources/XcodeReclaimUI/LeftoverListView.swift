@@ -81,7 +81,7 @@ public struct LeftoverListView: View {
 }
 
 private extension LeftoverListUIModel {
-    var saysAnythingAboveTheList: Bool { !sections.isEmpty || deletionMessage != nil }
+    var saysAnythingAboveTheList: Bool { !sections.isEmpty || deletionUnderWay != nil || deletionMessage != nil }
 }
 
 private extension LeftoverSection.Tint {
@@ -112,6 +112,14 @@ private extension LeftoverListView {
             if !model.sections.isEmpty {
                 capacityBar
                 legend
+            }
+
+            if let underWay = model.deletionUnderWay {
+                HStack(spacing: Layout.besideSymbol) {
+                    ProgressView().controlSize(.small)
+                    Text(underWay).font(.callout)
+                }
+                .accessibilityElement(children: .combine)
             }
 
             if let message = model.deletionMessage {

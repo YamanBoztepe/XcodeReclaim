@@ -44,6 +44,7 @@ struct LeftoverList {
             leftoverBeingMeasured: beingMeasured.map { name(of: $0.kind, at: $0.place) },
             nothingToDelete: !isMeasuring && sections.isEmpty,
             deletionMessage: deletionMessage,
+            deletionUnderWay: sentenceAboutTheDeletionUnderWay(),
             sections: drawn(sections),
             selection: selected,
             sorting: sorting,
@@ -86,6 +87,7 @@ extension LeftoverList {
         beingDeleted = beingConfirmed
         beingConfirmed = []
         confirmation = nil
+        deletionMessage = nil
         roomThatCameBack = 0
         whatWentWrong = []
     }
@@ -202,6 +204,7 @@ private extension LeftoverList {
 
     func title(over roomToReclaim: Int) -> String {
         guard !isMeasuring else { return "Measuring…" }
+        guard beingDeleted.isEmpty else { return "Deleting…" }
         guard !held.isEmpty else { return "" }
 
         return "\(ByteCountFormat.written(roomToReclaim)) to reclaim"
@@ -371,6 +374,14 @@ private extension LeftoverList {
 
     func partialSentence(about deleted: Leftover, why: String) -> String {
         "\(name(of: deleted)) was only partly deleted. \(why)"
+    }
+
+    func sentenceAboutTheDeletionUnderWay() -> String? {
+        guard let underWay = beingDeleted.first else { return nil }
+        let waiting = beingDeleted.count - 1
+        guard waiting > 0 else { return "Deleting \(name(of: underWay))…" }
+
+        return "Deleting \(name(of: underWay)) and \(waiting) more…"
     }
 
     func deletionSentence(over roomThatCameBack: Int, andWhatWentWrong wrong: [String]) -> String? {
